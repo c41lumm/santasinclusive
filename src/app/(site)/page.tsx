@@ -254,22 +254,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           <a className="btn" href={site.directions}>Get directions<span className="visually-hidden"> (opens Google Maps)</span></a>
         </div>
         <div className="map" style={{ flex: '1 1 440px', minWidth: 0 }}>
-          <svg viewBox="0 0 600 420" role="img" aria-label="Map showing 20 Freeschool Lane in Leicester city centre">
-            <rect width="600" height="420" fill="#EFE7D6" />
-            <rect x="40" y="36" width="150" height="110" rx="14" fill="#DCEBDF" />
-            <rect x="420" y="282" width="140" height="104" rx="14" fill="#DCEBDF" />
-            <path d="M0 200 L600 162" stroke="#FFFFFF" strokeWidth="26" strokeLinecap="round" />
-            <path d="M300 0 L270 420" stroke="#FFFFFF" strokeWidth="22" strokeLinecap="round" />
-            <path d="M0 326 L600 346" stroke="#FFFFFF" strokeWidth="14" strokeLinecap="round" />
-            <path d="M120 0 L150 420" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
-            <path d="M470 0 L450 420" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
-            <circle cx="288" cy="182" r="36" fill="#DE000C" fillOpacity="0.16" />
-            <path d="M288 206 C262 174 256 162 256 148 a32 32 0 1 1 64 0 C320 162 314 174 288 206z" fill="#C8000B" />
-            <circle cx="288" cy="148" r="12" fill="#FFFFFF" />
-            <rect x="332" y="118" width="230" height="58" rx="14" fill="#FFFFFF" />
-            <text x="350" y="144" fontFamily="Atkinson Hyperlegible, sans-serif" fontWeight="700" fontSize="17" fill="#1E2B2A">Santa&apos;s Inclusive Grotto</text>
-            <text x="350" y="165" fontFamily="Atkinson Hyperlegible, sans-serif" fontSize="14" fill="#45524F">20 Freeschool Lane, LE1 4FY</text>
-          </svg>
+          {/* OpenStreetMap: free, no key and no tracking cookies, so no cookie banner is needed */}
+          <iframe title={`Map showing ${site.address}`} src={site.map.embed} loading="lazy" referrerPolicy="no-referrer"
+            style={{ display: 'block', width: '100%', height: 420, border: 0 }} />
+          <p className="small" style={{ margin: 0, padding: '10px 16px', background: '#fff' }}>
+            <a href={site.map.link}>View a larger map</a> · <a href={site.directions}>Get directions</a>
+          </p>
         </div>
       </section>
 
