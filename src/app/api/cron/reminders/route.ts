@@ -1,4 +1,4 @@
-import { serviceClient } from '@/lib/supabase/server';
+import { db } from '@/lib/db';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
 import { visitWhen } from '@/lib/dates';
@@ -16,32 +16,38 @@ const rounds = [
   { from: 1, to: 2, column: 'reminder_48h_at', template: 'confirm48h' },
 ] as const;
 
+type Due = {
+  id: string; manage_token: string; reference: string; details_complete: boolean; first_name: string | null;
+  email: string | null; phone: string | null; channels: ('email' | 'sms' | 'whatsapp')[]; day: string; starts_at: string;
+};
+
 export async function GET(req: Request) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) return new Response('Unauthorised', { status: 401 });
-  const db = serviceClient();
+  const sql = db();
   const today = ukToday();
-  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   let count = 0;
 
   for (const { from, to, column, template } of rounds) {
-    const { data } = await db.from('bookings')
-      .select('id, manage_token, reference, details_complete, households(email, phone, channels), slots!inner(day, starts_at), visitors(first_name, kind)')
-      .eq('status', 'confirmed').is(column, null).lt('created_at', dayAgo)
-      .gte('slots.day', addDays(today, from)).lte('slots.day', addDays(today, to));
-    for (const b of data ?? []) {
-      const h = b.households as unknown as { email: string | null; phone: string | null; channels: ('email' | 'sms' | 'whatsapp')[] } | null;
-      if (!h) continue;
-      const s = b.slots as unknown as { day: string; starts_at: string };
-      const name = (b.visitors as { first_name: string; kind: string }[]).find((v) => v.kind === 'visitor')?.first_name ?? 'your visitor';
-      const visit = { name, when: visitWhen(s.day, s.starts_at), token: b.manage_token, reference: b.reference };
-      const to = { email: h.email, phone: h.phone, channels: h.channels };
-      const results = await send(to, templates[template](visit), { booking_id: b.id, template });
+    // column comes from the fixed list above, never from the request
+    const due = await sql.query(`
+      select b.id, b.manage_token, b.reference, b.details_complete,
+             (select v.first_name from visitors v where v.booking_id = b.id and v.kind = 'visitor' order by v.created_at limit 1) as first_name,
+             h.email::text as email, h.phone, h.channels::text[] as channels, sl.day::text as day, sl.starts_at::text as starts_at
+      from bookings b
+      join slots sl on sl.id = b.slot_id
+      join households h on h.id = b.household_id
+      where b.status = 'confirmed' and b.${column} is null and b.created_at < now() - interval '1 day'
+        and sl.day between $1 and $2`, [addDays(today, from), addDays(today, to)]) as Due[];
+    for (const b of due) {
+      const visit = { name: b.first_name ?? 'your visitor', when: visitWhen(b.day, b.starts_at), token: b.manage_token, reference: b.reference };
+      const recipient = { email: b.email, phone: b.phone, channels: b.channels };
+      const results = await send(recipient, templates[template](visit), { booking_id: b.id, template });
       if (template === 'reminder7d' && !b.details_complete) {
-        await send(to, templates.missingDetails(visit), { booking_id: b.id, template: 'missingDetails' });
+        await send(recipient, templates.missingDetails(visit), { booking_id: b.id, template: 'missingDetails' });
       }
       // Only mark it done if it reached them on at least one channel; otherwise try again tomorrow
       if (results.length && !results.some((r) => r.ok)) continue;
-      await db.from('bookings').update({ [column]: new Date().toISOString() }).eq('id', b.id);
+      await sql.query(`update bookings set ${column} = now() where id = $1`, [b.id]);
       count++;
     }
   }

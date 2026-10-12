@@ -1,9 +1,32 @@
 -- Santa's Inclusive Grotto: database and booking engine
--- Run on Supabase (Postgres 15+). Region: choose London (eu-west-2) for UK data.
+-- Run on Neon (Postgres 16+), in the AWS London region (aws-eu-west-2) so UK data stays in the UK.
 
 create extension if not exists pgcrypto;
 create extension if not exists citext;
 create extension if not exists pg_trgm;
+
+-- ---------------------------------------------------------------
+-- Who is asking
+-- ---------------------------------------------------------------
+-- The server (src/lib/db.ts) runs each public or staff request in a transaction as one of these roles,
+-- with request.jwt.claims set to {"role": ..., "sub": <Neon Auth user id>}:
+--   anon           public pages (families)
+--   authenticated  signed-in staff (admin, lead elf, elf, Santa)
+-- Scheduled jobs and the booking form run as the database owner with neither set, as does the Neon SQL editor.
+do $$ begin
+  if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
+  if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+end $$;
+grant anon, authenticated to current_user;
+
+create schema app;
+create function app.claims() returns jsonb language sql stable as $$
+  select nullif(current_setting('request.jwt.claims', true), '')::jsonb
+$$;
+-- The signed-in staff member's Neon Auth user id (neon_auth."user".id), or null
+create function app.uid() returns uuid language sql stable as $$ select (app.claims()->>'sub')::uuid $$;
+create function app.role() returns text language sql stable as $$ select app.claims()->>'role' $$;
+grant usage on schema app to anon, authenticated;
 
 -- ---------------------------------------------------------------
 -- Types
@@ -24,7 +47,7 @@ create type dup_status      as enum ('open', 'not_duplicate', 'cancelled_newer',
 -- Staff and roles
 -- ---------------------------------------------------------------
 create table staff (
-  user_id    uuid primary key references auth.users on delete cascade,
+  user_id    uuid primary key,  -- Neon Auth user id (neon_auth."user".id); no foreign key, as Neon Auth manages that schema
   name       text not null,
   role       staff_role not null,
   phone      text,
@@ -33,14 +56,15 @@ create table staff (
 
 create function my_role() returns staff_role
 language sql stable security definer set search_path = public as $$
-  select role from staff where user_id = auth.uid()
+  select role from staff where user_id = app.uid()
 $$;
 create function is_admin() returns boolean language sql stable as $$ select coalesce(my_role() = 'admin', false) $$;
 create function is_lead()  returns boolean language sql stable as $$ select coalesce(my_role() in ('admin', 'lead_elf'), false) $$;
 create function is_staff() returns boolean language sql stable as $$ select my_role() is not null $$;
--- The server (service key), or someone in the Supabase SQL editor (connected as postgres, no signed-in user)
+-- The server's own jobs, or someone in the Neon SQL editor: no request role switched to and no claims set.
+-- current_setting('role') still shows the switched role inside security definer functions.
 create function is_server() returns boolean language sql stable as $$
-  select coalesce(auth.role() = 'service_role', false) or session_user in ('postgres', 'supabase_admin')
+  select current_setting('role') = 'none' and app.claims() is null
 $$;
 
 -- ---------------------------------------------------------------
@@ -239,7 +263,7 @@ create table duplicate_candidates (
   reasons    text[] not null,
   score      int not null,
   status     dup_status not null default 'open',
-  decided_by uuid references auth.users,
+  decided_by uuid,
   decided_at timestamptz,
   created_at timestamptz not null default now(),
   unique (booking_a, booking_b),
@@ -253,7 +277,7 @@ create table flags (
   label      text not null,
   reason     flag_reason not null,
   note       text not null,  -- what happened or was said, never a guess from appearance
-  created_by uuid references auth.users,
+  created_by uuid,
   review_by  date not null,
   active     boolean not null default true,
   created_at timestamptz not null default now(),
@@ -279,9 +303,9 @@ create table stock_orders (
   qty_ordered  int  not null check (qty_ordered > 0),
   qty_received int  not null default 0 check (qty_received >= 0),
   status       text not null default 'on_the_way' check (status in ('on_the_way', 'received', 'short')),
-  received_by  uuid references auth.users,
+  received_by  uuid,
   received_at  timestamptz,
-  created_by   uuid references auth.users,
+  created_by   uuid,
   created_at   timestamptz not null default now()
 );
 
@@ -289,7 +313,7 @@ create table gift_handouts (
   id         uuid primary key default gen_random_uuid(),
   gift_id    uuid not null references gifts(id),
   visitor_id uuid references visitors(id) on delete set null,
-  given_by   uuid references auth.users,
+  given_by   uuid,
   given_at   timestamptz not null default now()
 );
 
@@ -311,7 +335,7 @@ where is_staff();
 -- ---------------------------------------------------------------
 create table volunteers (
   id              uuid primary key default gen_random_uuid(),
-  user_id         uuid unique references auth.users,
+  user_id         uuid unique,  -- Neon Auth user id once they have an account
   name            text not null,
   email           citext not null,
   phone           text not null,
@@ -376,7 +400,7 @@ create table photos (
   storage_path text not null,
   booking_id   uuid references bookings(id) on delete set null,
   consent      photo_consent not null,  -- copied at upload so it is clear what was agreed
-  uploaded_by  uuid references auth.users,
+  uploaded_by  uuid,
   created_at   timestamptz not null default now(),
   check (consent <> 'none')
 );
@@ -724,7 +748,7 @@ create function check_in_delivery(p_order uuid, p_qty int) returns void
 language plpgsql security definer set search_path = public as $$
 begin
   if not is_staff() then raise exception 'NOT_ALLOWED'; end if;
-  update stock_orders set qty_received = p_qty, received_at = now(), received_by = auth.uid(),
+  update stock_orders set qty_received = p_qty, received_at = now(), received_by = app.uid(),
          status = case when p_qty < qty_ordered then 'short' else 'received' end
   where id = p_order and status = 'on_the_way';
   if not found then raise exception 'NOT_FOUND'; end if;
@@ -740,7 +764,7 @@ begin
   select coalesce(sum(qty_received), 0) - (select count(*) from gift_handouts where gift_id = p_gift)
     into v_left from stock_orders where gift_id = p_gift;
   if v_left <= 0 then raise exception 'OUT_OF_STOCK'; end if;
-  insert into gift_handouts (gift_id, visitor_id, given_by) values (p_gift, p_visitor, auth.uid());
+  insert into gift_handouts (gift_id, visitor_id, given_by) values (p_gift, p_visitor, app.uid());
 end $$;
 
 -- Server only: find a family's existing booking so the link can be sent to their own contact details
@@ -826,7 +850,7 @@ begin
   end loop;
 end $$;
 
-create policy staff_read_self on staff for select to authenticated using (user_id = auth.uid());
+create policy staff_read_self on staff for select to authenticated using (user_id = app.uid());
 create policy staff_read_setup on seasons for select to authenticated using (is_staff());
 create policy staff_read_days on opening_days for select to authenticated using (is_staff());
 create policy staff_read_slots on slots for select to authenticated using (is_staff());
@@ -842,8 +866,8 @@ create policy staff_read_gifts on gifts for select to authenticated using (is_st
 create policy staff_read_orders on stock_orders for select to authenticated using (is_staff());
 create policy staff_read_shifts on shifts for select to authenticated using (is_staff());
 create policy staff_read_assign on shift_assignments for select to authenticated using (is_staff());
-create policy volunteer_read_self on volunteers for select to authenticated using (user_id = auth.uid());
-create policy staff_add_photos on photos for insert to authenticated with check (is_staff() and uploaded_by = auth.uid());
+create policy volunteer_read_self on volunteers for select to authenticated using (user_id = app.uid());
+create policy staff_add_photos on photos for insert to authenticated with check (is_staff() and uploaded_by = app.uid());
 
 -- Public forms can add a row but never read anything back
 create policy public_add on early_alerts for insert to anon, authenticated with check (true);
@@ -852,6 +876,11 @@ create policy public_add on volunteers for insert to anon, authenticated with ch
 create policy public_add on waitlist_entries for insert to anon, authenticated with check (status = 'waiting' and offer_token is null);
 create policy public_add on sponsorships for insert to anon, authenticated with check (status = 'pending' and stripe_session_id is null);
 
+-- Table access for the request roles; row level security decides which rows
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant insert on early_alerts, group_enquiries, volunteers, waitlist_entries, sponsorships to anon;
+
 -- Staff can read bookings but not the private manage link, which would let them change or cancel a visit.
 -- (This applies to admins too: the admin pages fetch a link through the server when one is needed.)
 revoke select on bookings from anon, authenticated;
@@ -859,8 +888,8 @@ grant select (id, reference, season, slot_id, household_id, type, status, reply,
   data_consent_at, details_complete, group_name, group_staff, reminder_7d_at, reminder_48h_at, created_at, cancelled_at)
   on bookings to authenticated;
 
--- Function permissions. Supabase lets anon and signed-in users run every function by default, and anyone
--- can sign up unless sign-ups are turned off, so take that away from everyone and grant only what is needed.
+-- Function permissions. Postgres lets everyone run every function by default, so take that away
+-- and grant only what each role needs.
 revoke execute on all functions in schema public from public, anon, authenticated;
 alter default privileges in schema public revoke execute on functions from public, anon, authenticated;
 
@@ -874,9 +903,9 @@ grant execute on function my_role(), is_admin(), is_lead(), is_staff(), is_serve
 grant execute on function regenerate_slots(date), regenerate_season(int), expire_waitlist_offers(),
   set_visit_stage(uuid, visit_stage), check_in_delivery(uuid, int), give_gift(uuid, uuid), purge_season(int)
   to authenticated;
--- Server only: booking (after the bot check), finding a family's booking, rate limits, and everything else.
--- offer_next_waitlist, find_duplicates_for, slot_taken and slot_starts are only used inside other functions.
-grant execute on all functions in schema public to service_role;
+-- Everything else is server only (it runs as the owner): booking after the bot check, finding a family's
+-- booking, rate limits. offer_next_waitlist, find_duplicates_for, slot_taken and slot_starts are only
+-- used inside other functions.
 
 revoke all on santa_cards, stock_levels from anon;
 grant select on santa_cards, stock_levels to authenticated;
