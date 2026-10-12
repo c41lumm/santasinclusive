@@ -1,7 +1,7 @@
 # Santa's Inclusive Grotto
 
 Website, booking system, admin and elf app for Santa's Inclusive Grotto, Leicester.
-Stack: Next.js 16 (App Router, TypeScript), Neon (Postgres and Neon Auth for staff sign-in, London
+Stack: Next.js 16 (App Router, TypeScript), Neon (Postgres and Neon Auth for staff sign-in, Frankfurt
 region), SendGrid for email, Twilio for text and WhatsApp, hosted on Vercel.
 
 ## What is built so far (phase 1: foundations)
@@ -60,7 +60,7 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
 
 ## Setting up
 
-1. **Neon**: the project is "Santas Inclusive London" (`snowy-salad-03576920`, AWS London), linked in
+1. **Neon**: the project is "Santas Inclusive Frankfurt" (`orange-surf-93156790`, AWS Frankfurt), linked in
    `.neon`, with services declared in `neon.ts`. The migration, `db/seed.sql` and
    `regenerate_season(2026)` have been run on the `main` branch. Set `booking_open` to true in `seasons`
    when you are ready. Locally, `neon env pull` writes the connection details to `.env.local`; add
@@ -93,8 +93,10 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
   about children and adults.
 - Agree retention: run `purge_season(2026)` in January, and delete family-only photo files
   (the purge removes their rows but not the files).
-- Photos (phase 4) need a file store in the UK. Neon's file storage is not offered in London yet, so
-  choose a UK store (for example AWS S3 in eu-west-2) or wait for Neon to add London.
+- Data is hosted in the EU (Frankfurt), which UK GDPR allows without extra safeguards: say "stored in the
+  EU" in the privacy notice and the data protection impact assessment.
+- Photos (phase 4) are planned for Neon file storage (`neon buckets`), in the same Frankfurt project. It
+  is an early-access service, so check it is available to the account before building on it.
 - Check the eligibility, consent and photo wording with your adviser.
 
 ## Next phases

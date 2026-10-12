@@ -1,5 +1,6 @@
 -- Santa's Inclusive Grotto: database and booking engine
--- Run on Neon (Postgres 16+), in the AWS London region (aws-eu-west-2) so UK data stays in the UK.
+-- Run on Neon (Postgres 16+), in AWS Frankfurt (aws-eu-central-1): EU hosting, which UK GDPR allows,
+-- and the region where Neon file storage is available for photos.
 
 create extension if not exists pgcrypto;
 create extension if not exists citext;
