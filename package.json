@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "node db/tests/booking-engine.mjs",
-    "db:migrate": "node --env-file=.env.local db/migrate.mjs"
+    "db:migrate": "node --env-file=.env.local db/migrate.mjs",
+    "test:text": "node --env-file=.env.local scripts/test-text.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.8.6",
