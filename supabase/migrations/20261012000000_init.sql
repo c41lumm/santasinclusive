@@ -38,7 +38,10 @@ $$;
 create function is_admin() returns boolean language sql stable as $$ select coalesce(my_role() = 'admin', false) $$;
 create function is_lead()  returns boolean language sql stable as $$ select coalesce(my_role() in ('admin', 'lead_elf'), false) $$;
 create function is_staff() returns boolean language sql stable as $$ select my_role() is not null $$;
-create function is_server() returns boolean language sql stable as $$ select coalesce(auth.role() = 'service_role', false) $$;
+-- The server (service key), or someone in the Supabase SQL editor (connected as postgres, no signed-in user)
+create function is_server() returns boolean language sql stable as $$
+  select coalesce(auth.role() = 'service_role', false) or session_user in ('postgres', 'supabase_admin')
+$$;
 
 -- ---------------------------------------------------------------
 -- Season, opening hours and slots
@@ -91,6 +94,10 @@ create function norm_phone(p text) returns text language sql immutable as $$
     when regexp_replace(p, '\D', '', 'g') ~ '^0' then '44' || substr(regexp_replace(p, '\D', '', 'g'), 2)
     else regexp_replace(p, '\D', '', 'g') end
 $$;
+-- Texts only go to UK mobiles, so a form cannot be used to send messages abroad at our cost
+create function is_uk_mobile(p text) returns boolean language sql immutable as $$
+  select norm_phone(p) ~ '^447[0-9]{9}$'
+$$;
 create function norm_postcode(p text) returns text language sql immutable as $$
   select nullif(upper(regexp_replace(coalesce(p, ''), '\s', '', 'g')), '')
 $$;
@@ -106,7 +113,8 @@ create table households (
   address_line text,
   channels     channel[] not null default '{email}',
   created_at   timestamptz not null default now(),
-  check (email is not null or phone is not null)
+  check (email is not null or phone is not null),
+  check (phone is null or is_uk_mobile(phone))
 );
 create index households_email_idx on households (email);
 create index households_phone_idx on households (phone_norm);
@@ -118,7 +126,7 @@ create table bookings (
   manage_token     uuid not null unique default gen_random_uuid(),
   season           int  not null references seasons(year),
   slot_id          uuid not null references slots(id),
-  household_id     uuid not null references households(id),
+  household_id     uuid references households(id) on delete set null,  -- null once purge_season removes contact details
   type             visit_type not null default 'family',
   status           booking_status not null default 'confirmed',
   reply            reply_status not null default 'awaiting',
@@ -182,12 +190,15 @@ create table waitlist_entries (
   phone            text,
   channels         channel[] not null default '{sms}',
   eligibility_confirmed boolean not null check (eligibility_confirmed),
+  data_consent     boolean not null check (data_consent),  -- the waitlist form must ask, as the booking form does
   status           waitlist_status not null default 'waiting',
   offer_slot_id    uuid references slots(id),
   offer_token      uuid unique,
+  offer_starts_at  timestamptz,  -- when the hold starts and the offer is messaged (08:00 for overnight offers)
   offer_expires_at timestamptz,
   created_at       timestamptz not null default now(),
-  check (email is not null or phone is not null)
+  check (email is not null or phone is not null),
+  check (phone is null or is_uk_mobile(phone))
 );
 create index waitlist_waiting_idx on waitlist_entries (day, created_at) where status = 'waiting';
 
@@ -350,6 +361,15 @@ create table messages (
   created_at  timestamptz not null default now(),
   sent_at     timestamptz
 );
+create index messages_booking_idx on messages (booking_id);
+create index messages_waitlist_idx on messages (waitlist_id);
+
+-- Counts requests per form and caller (server only), so bots cannot book out the season
+create table rate_limits (
+  key          text primary key,
+  window_start timestamptz not null,
+  hits         int not null
+);
 
 create table photos (
   id           uuid primary key default gen_random_uuid(),
@@ -445,24 +465,37 @@ begin
   end loop;
 end $$;
 
--- Public: times on a day with spaces left
+-- When a visit starts, as a moment in UK time
+create function slot_starts(p_day date, p_time time) returns timestamptz language sql stable as $$
+  select (p_day + p_time) at time zone 'Europe/London'
+$$;
+
+-- Places taken at a time: active bookings, plus offers a waitlist family is still holding.
+-- Every check of whether a time is free uses this, so an offered time cannot also be booked.
+create function slot_taken(p_slot uuid, p_except_offer uuid default null) returns int
+language sql stable security definer set search_path = public as $$
+  select (select count(*) from bookings where slot_id = p_slot and status in ('pending_review', 'confirmed'))::int
+       + (select count(*) from waitlist_entries where offer_slot_id = p_slot and status = 'offered'
+            and offer_expires_at > now() and id is distinct from p_except_offer)::int
+$$;
+
+-- Public: times on a day that have not started yet, with spaces left
 create function available_slots(p_day date)
 returns table (slot_id uuid, starts_at time, ends_at time, spaces_left int, state text)
 language sql stable security definer set search_path = public as $$
   select sl.id, sl.starts_at, sl.ends_at,
-         greatest(sl.capacity - count(b.id) filter (where b.status in ('pending_review', 'confirmed')), 0)::int,
+         greatest(sl.capacity - slot_taken(sl.id), 0),
          case when sl.blocked then 'break'
-              when sl.capacity - count(b.id) filter (where b.status in ('pending_review', 'confirmed')) <= 0 then 'full'
+              when sl.capacity - slot_taken(sl.id) <= 0 then 'full'
               else 'open' end
   from slots sl
   join seasons s on s.year = extract(year from sl.day)::int and s.booking_open
-  left join bookings b on b.slot_id = sl.id
-  where sl.day = p_day
-  group by sl.id
+  where sl.day = p_day and slot_starts(sl.day, sl.starts_at) > now()
   order by sl.starts_at
 $$;
 
--- Public: make a booking. p is the full booking form as JSON (see src/lib/booking-schema.ts).
+-- Server only: make a booking. p is the full booking form as JSON (see src/lib/booking-schema.ts).
+-- Called from the booking form's server code after the bot check and rate limit, never from the browser.
 create function create_booking(p jsonb)
 returns table (reference text, manage_token uuid, status booking_status)
 language plpgsql security definer set search_path = public as $$
@@ -470,15 +503,25 @@ declare
   v_slot slots; v_season seasons; v_house uuid; v_booking bookings; v_status booking_status := 'confirmed';
   v_email citext := nullif(trim(p->>'email'), '');
   v_phone text := nullif(trim(p->>'phone'), '');
-  v_taken int; v jsonb; v_visitor uuid;
+  v jsonb; v_visitor uuid;
 begin
   if coalesce((p->>'eligibility_confirmed')::boolean, false) is not true then raise exception 'ELIGIBILITY_REQUIRED'; end if;
   if coalesce((p->>'data_consent')::boolean, false) is not true then raise exception 'CONSENT_REQUIRED'; end if;
+  if v_email is null and v_phone is null then raise exception 'CONTACT_REQUIRED'; end if;
+  if v_phone is not null and not is_uk_mobile(v_phone) then raise exception 'INVALID_PHONE'; end if;
+  if not exists (select 1 from jsonb_array_elements(coalesce(p->'visitors', '[]'::jsonb)) x where x->>'kind' = 'visitor') then
+    raise exception 'VISITOR_REQUIRED';
+  end if;
 
+  -- Checks on the time come before the one-visit check, so the answer for a full or closed time
+  -- is the same whether or not this family has booked before
   select * into v_slot from slots where id = (p->>'slot_id')::uuid for update;
-  if v_slot is null or v_slot.blocked then raise exception 'SLOT_UNAVAILABLE'; end if;
+  if v_slot is null or v_slot.blocked or slot_starts(v_slot.day, v_slot.starts_at) <= now() then
+    raise exception 'SLOT_UNAVAILABLE';
+  end if;
   select * into v_season from seasons where year = extract(year from v_slot.day)::int;
   if not v_season.booking_open then raise exception 'BOOKING_CLOSED'; end if;
+  if slot_taken(v_slot.id) >= v_slot.capacity then raise exception 'SLOT_FULL'; end if;
 
   -- One visit per family: match on email or mobile
   select h.id into v_house from households h
@@ -490,9 +533,6 @@ begin
       and b.status in ('pending_review', 'confirmed') and b.type = 'family') then
     raise exception 'ALREADY_BOOKED';  -- the app sends the existing booking link to their own email or phone
   end if;
-
-  select count(*) into v_taken from bookings b where b.slot_id = v_slot.id and b.status in ('pending_review', 'confirmed');
-  if v_taken >= v_slot.capacity then raise exception 'SLOT_FULL'; end if;
 
   -- Flagged contacts can still book, but an admin reviews before it is confirmed
   if exists (select 1 from flags f where f.active and ((v_email is not null and f.email = v_email)
@@ -577,18 +617,31 @@ begin
   return offer_next_waitlist(v_booking.slot_id);  -- waitlist entry to message, or null
 end $$;
 
+-- Public: confirm from the tap-to-confirm link in the message sent 2 days before
+create function confirm_attendance(p_token uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  update bookings set reply = 'confirmed' where manage_token = p_token and status in ('pending_review', 'confirmed');
+  if not found then raise exception 'NOT_FOUND'; end if;
+end $$;
+
 -- Offer a free time to the first matching family on the waitlist. Returns the entry to message.
--- Offers made overnight are held from 08:00 so nobody loses a slot while asleep.
+-- Offers made overnight are held from 08:00 so nobody loses a slot while asleep. An offer always
+-- ends at least 15 minutes before the visit, and a time starting within 30 minutes of the hold is not offered.
 create function offer_next_waitlist(p_slot uuid) returns uuid
 language plpgsql security definer set search_path = public as $$
-declare v_slot slots; v_entry uuid; v_hold int; v_local timestamp; v_start timestamptz; v_free int;
+declare v_slot slots; v_entry uuid; v_hold int; v_local timestamp; v_start timestamptz; v_visit timestamptz;
 begin
   select * into v_slot from slots where id = p_slot for update;
-  if v_slot is null or v_slot.blocked or v_slot.day < (now() at time zone 'Europe/London')::date then return null; end if;
-  select v_slot.capacity - count(*) into v_free from bookings
-    where slot_id = p_slot and status in ('pending_review', 'confirmed');
-  v_free := v_free - (select count(*) from waitlist_entries where offer_slot_id = p_slot and status = 'offered');
-  if v_free <= 0 then return null; end if;
+  if v_slot is null or v_slot.blocked then return null; end if;
+  if slot_taken(p_slot) >= v_slot.capacity then return null; end if;
+
+  v_local := now() at time zone 'Europe/London';
+  v_start := case when v_local::time between '08:00' and '20:00' then now()
+                  when v_local::time > '20:00' then ((v_local::date + 1) + time '08:00') at time zone 'Europe/London'
+                  else (v_local::date + time '08:00') at time zone 'Europe/London' end;
+  v_visit := slot_starts(v_slot.day, v_slot.starts_at);
+  if v_visit <= v_start + interval '30 minutes' then return null; end if;
 
   select id into v_entry from waitlist_entries
   where status = 'waiting' and day = v_slot.day
@@ -599,13 +652,9 @@ begin
   if v_entry is null then return null; end if;
 
   select waitlist_hold_minutes into v_hold from seasons where year = extract(year from v_slot.day)::int;
-  v_local := now() at time zone 'Europe/London';
-  v_start := case when v_local::time between '08:00' and '20:00' then now()
-                  when v_local::time > '20:00' then ((v_local::date + 1) + time '08:00') at time zone 'Europe/London'
-                  else (v_local::date + time '08:00') at time zone 'Europe/London' end;
-
   update waitlist_entries set status = 'offered', offer_slot_id = p_slot, offer_token = gen_random_uuid(),
-         offer_expires_at = v_start + make_interval(mins => v_hold)
+         offer_starts_at = v_start,
+         offer_expires_at = least(v_start + make_interval(mins => v_hold), v_visit - interval '15 minutes')
   where id = v_entry;
   return v_entry;
 end $$;
@@ -628,11 +677,14 @@ end $$;
 create function claim_waitlist_offer(p_token uuid)
 returns table (reference text, manage_token uuid)
 language plpgsql security definer set search_path = public as $$
-declare w waitlist_entries; v_house uuid; v_booking bookings; v_season int;
+declare w waitlist_entries; v_slot slots; v_house uuid; v_booking bookings; v_season int;
 begin
   select * into w from waitlist_entries where offer_token = p_token for update;
   if w is null or w.status <> 'offered' or w.offer_expires_at < now() then raise exception 'OFFER_EXPIRED'; end if;
-  perform 1 from slots where id = w.offer_slot_id for update;
+  select * into v_slot from slots where id = w.offer_slot_id for update;
+  if v_slot.blocked or slot_starts(v_slot.day, v_slot.starts_at) <= now() then raise exception 'SLOT_UNAVAILABLE'; end if;
+  -- This offer holds a place, but check the time was not filled some other way (for example by an admin)
+  if slot_taken(v_slot.id, w.id) >= v_slot.capacity then raise exception 'SLOT_FULL'; end if;
   v_season := extract(year from w.day)::int;
 
   select h.id into v_house from households h
@@ -651,7 +703,7 @@ begin
   values (v_season, w.offer_slot_id, v_house,
           case when exists (select 1 from flags f where f.active and (f.email = w.email or f.phone_norm = norm_phone(w.phone)))
                then 'pending_review'::booking_status else 'confirmed' end,
-          'confirmed', true, now())
+          'confirmed', true, w.created_at)  -- consent was given on the waitlist form
   returning * into v_booking;
   update waitlist_entries set status = 'claimed' where id = w.id;
   return query select v_booking.reference, v_booking.manage_token;
@@ -684,6 +736,7 @@ language plpgsql security definer set search_path = public as $$
 declare v_left int;
 begin
   if not is_staff() then raise exception 'NOT_ALLOWED'; end if;
+  perform 1 from gifts where id = p_gift for update;  -- two elves giving the last one cannot both succeed
   select coalesce(sum(qty_received), 0) - (select count(*) from gift_handouts where gift_id = p_gift)
     into v_left from stock_orders where gift_id = p_gift;
   if v_left <= 0 then raise exception 'OUT_OF_STOCK'; end if;
@@ -716,16 +769,47 @@ join bookings b on b.id = v.booking_id
 join slots sl on sl.id = b.slot_id
 where v.kind = 'visitor' and b.status in ('confirmed', 'attended') and is_staff();
 
--- After the season: remove visitor details and health information
+-- After the season: remove personal details. Booking rows stay, without names or contacts, so the
+-- numbers (visits, cancellations, no-shows) can still be reported. Volunteers and sponsorships are not
+-- touched: they have their own retention (safeguarding checks and financial records).
+-- Photo files in Storage are not deleted by this; remove family-only photos from the bucket as well.
 create function purge_season(p_year int) returns void
 language plpgsql security definer set search_path = public as $$
+declare v_end timestamptz := make_date(p_year + 1, 1, 1)::timestamptz;
 begin
   if not (is_admin() or is_server()) then raise exception 'NOT_ALLOWED'; end if;
+  -- Children's details; health details go with them
   delete from visitors v using bookings b where v.booking_id = b.id and b.season = p_year;
-  update households h set address_line = null
-  where not exists (select 1 from bookings b where b.household_id = h.id and b.season > p_year);
+  -- Every message about the season holds a name and a phone number or email address
+  delete from messages m using bookings b where m.booking_id = b.id and b.season = p_year;
+  delete from messages m using waitlist_entries w where m.waitlist_id = w.id and extract(year from w.day)::int = p_year;
+  delete from messages where booking_id is null and waitlist_id is null and created_at < v_end;
   delete from waitlist_entries where extract(year from day)::int = p_year;
+  delete from duplicate_candidates d using bookings b where d.booking_a = b.id and b.season = p_year;
   delete from photos p using bookings b where p.booking_id = b.id and b.season = p_year and p.consent = 'family_only';
+  -- Family contact details, unless the family has already booked a later season
+  update households h set address_line = null
+  where exists (select 1 from bookings b where b.household_id = h.id and b.season > p_year);
+  delete from households h
+  where not exists (select 1 from bookings b where b.household_id = h.id and b.season > p_year);
+  delete from flags where created_at < v_end;
+  delete from group_enquiries where created_at < v_end;
+  delete from early_alerts where notified_at is not null;
+  delete from rate_limits;
+end $$;
+
+-- Server only: count a request against a limit. True if it is allowed, false once over the limit.
+create function rate_limit_ok(p_key text, p_max int, p_window_seconds int) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare v_hits int; v_since timestamptz := now() - make_interval(secs => p_window_seconds);
+begin
+  insert into rate_limits as r (key, window_start, hits) values (p_key, now(), 1)
+  on conflict (key) do update set
+    hits = case when r.window_start < v_since then 1 else r.hits + 1 end,
+    window_start = case when r.window_start < v_since then now() else r.window_start end
+  returning hits into v_hits;
+  if random() < 0.01 then delete from rate_limits where window_start < now() - interval '1 day'; end if;
+  return v_hits <= p_max;
 end $$;
 
 -- ---------------------------------------------------------------
@@ -735,7 +819,8 @@ do $$ declare t text;
 begin
   foreach t in array array['staff','seasons','opening_days','blocked_times','slots','households','bookings','visitors',
     'visitor_sensitive','waitlist_entries','early_alerts','group_enquiries','duplicate_candidates','flags','gifts',
-    'stock_orders','gift_handouts','volunteers','shifts','shift_assignments','messages','photos','sponsorships'] loop
+    'stock_orders','gift_handouts','volunteers','shifts','shift_assignments','messages','photos','sponsorships',
+    'rate_limits'] loop
     execute format('alter table %I enable row level security', t);
     execute format('create policy admin_all on %I for all to authenticated using (is_admin()) with check (is_admin())', t);
   end loop;
@@ -767,12 +852,31 @@ create policy public_add on volunteers for insert to anon, authenticated with ch
 create policy public_add on waitlist_entries for insert to anon, authenticated with check (status = 'waiting' and offer_token is null);
 create policy public_add on sponsorships for insert to anon, authenticated with check (status = 'pending' and stripe_session_id is null);
 
--- Function permissions
-revoke execute on all functions in schema public from public, anon;
-grant execute on function available_slots(date), create_booking(jsonb), cancel_booking(uuid),
-  claim_waitlist_offer(uuid), norm_phone(text), norm_postcode(text) to anon, authenticated;
-grant execute on function my_role(), is_admin(), is_lead(), is_staff(), is_server(), regenerate_slots(date),
-  regenerate_season(int), expire_waitlist_offers(), set_visit_stage(uuid, visit_stage), check_in_delivery(uuid, int),
-  give_gift(uuid, uuid), purge_season(int), offer_next_waitlist(uuid), find_duplicates_for(uuid) to authenticated, service_role;
+-- Staff can read bookings but not the private manage link, which would let them change or cancel a visit.
+-- (This applies to admins too: the admin pages fetch a link through the server when one is needed.)
+revoke select on bookings from anon, authenticated;
+grant select (id, reference, season, slot_id, household_id, type, status, reply, stage, eligibility_confirmed,
+  data_consent_at, details_complete, group_name, group_staff, reminder_7d_at, reminder_48h_at, created_at, cancelled_at)
+  on bookings to authenticated;
+
+-- Function permissions. Supabase lets anon and signed-in users run every function by default, and anyone
+-- can sign up unless sign-ups are turned off, so take that away from everyone and grant only what is needed.
+revoke execute on all functions in schema public from public, anon, authenticated;
+alter default privileges in schema public revoke execute on functions from public, anon, authenticated;
+
+-- Public pages: the time picker, and the actions behind unguessable links
+grant execute on function available_slots(date), cancel_booking(uuid), claim_waitlist_offer(uuid),
+  confirm_attendance(uuid) to anon, authenticated;
+-- Used by row level security and table checks, so every caller needs them
+grant execute on function my_role(), is_admin(), is_lead(), is_staff(), is_server(),
+  norm_phone(text), norm_postcode(text), is_uk_mobile(text) to anon, authenticated;
+-- Staff and admin tools (each function checks the role itself)
+grant execute on function regenerate_slots(date), regenerate_season(int), expire_waitlist_offers(),
+  set_visit_stage(uuid, visit_stage), check_in_delivery(uuid, int), give_gift(uuid, uuid), purge_season(int)
+  to authenticated;
+-- Server only: booking (after the bot check), finding a family's booking, rate limits, and everything else.
+-- offer_next_waitlist, find_duplicates_for, slot_taken and slot_starts are only used inside other functions.
+grant execute on all functions in schema public to service_role;
+
+revoke all on santa_cards, stock_levels from anon;
 grant select on santa_cards, stock_levels to authenticated;
-grant execute on function find_existing_booking(text, text) to service_role;

@@ -2,6 +2,12 @@ import { z } from 'zod';
 
 const list = z.array(z.string().max(80)).max(12).default([]);
 
+/** UK mobiles only (texts are never sent abroad), stored as +447... */
+export const ukMobile = z.string().trim()
+  .transform((s) => s.replace(/[\s()-]/g, ''))
+  .refine((s) => /^(?:\+44|0044|44|0)7\d{9}$/.test(s), { message: 'Please give a UK mobile number, starting 07' })
+  .transform((s) => `+447${s.replace(/^(?:\+44|0044|44|0)7/, '')}`);
+
 export const visitorSchema = z.object({
   kind: z.enum(['visitor', 'sibling']),
   first_name: z.string().trim().min(1).max(60),
@@ -25,7 +31,7 @@ export const bookingSchema = z.object({
   slot_id: z.string().uuid(),
   contact_name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().optional().or(z.literal('').transform(() => undefined)),
-  phone: z.string().trim().regex(/^[+\d\s()-]{7,20}$/).optional().or(z.literal('').transform(() => undefined)),
+  phone: z.literal('').transform(() => undefined).or(ukMobile.optional()),
   postcode: z.string().trim().max(10).optional(),
   address_line: z.string().trim().max(120).optional(),
   channels: z.array(z.enum(['email', 'sms', 'whatsapp'])).min(1),
