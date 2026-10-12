@@ -19,28 +19,11 @@ export const waitlistSchema = z.object({
 });
 
 /** One box for "email or mobile", as in the design, then how to send the alert */
+/** Early alerts are by email only, to keep it simple */
 export const alertSchema = z.object({
   name,
-  contact: z.string().trim().min(1, 'Please give an email address or UK mobile number').max(200),
-  channels,
+  contact: requiredEmail.transform((e) => e.toLowerCase()),
   is_group: z.boolean().default(false),
-}).transform((a, ctx) => {
-  const isEmail = a.contact.includes('@');
-  const email = isEmail ? z.string().email().safeParse(a.contact) : null;
-  const phone = isEmail ? null : ukMobile.safeParse(a.contact);
-  if (!email?.success && !phone?.success) {
-    ctx.addIssue({ code: 'custom', path: ['contact'], message: 'Please give an email address, or a UK mobile number starting 07' });
-    return z.NEVER;
-  }
-  if (isEmail && a.channels.some((c) => c !== 'email')) {
-    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave an email address, so we can only email you. Untick Text, or give a mobile number instead.' });
-    return z.NEVER;
-  }
-  if (!isEmail && a.channels.includes('email')) {
-    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave a mobile number, so we can text you. Untick Email, or give an email address instead.' });
-    return z.NEVER;
-  }
-  return { ...a, contact: isEmail ? a.contact.toLowerCase() : phone!.data! };
 });
 
 export const groupSchema = z.object({

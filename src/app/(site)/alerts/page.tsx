@@ -18,7 +18,7 @@ export default async function Alerts() {
           {season?.booking_open ? (
             <div className="success"><p><strong>Booking is open now.</strong> <Link href="/#book">Book a visit</Link></p></div>
           ) : null}
-          <p className="lead" style={{ marginBottom: 22 }}>Leave your details and we will message you as soon as the schedule is released, before we announce it anywhere else.</p>
+          <p className="lead" style={{ marginBottom: 22 }}>Leave your details and we will email you as soon as the schedule is released, before we announce it anywhere else.</p>
           <AlertForm />
         </div>
       </div>
