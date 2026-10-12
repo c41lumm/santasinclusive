@@ -20,7 +20,7 @@ const timePref = (times: string[]) =>
 export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<FormState> {
   const parsed = waitlistSchema.safeParse({
     day: text(fd, 'day'), time_pref: timePref(all(fd, 'times')), contact_name: text(fd, 'contact_name'),
-    email: text(fd, 'email'), phone: text(fd, 'phone'), channels: all(fd, 'channels'),
+    email: text(fd, 'email'),
     eligibility_confirmed: ticked(fd, 'eligibility_confirmed'), data_consent: ticked(fd, 'data_consent'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
@@ -34,9 +34,9 @@ export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<Form
 
   const [row] = await db()`
     insert into waitlist_entries (day, time_pref, contact_name, email, phone, channels, eligibility_confirmed, data_consent)
-    values (${w.day}, ${w.time_pref}, ${w.contact_name}, ${w.email ?? null}, ${w.phone ?? null}, ${w.channels}::channel[], true, true)
+    values (${w.day}, ${w.time_pref}, ${w.contact_name}, ${w.email}, null, '{email}'::channel[], true, true)
     returning id, manage_token`;
-  await send({ email: w.email, phone: w.phone, channels: w.channels }, templates.waitlistJoined(dayName(w.day), row.manage_token as string),
+  await send({ email: w.email, channels: ['email'] }, templates.waitlistJoined(dayName(w.day), row.manage_token as string),
     { waitlist_id: row.id as string, template: 'waitlistJoined' });
   return { done: dayName(w.day) };
 }
