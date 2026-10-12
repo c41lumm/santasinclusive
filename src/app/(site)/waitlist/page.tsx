@@ -33,7 +33,7 @@ export default async function Waitlist({ searchParams }: { searchParams: Promise
           <h2 id="join-h" className="green" style={{ fontSize: '1.65rem' }}>
             {chosen ? (chosen.spaces_left ? `Waitlist for ${dayName(chosen.day)}` : `${dayName(chosen.day)} is fully booked`) : 'Choose the day you would like'}
           </h2>
-          <p style={{ marginBottom: 20 }}>Join the waitlist and we will message you the moment a slot opens, before anyone else hears.
+          <p style={{ marginBottom: 20 }}>Join the waitlist and we will email you the moment a slot opens, before anyone else hears.
             {chosen?.spaces_left ? <> Times are still free on this day: <Link href={`/?day=${chosen.day}#book`}>book one now</Link>.</> : null}</p>
           <WaitlistForm day={chosen?.day} days={days.map((d) => ({
             value: d.day, label: `${dayName(d.day)}${d.spaces_left ? ` (${d.spaces_left} times free now)` : ' (full)'}`,

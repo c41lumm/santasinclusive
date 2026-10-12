@@ -46,6 +46,12 @@ export const templates = {
     text: `We have cancelled your visit on ${v.when} (reference ${v.reference}) and offered the time to another family. ` +
       `Thank you for letting us know.`,
   }),
+  duplicateCancelled: (v: Visit) => ({
+    subject: 'Your second visit to Santa',
+    text: `We have cancelled the visit on ${v.when} (reference ${v.reference}), as your family already has one booked. ` +
+      `We offer one visit per family so that everyone gets a turn, and brothers and sisters can all come to the same visit. ` +
+      `If we have got this wrong, please get in touch and we will sort it out.`,
+  }),
   // A family that claimed a waitlist offer has not told us who is coming yet
   claimed: (v: Visit) => ({
     subject: `You're booked in to see Santa, ${v.when}`,
@@ -61,6 +67,18 @@ export const templates = {
     subject: 'A visit to Santa has opened up',
     text: `Good news from Santa's Inclusive Grotto. A visit has opened on ${when}. It is held for you until ${until}. ` +
       `Tap to claim it: ${site()}/claim/${claimToken}`,
+  }),
+  /** A volunteer's shifts for the week, one per line */
+  rota: (name: string, week: string, lines: string[]) => ({
+    subject: `Your shifts at Santa's Inclusive Grotto, ${week}`,
+    text: `Hi ${name}, thank you for helping. Your shifts for ${week}:\n${lines.join('\n')}\n` +
+      `If you cannot make one, please let us know as soon as you can.`,
+  }),
+  /** To everyone who asked for an early alert, when booking opens */
+  bookingOpen: (name: string) => ({
+    subject: "Booking is open for Santa's Inclusive Grotto",
+    text: `Hi ${name}, booking for Santa's Inclusive Grotto is now open. Choose your day and time here: ${site()}/#book ` +
+      `Visits are free and go quickly.`,
   }),
   runningLate: () => ({
     subject: 'Santa is running a little late',

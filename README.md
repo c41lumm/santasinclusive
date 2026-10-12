@@ -91,6 +91,32 @@ animation, and every page works at phone width.
 - Database: `db/migrations/20261013000000_public_pages.sql` and `20261014000000_design_updates.sql` (decline an
   offer and stay on the list, leave the list, volunteer questions, opening hours, calendar times).
 
+## Phase 3: admin area
+
+`/admin`, for admins and lead elves, signed in at `/staff/sign-in` (password reset at `/staff/reset`; there is no
+sign-up). Built to the admin designs (AdminBookings, AdminChecks, AdminSlots, AdminToys, AdminRota); the other pages
+have no design and follow the same style.
+
+- **Dashboard**: the season at a glance, what needs doing, and the next open days.
+- **Bookings**: each day's visits with everyone's needs, message one family or the whole day, mark arrived, move,
+  cancel (the time is offered to the waitlist), confirm a booking held for review, and add a booking for a family
+  who phones.
+- **Checks** (admin): possible duplicates and flags, with notes.
+- **Visit times** (admin): visit length, gap, families per time, each day's hours and breaks, and opening or
+  closing booking. Saving is refused if it would remove a time families are booked into.
+- **Waitlist**, **Early alerts** (send "booking is open" once to everyone who asked), **Messages** (every email and
+  text, with the reason any failed), **Volunteers** (approve or decline; approved people appear on the rota) and
+  **Sponsorship** (mark invoiced or paid): admin only.
+- **Toy stock**: gifts needed by age, stock in and on the way, and deliveries.
+- **Staff rota**: a morning and an afternoon shift for every open day, filled from volunteers' availability, and
+  "Send this week's rota" to each person.
+- Lead elves see Dashboard, Bookings, Toy stock and Staff rota. The database enforces the same rules (row level
+  security), not only the menu.
+- Database: `db/migrations/20261015000000_admin.sql`.
+- **Locally**: messages are not sent unless `SEND_IN_DEV=1` is in `.env.local` (they are logged on the Messages page as
+  "Not sent"). To use the admin area without signing in, set `DEV_STAFF_USER_ID` to the `user_id` of a row in
+  `staff`. Both only work in `npm run dev`; the live site ignores them.
+
 ## Setting up
 
 1. **Neon**: the project is "Santas Inclusive Frankfurt" (`orange-surf-93156790`, AWS Frankfurt), linked in
@@ -148,7 +174,5 @@ animation, and every page works at phone width.
 
 ## Next phases
 
-3. Admin: bookings (approving a booking held for review sends the confirmation; booking links are read
-   through the server), checks, visit times, toy stock, rota, then dashboard, waitlist, volunteers,
-   sponsorship (Stripe Checkout), press releases.
+- Later in phase 3: Stripe Checkout for sponsorship, and press releases.
 4. Elf app: next up, today, gifts, deliveries, rota, photos, Santa's view.

@@ -37,3 +37,8 @@ export const channelChoices = [
   { value: 'sms', label: 'Text message' },
   // WhatsApp is switched off for now: it needs Meta-approved message templates (see README)
 ] as const;
+
+/** Toy stock age bands, as stored, with how the admin pages show them */
+export const ageBands = ['0-2', '3-5', '6-8', '9-12', '13-17', '18+'] as const;
+export const ageBandLabel = (b: string) => b.replace('-', ' to ');
+export const giftCategories = ['Sensory', 'Soft toy', 'Building', 'Books', 'Arts', 'Music', 'Clothing'];
