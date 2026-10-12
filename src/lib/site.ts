@@ -8,6 +8,11 @@ export const site = {
   address: '20 Freeschool Lane, Leicester LE1 4FY',
   shortAddress: '20 Freeschool Lane',
   directions: 'https://www.google.com/maps/dir/?api=1&destination=20+Freeschool+Ln+Leicester+LE1+4FY',
+  /** Freeschool Lane, Leicester (52.6361, -1.1383) */
+  map: {
+    embed: 'https://www.openstreetmap.org/export/embed.html?bbox=-1.1433%2C52.6339%2C-1.1333%2C52.6383&layer=mapnik&marker=52.63607%2C-1.13830',
+    link: 'https://www.openstreetmap.org/?mlat=52.63607&mlon=-1.13830#map=18/52.63607/-1.13830',
+  },
   instagram: { handle: '@santa_inclusive', url: 'https://www.instagram.com/santa_inclusive/' },
   company: 'Liquid New Media Limited',
 

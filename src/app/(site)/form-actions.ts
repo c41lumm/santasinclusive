@@ -43,15 +43,15 @@ export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<Form
 
 export async function signUpForAlert(_prev: FormState, fd: FormData): Promise<FormState> {
   const parsed = alertSchema.safeParse({
-    name: text(fd, 'name'), contact: text(fd, 'contact'), channels: all(fd, 'channels'), is_group: ticked(fd, 'is_group'),
+    name: text(fd, 'name'), contact: text(fd, 'contact'), is_group: ticked(fd, 'is_group'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
   const blocked = await checkPublicForm('alert');
   if (blocked) return blocked;
   const a = parsed.data;
   await asPublic((sql) => [sql`
-    insert into early_alerts (name, contact, channels, is_group) values (${a.name}, ${a.contact}, ${a.channels}::channel[], ${a.is_group})`]);
-  return { done: a.channels.includes('email') ? 'an email' : 'a text' };
+    insert into early_alerts (name, contact, channels, is_group) values (${a.name}, ${a.contact}, '{email}'::channel[], ${a.is_group})`]);
+  return { done: 'an email' };
 }
 
 export async function sendGroupEnquiry(_prev: FormState, fd: FormData): Promise<FormState> {
