@@ -73,6 +73,63 @@ begin
   return n;
 end $$;
 
+
+-- Visit times: a day can have its own breaks instead of the every-day ones ("Breaks for this day only")
+alter table opening_days add column own_breaks boolean not null default false;
+
+create or replace function regenerate_slots(p_day date) returns int
+language plpgsql security definer set search_path = public as $$
+declare
+  s seasons; d opening_days; t time; wanted time[] := '{}'; n int;
+begin
+  if not (is_admin() or is_server()) then raise exception 'NOT_ALLOWED'; end if;
+  select * into s from seasons where year = extract(year from p_day)::int;
+  if s is null then raise exception 'NO_SEASON'; end if;
+  select * into d from opening_days where day = p_day;
+
+  if d is not null and not d.closed then
+    t := d.opens_at;
+    while t + make_interval(mins => s.visit_minutes) <= d.closes_at
+          and t + make_interval(mins => s.visit_minutes) > t loop
+      wanted := wanted || t;
+      t := t + make_interval(mins => s.visit_minutes + s.gap_minutes);
+    end loop;
+  end if;
+
+  if exists (
+    select 1 from slots sl join bookings b on b.slot_id = sl.id
+    where sl.day = p_day and b.status in ('pending_review', 'confirmed')
+      and (not (sl.starts_at = any(wanted))
+           or exists (select 1 from blocked_times bt
+                      where (bt.day = p_day or (bt.day is null and not coalesce(d.own_breaks, false))) and bt.starts_at = sl.starts_at))
+  ) then
+    raise exception 'BOOKINGS_AFFECTED' using hint = 'Move the families booked at these times first';
+  end if;
+
+  if exists (
+    select 1 from slots sl
+    where sl.day = p_day and sl.starts_at = any(wanted)
+      and (select count(*) from bookings b where b.slot_id = sl.id and b.status in ('pending_review', 'confirmed')) > s.families_per_slot
+  ) then
+    raise exception 'BOOKINGS_AFFECTED' using hint = 'Some times have more families than the new limit';
+  end if;
+
+  -- remove unused times; keep ones with cancelled history but hide them
+  delete from slots sl where sl.day = p_day and not (sl.starts_at = any(wanted))
+    and not exists (select 1 from bookings b where b.slot_id = sl.id);
+  update slots sl set blocked = true where sl.day = p_day and not (sl.starts_at = any(wanted));
+
+  insert into slots (day, starts_at, ends_at, capacity, blocked)
+  select p_day, w, w + make_interval(mins => s.visit_minutes), s.families_per_slot,
+         exists (select 1 from blocked_times bt where (bt.day = p_day or (bt.day is null and not coalesce(d.own_breaks, false))) and bt.starts_at = w)
+  from unnest(wanted) as w
+  on conflict (day, starts_at) do update
+    set ends_at = excluded.ends_at, capacity = excluded.capacity, blocked = excluded.blocked;
+
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
 -- Lead elves can read the rota and volunteers, and change assignments; admins already can through admin_all
 create policy lead_read_volunteers on volunteers for select to authenticated using (is_lead());
 create policy lead_edit_assignments on shift_assignments for all to authenticated using (is_lead()) with check (is_lead());

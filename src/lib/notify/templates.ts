@@ -46,6 +46,12 @@ export const templates = {
     text: `We have cancelled your visit on ${v.when} (reference ${v.reference}) and offered the time to another family. ` +
       `Thank you for letting us know.`,
   }),
+  duplicateCancelled: (v: Visit) => ({
+    subject: 'Your second visit to Santa',
+    text: `We have cancelled the visit on ${v.when} (reference ${v.reference}), as your family already has one booked. ` +
+      `We offer one visit per family so that everyone gets a turn, and brothers and sisters can all come to the same visit. ` +
+      `If we have got this wrong, please get in touch and we will sort it out.`,
+  }),
   // A family that claimed a waitlist offer has not told us who is coming yet
   claimed: (v: Visit) => ({
     subject: `You're booked in to see Santa, ${v.when}`,

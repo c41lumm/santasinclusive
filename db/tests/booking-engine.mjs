@@ -294,6 +294,15 @@ ok('an elf cannot read volunteers', (await q(`select id from volunteers`)).lengt
 e = await err(`select ensure_shifts(2026)`);
 ok('an elf cannot make shifts', e?.includes('NOT_ALLOWED'), e);
 
+// Own breaks for one day
+await as('editor');
+await db.exec(`update opening_days set own_breaks = true where day = '2026-12-20'; insert into blocked_times (day, starts_at) values ('2026-12-20', '11:00')`);
+await q(`select regenerate_slots('2026-12-20')`);
+const br = (await q(`select to_char(starts_at, 'HH24:MI') t from slots where day = '2026-12-20' and blocked order by starts_at`)).map((r) => r.t);
+ok('a day with its own breaks ignores the every-day ones', JSON.stringify(br) === '["11:00"]', JSON.stringify(br));
+const br2 = (await q(`select to_char(starts_at, 'HH24:MI') t from slots where day = '2026-12-21' and blocked order by starts_at`)).map((r) => r.t);
+ok('other days keep the every-day breaks', JSON.stringify(br2) === '["12:40","13:00"]', JSON.stringify(br2));
+
 // Messages exist before purge, so the purge has something to remove
 await as('editor');
 await db.query(`insert into messages (booking_id, channel, template, recipient, body) select id, 'email', 'confirmation', 'kate@example.com', 'Sam' from bookings limit 1`);
