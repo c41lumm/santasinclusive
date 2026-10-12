@@ -11,14 +11,21 @@ export const templates = {
     text: `You're booked in! Santa can't wait to meet ${v.name} on ${v.when}. Your reference is ${v.reference}. ` +
       `Change or cancel any time: ${manage(v.token)}`,
   }),
+  // Held for an admin to check (flagged contact). Worded so it does not say why.
+  pendingReview: (v: Visit) => ({
+    subject: `We have your request to see Santa, ${v.when}`,
+    text: `Thank you. We have your request for ${v.name} to see Santa on ${v.when} and will be in touch to confirm it soon. ` +
+      `Your reference is ${v.reference}. Change or cancel: ${manage(v.token)}`,
+  }),
   reminder7d: (v: Visit) => ({
-    subject: `See you next week, ${v.when}`,
+    subject: `See you soon, ${v.when}`,
     text: `A reminder that ${v.name}'s visit to Santa is on ${v.when}. Directions: ${directions}. ` +
       `Can't make it? Tap to change: ${manage(v.token)}`,
   }),
   confirm48h: (v: Visit) => ({
     subject: `Please confirm ${v.name}'s visit`,
-    text: `Can you confirm ${v.name}'s visit on ${v.when}? Reply YES to confirm, or tap to change your booking: ${manage(v.token)}`,
+    text: `Can you confirm ${v.name}'s visit on ${v.when}? Tap to confirm: ${manage(v.token)}/confirm ` +
+      `If you can't make it, tap to change or cancel: ${manage(v.token)}`,
   }),
   missingDetails: (v: Visit) => ({
     subject: `Tell Santa about ${v.name}`,
