@@ -24,7 +24,6 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
             <div>
               <p><strong>{site.name}</strong></p>
               <p className="small" style={{ color: '#fff' }}>{site.address}</p>
-              <p className="small" style={{ color: '#fff' }}>Run by {site.company}.{site.companyNumber ? ` ${site.companyNumber}.` : ''}</p>
             </div>
           </div>
           <div className="footer-links">
