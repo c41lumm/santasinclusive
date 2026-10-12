@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin: toy stock</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #1B1B1B;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1360px; height: 2080px; box-sizing: border-box; background: #F4F1EA; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 16px; line-height: 1.45; display: flex;">
+<aside style="flex: none; width: 230px; background: #0B3B21; color: #FFFFFF; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px;">
+<p style="margin: 0 0 4px 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Grotto admin</p>
+<p style="margin: 0 0 20px 16px; font-size: 14px; color: #BFD6C7;">Santa's Inclusive Grotto</p>
+<nav aria-label="Admin" style="display: flex; flex-direction: column; gap: 2px;"><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Dashboard</a><a href="AdminBookings.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Bookings</a><a href="AdminChecks.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Checks</a><a href="AdminSlots.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Visit times</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Waitlist</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Early alerts</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Messages</a><a href="#" aria-current="page" style="display: block; padding: 11px 16px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-weight: 700; text-decoration: none;">Toy stock</a><a href="AdminRota.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Staff rota</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Volunteers</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Sponsorship</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Press releases</a></nav>
+</aside>
+
+<main style="flex: 1; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px;">Toy stock</h1>
+<p style="margin: 0; color: #45524F;">Gifts needed from bookings so far, against what we have and what is on the way.</p>
+</div>
+<button type="button" onClick="{{ toggleSib }}" aria-pressed="{{ sibPressed }}" style="{{ sibStyle }}">{{ sibLabel }}</button>
+</div>
+
+<section aria-label="Booked so far" style="display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px;">
+<sc-for list="{{ who }}" as="w" hint-placeholder-count="4">
+<div style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 18px; padding: 16px 18px;"><p style="margin: 0; font-size: 14px; color: #45524F;">{{ w.label }}</p><p style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px;">{{ w.value }}</p></div>
+</sc-for>
+</section>
+
+<section aria-label="Gifts" style="display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px;">
+<sc-for list="{{ gifts }}" as="g" hint-placeholder-count="4">
+<div style="border-radius: 18px; padding: 16px 18px; {{ g.style }}"><p style="margin: 0; font-size: 14px; font-weight: 700;">{{ g.label }}</p><p aria-live="polite" style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px;">{{ g.value }}</p><p style="margin: 0; font-size: 13px;">{{ g.note }}</p></div>
+</sc-for>
+</section>
+
+<section aria-labelledby="age-h" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; padding: 22px;">
+<h2 id="age-h" style="margin: 0 0 4px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">By age</h2>
+<p style="margin: 0 0 14px; color: #45524F; font-size: 15px;">Bar shows stock (green) and on the way (light green) against gifts needed (the marker).</p>
+<sc-for list="{{ bands }}" as="b" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 90px minmax(0,1fr) 210px; gap: 16px; align-items: center; padding: 8px 0;">
+<span style="font-weight: 700;">{{ b.label }}</span>
+<div style="position: relative; height: 22px; background: #F1ECE2; border-radius: 999px; overflow: hidden;">
+<div style="position: absolute; left: 0; top: 0; bottom: 0; {{ b.stockW }} background: #067E3E;"></div>
+<div style="position: absolute; top: 0; bottom: 0; {{ b.orderPos }} background: #9BCFAE;"></div>
+<div style="position: absolute; top: -2px; bottom: -2px; width: 3px; background: #1E2B2A; {{ b.needPos }}"></div>
+</div>
+<span style="font-size: 15px;">Need {{ b.need }} · have {{ b.have }} · <strong style="color: {{ b.statusColor }};">{{ b.status }}</strong></span>
+</div>
+</sc-for>
+</section>
+
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+<section aria-labelledby="list-h" style="flex: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; overflow: hidden;">
+<div style="padding: 18px 20px 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+<h2 id="list-h" style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Stock list</h2>
+<span style="color: #45524F; font-size: 14px;">{{ itemCount }}</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0,1.8fr) 74px minmax(0,0.9fr) 84px 74px 74px 70px 112px; gap: 10px; align-items: center; padding: 8px 20px; font-size: 12px; font-weight: 700; color: #45524F; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #E7DCC8;">
+<span>Gift</span><span>Ages</span><span>From</span><span>In stock</span><span>Coming</span><span>Given</span><span>Left</span><span></span>
+</div>
+<sc-for list="{{ items }}" as="it" hint-placeholder-count="12">
+<div style="display: grid; grid-template-columns: minmax(0,1.8fr) 74px minmax(0,0.9fr) 84px 74px 74px 70px 112px; gap: 10px; align-items: center; padding: 10px 20px; border-bottom: 1px solid #F0EADF; font-size: 15px; {{ it.bg }}">
+<span><span style="display: block; font-weight: 700;">{{ it.name }}</span><span style="display: block; font-size: 13px; color: #45524F;">{{ it.cat }}</span></span>
+<span>{{ it.band }}</span>
+<span>{{ it.supplier }}</span>
+<span style="font-weight: 700;">{{ it.stock }}</span>
+<span style="color: #45524F;">{{ it.onOrder }}</span>
+<span style="color: #45524F;">{{ it.given }}</span>
+<span style="font-weight: 700; color: {{ it.leftColor }};">{{ it.left }}</span>
+<span>
+<sc-if value="{{ it.canReceive }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #EEF0F3; color: #3D4A5C;">Awaiting delivery</span></sc-if>
+</span>
+</div>
+</sc-for>
+</section>
+
+<aside style="flex: none; width: 360px; display: flex; flex-direction: column; gap: 16px;">
+<section aria-labelledby="add-h" style="background: #FFFFFF; border: 2px solid #067E3E; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<h2 id="add-h" style="margin: 0 0 12px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 24px;">Add stock</h2>
+<label for="ts-name" style="display: block; font-weight: 700; margin-bottom: 6px;">Gift</label>
+<input id="ts-name" type="text" value="{{ fName }}" onInput="{{ onName }}" placeholder="For example, Light-up sensory ball" style="width: 100%; box-sizing: border-box; font: inherit; padding: 10px 12px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 46px; background: #FFFFFF; color: #1E2B2A; margin-bottom: 14px;">
+<fieldset style="border: 0; padding: 0; margin: 0 0 14px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 6px;">Bought from</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{ supplierOpts }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.pressed }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></fieldset>
+<fieldset style="border: 0; padding: 0; margin: 0 0 14px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 6px;">Age range</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{ bandOpts }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.pressed }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></fieldset>
+<fieldset style="border: 0; padding: 0; margin: 0 0 14px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 6px;">Type</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{ catOpts }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.pressed }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></fieldset>
+<p style="margin: 0 0 6px; font-weight: 700;">Quantity</p>
+<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+<button type="button" onClick="{{ qDec10 }}" aria-label="Ten fewer" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none; font-size: 14px;">-10</button>
+<button type="button" onClick="{{ qDec }}" aria-label="One fewer" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none;">-</button>
+<span aria-live="polite" style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 28px; min-width: 56px; text-align: center;">{{ fQty }}</span>
+<button type="button" onClick="{{ qInc }}" aria-label="One more" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none;">+</button>
+<button type="button" onClick="{{ qInc10 }}" aria-label="Ten more" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none; font-size: 14px;">+10</button>
+</div>
+<fieldset style="border: 0; padding: 0; margin: 0 0 14px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 6px;">Status</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{ statusOpts }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.pressed }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></fieldset>
+<p style="margin: -6px 0 14px; font-size: 14px; color: #45524F;">Use "Already here" for donations dropped off in person. Orders are checked in by the elves when the parcel arrives.</p>
+<label for="ts-ref" style="display: block; font-weight: 700; margin-bottom: 6px;">Order number <span style="font-weight: 400; color: #45524F;">(optional)</span></label>
+<input id="ts-ref" type="text" placeholder="From your Amazon or Alibaba order" style="width: 100%; box-sizing: border-box; font: inherit; padding: 10px 12px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 46px; background: #FFFFFF; color: #1E2B2A; margin-bottom: 16px;">
+<button type="button" onClick="{{ add }}" style="width: 100%; min-height: 48px; border-radius: 999px; border: 0; background: #C8000B; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer;">{{ addLabel }}</button>
+<sc-if value="{{ added }}" hint-placeholder-val="{{ false }}"><p role="status" style="margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: #E6F2E8; color: #067E3E; font-weight: 700;">{{ addedText }}</p></sc-if>
+</section>
+
+<section aria-labelledby="feed-h" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<h2 id="feed-h" style="margin: 0 0 4px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 20px;">From the elf app</h2>
+<p style="margin: 0 0 12px; color: #45524F; font-size: 14px;">Elves check in deliveries when they arrive, and record each gift they hand over. Both update the stock here straight away. Example entries:</p>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px;">
+<li><span style="display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #E6F2E8; color: #067E3E; margin-bottom: 2px;">Delivery arrived</span><br><strong>20 x Wooden train set</strong> from Amazon<br><span style="color: #45524F; font-size: 13px;">Checked in by Elf Jess, Tue 1 Dec, 09:12</span></li>
+<li><strong>Wooden train set</strong> to Sam K.<br><span style="color: #45524F; font-size: 13px;">Elf Jess, Sat 12 Dec, 10:14</span></li>
+<li><strong>Light-up sensory spinner</strong> to Ava R.<br><span style="color: #45524F; font-size: 13px;">Elf Tom, Sat 12 Dec, 10:33</span></li>
+<li><strong>Fidget toy bundle</strong> to Ava's brother<br><span style="color: #45524F; font-size: 13px;">Elf Tom, Sat 12 Dec, 10:34</span></li>
+</ul>
+</section>
+</aside>
+</div>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":2080}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = {
+sib: true,
+items: [
+{ name: 'Soft reindeer plush', band: '0 to 2', cat: 'Soft toy', supplier: 'Amazon', stock: 45, onOrder: 0, given: 0 },
+{ name: 'Light-up sensory spinner', band: '3 to 5', cat: 'Sensory', supplier: 'Alibaba', stock: 60, onOrder: 0, given: 0 },
+{ name: 'Wooden train set', band: '3 to 5', cat: 'Building', supplier: 'Amazon', stock: 30, onOrder: 20, given: 0 },
+{ name: 'Bubble machine', band: '3 to 5', cat: 'Sensory', supplier: 'Amazon', stock: 25, onOrder: 0, given: 0 },
+{ name: 'Fidget toy bundle', band: '6 to 8', cat: 'Sensory', supplier: 'Alibaba', stock: 80, onOrder: 0, given: 0 },
+{ name: 'Dinosaur sticker book', band: '6 to 8', cat: 'Books', supplier: 'Amazon', stock: 50, onOrder: 0, given: 0 },
+{ name: 'Building brick set', band: '9 to 12', cat: 'Building', supplier: 'Amazon', stock: 40, onOrder: 0, given: 0 },
+{ name: 'Weighted plush animal', band: '9 to 12', cat: 'Sensory', supplier: 'Alibaba', stock: 0, onOrder: 60, given: 0 },
+{ name: 'Art and craft kit', band: '13 to 17', cat: 'Arts', supplier: 'Amazon', stock: 35, onOrder: 0, given: 0 },
+{ name: 'Light-up speaker', band: '13 to 17', cat: 'Music', supplier: 'Alibaba', stock: 20, onOrder: 0, given: 0 },
+{ name: 'Knitting kit', band: '18+', cat: 'Arts', supplier: 'Amazon', stock: 15, onOrder: 0, given: 0 },
+{ name: 'Cosy Christmas socks', band: '18+', cat: 'Clothing', supplier: 'Donated', stock: 25, onOrder: 0, given: 0 },
+],
+fName: '', fSupplier: 'Amazon', fBand: '3 to 5', fCat: 'Sensory', fQty: 10, fStatus: 'Ordered', added: '',
+};
+}
+renderVals() {
+const st = this.state;
+const G = '#067E3E', R = '#C8000B', AMB = '#8A5A00', LINE = '#E7DCC8', INK = '#1E2B2A';
+const BANDS = ['0 to 2','3 to 5','6 to 8','9 to 12','13 to 17','18+'];
+const NEED_V = { '0 to 2': 20, '3 to 5': 88, '6 to 8': 97, '9 to 12': 72, '13 to 17': 41, '18+': 23 };
+const NEED_S = { '0 to 2': 40, '3 to 5': 62, '6 to 8': 71, '9 to 12': 66, '13 to 17': 48, '18+': 0 };
+const families = 312, kids = 318, adults = 23, sibs = 287;
+const need = (b) => NEED_V[b] + (st.sib ? NEED_S[b] : 0);
+let stock = 0, coming = 0, given = 0;
+st.items.forEach((i) => { stock += i.stock; coming += i.onOrder; given += i.given; });
+const totalNeed = BANDS.reduce((a, b) => a + need(b), 0);
+const left = stock - given;
+const gap = left + coming - totalNeed;
+const items = st.items.map((i, idx) => {
+const l = i.stock - i.given;
+return { name: i.name, band: i.band, cat: i.cat, supplier: i.supplier, stock: String(i.stock), onOrder: i.onOrder ? String(i.onOrder) : '0', given: String(i.given), left: String(l),
+leftColor: l <= 5 ? R : INK, bg: idx === st.items.length - 1 && st.added ? 'background: #EEF7F1;' : '',
+canReceive: i.onOrder > 0, receiveAria: 'Mark ' + i.onOrder + ' ' + i.name + ' as arrived',
+receive: () => { const its = st.items.map((x, k) => k === idx ? Object.assign({}, x, { stock: x.stock + x.onOrder, onOrder: 0 }) : x); this.setState({ items: its, added: '' }); } };
+});
+const max = Math.max.apply(null, BANDS.map((b) => { let h = 0, o = 0; st.items.forEach((i) => { if (i.band === b) { h += i.stock - i.given; o += i.onOrder; } }); return Math.max(need(b), h + o); })) || 1;
+const bands = BANDS.map((b) => {
+let h = 0, o = 0; st.items.forEach((i) => { if (i.band === b) { h += i.stock - i.given; o += i.onOrder; } });
+const n = need(b); const diff = h + o - n;
+const pct = (v) => (v / max * 100).toFixed(1) + '%';
+return { label: b, need: String(n), have: String(h) + (o ? ' (+' + o + ' coming)' : ''),
+status: diff >= 0 ? 'Covered' : 'Short by ' + (-diff), statusColor: diff >= 0 ? G : R,
+stockW: 'width: ' + pct(h) + ';', orderPos: 'left: ' + pct(h) + '; width: ' + pct(o) + ';', needPos: 'left: calc(' + pct(n) + ' - 1px);' };
+});
+const opt = (list, cur, key) => list.map((v) => ({ label: v, pressed: v === cur ? 'true' : 'false', pick: () => this.setState({ [key]: v, added: '' }),
+style: 'min-height: 38px; padding: 0 12px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; ' + (v === cur ? 'background: ' + G + '; color: #FFFFFF; border: 2px solid ' + G + ';' : 'background: #FFFFFF; color: ' + INK + '; border: 2px solid ' + LINE + ';') }));
+const q = (d) => () => this.setState({ fQty: Math.max(1, st.fQty + d), added: '' });
+return {
+sibLabel: st.sib ? 'Siblings get a gift: yes' : 'Siblings get a gift: no', sibPressed: st.sib ? 'true' : 'false',
+sibStyle: 'min-height: 46px; padding: 0 20px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; border: 2px solid ' + G + '; ' + (st.sib ? 'background: ' + G + '; color: #FFFFFF;' : 'background: #FFFFFF; color: ' + G + ';'),
+toggleSib: () => this.setState({ sib: !st.sib }),
+who: [
+{ label: 'Families booked', value: String(families) },
+{ label: 'Children with disabilities', value: String(kids) },
+{ label: 'Adults with disabilities', value: String(adults) },
+{ label: 'Siblings coming', value: String(sibs) },
+],
+gifts: [
+{ label: 'Gifts needed', value: String(totalNeed), note: st.sib ? 'Visitors plus siblings' : 'Visitors only', style: 'background: #FFFFFF; border: 1px solid ' + LINE + ';' },
+{ label: 'In stock now', value: String(left), note: given + ' already given out', style: 'background: #E6F2E8; color: ' + G + ';' },
+{ label: 'On the way', value: String(coming), note: 'Ordered, not yet arrived', style: 'background: #EEF0F3; color: #3D4A5C;' },
+{ label: gap >= 0 ? 'Spare' : 'Still to buy', value: String(Math.abs(gap)), note: gap >= 0 ? 'After everything arrives' : 'Even after orders arrive', style: gap >= 0 ? 'background: #E6F2E8; color: ' + G + ';' : 'background: #FDECEC; color: ' + R + ';' },
+],
+bands, items, itemCount: st.items.length + ' gifts',
+fName: st.fName, fQty: String(st.fQty),
+onName: (e) => this.setState({ fName: e && e.target ? e.target.value : '', added: '' }),
+supplierOpts: opt(['Amazon','Alibaba','Donated','Other'], st.fSupplier, 'fSupplier'),
+bandOpts: opt(BANDS, st.fBand, 'fBand'),
+catOpts: opt(['Sensory','Soft toy','Building','Books','Arts','Music','Clothing'], st.fCat, 'fCat'),
+statusOpts: opt(['Ordered','Already here'], st.fStatus, 'fStatus'),
+qDec: q(-1), qInc: q(1), qDec10: q(-10), qInc10: q(10),
+addLabel: st.fStatus === 'Ordered' ? 'Add ' + st.fQty + ' as on the way' : 'Add ' + st.fQty + ' to stock now',
+added: !!st.added, addedText: st.added,
+add: () => {
+const name = (st.fName || '').trim() || 'New gift';
+const it = { name, band: st.fBand, cat: st.fCat, supplier: st.fSupplier, stock: st.fStatus === 'Already here' ? st.fQty : 0, onOrder: st.fStatus === 'Ordered' ? st.fQty : 0, given: 0 };
+this.setState({ items: st.items.concat([it]), fName: '', added: st.fQty + ' x ' + name + (st.fStatus === 'Ordered' ? ' added as on the way. The elves will check it in when it arrives.' : ' added to stock.') });
+},
+};
+}
+}
+</script>
+</body>
+</html>

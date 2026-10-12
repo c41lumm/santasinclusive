@@ -60,5 +60,25 @@ export const bookingSchema = z.object({
 
 export type BookingInput = z.infer<typeof bookingSchema>;
 
-/** The visitor details form on a family's booking page */
-export const detailsSchema = z.object({ photo_consent: photoConsent, visitors });
+/** The "About your child" form on a family's booking page. Checks run together, so every problem shows at once. */
+const detailsBase = z.object({ photo_consent: photoConsent, visitors, consent: z.boolean() });
+type Details = z.infer<typeof detailsBase>;
+
+function checkConsent(d: Details, ctx: z.RefinementCtx) {
+  if (!d.consent) ctx.addIssue({ code: 'custom', path: ['consent'], message: 'Please agree that we can use these details, including health and disability information, to prepare for your visit' });
+}
+
+/** "Save and come back later" */
+export const detailsSchema = detailsBase.superRefine(checkConsent);
+
+/** "Save and finish" also needs what the design marks as required for each person visiting Santa */
+export const finishedDetailsSchema = detailsBase.superRefine((d, ctx) => {
+  d.visitors.forEach((v, i) => {
+    if (v.kind !== 'visitor') return;
+    const who = v.first_name || 'each person visiting Santa';
+    if (v.age === undefined) ctx.addIssue({ code: 'custom', path: ['visitors', i, 'age'], message: `Please give ${who}'s age` });
+    if (!v.loves) ctx.addIssue({ code: 'custom', path: ['visitors', i, 'loves'], message: `Please tell us what ${who} loves` });
+    if (!v.dislikes) ctx.addIssue({ code: 'custom', path: ['visitors', i, 'dislikes'], message: `Please tell us what ${who} dislikes or finds upsetting` });
+  });
+  checkConsent(d, ctx);
+});

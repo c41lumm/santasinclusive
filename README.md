@@ -60,22 +60,36 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
 
 ## Phase 2: public pages
 
-All pages are built for accessibility: Atkinson Hyperlegible type, large text and targets, strong focus outlines,
-labelled fields with an error summary that links to each problem, no animation, a dark version, and they work at
-phone width. Copy is in plain English; check it with your adviser before booking opens.
+Built to the approved designs in `design-handoff/` (see its `DESIGN.md`): Fredoka headings, Atkinson Hyperlegible
+body text, Grotto Green and Santa Red, rounded cards and pill buttons. Images are in `public/images` with readable
+names. The designs' accessibility rules are kept: real buttons and labels, 44px+ targets, strong contrast, no
+animation, and every page works at phone width.
 
-- `/`: homepage. Shows "Book a visit" when booking is open, otherwise "Get an alert".
-- `/book` → `/book/details` → `/book/sent`: choose a day and time, say who is coming, then "check your messages".
-  The same answer is shown whether or not the family had already booked.
-- `/booking/[token]`: the family's own page from the link in their messages: see the visit, tell Santa about each
-  visitor (all optional; health details are kept separately), change time, cancel, and confirm they are coming.
-- `/claim/[token]`: claim a waitlist offer. Confirming and claiming are buttons, never just opening a link, as email
-  scanners open links by themselves.
-- `/waitlist`, `/alerts`, `/groups`, `/volunteer`, `/support` (sponsorship requests; payment is phase 3), `/privacy`.
+- `/`: homepage (HomeV2). Booking starts here: choose a day, then a time. When booking is closed, the picker is
+  replaced by "Booking opens soon" and the "Be first to know" alert form.
+- `/book/details` → `/book/sent`: who is coming and how to keep in touch, then "check your email/texts". There is
+  no design for this step, so it follows the ChildForm layout. The same answer is shown whether or not the family
+  had already booked, so the site never reveals who has booked.
+- `/booking/[token]`: the family's own page from the link in their messages, using the **Confirmation** design
+  ("You're booked in!", One last thing, Your reminders, Plans changed?, On the day). Showing it straight after booking,
+  as the design does, would reveal whether a family had already booked; this way it is only shown from their own link.
+  Add to calendar (`/booking/[token]/calendar`), change time, cancel, and "Are you still coming?" near the date.
+- `/booking/[token]/about`: the **ChildForm** design, in four parts. "Save and finish" needs age, loves and dislikes
+  for each person visiting Santa; "Save and come back later" saves whatever is there. Both need the consent for
+  health and disability information.
+- `/waitlist`, `/claim/[token]` (claim, or "No thanks, keep me on the list") and `/waitlist/leave/[token]`.
+  Claiming goes straight to the About form. Confirming, claiming, declining and leaving are buttons, never just
+  opening a link, as email scanners open links by themselves.
+- `/groups`, `/volunteer` (Santa or Elf), `/support` (gift sponsorship; payment by card link or invoice, Stripe is
+  phase 3), `/alerts`, `/privacy`, `/accessibility`.
 - Every public form has a Vercel BotID check and a rate limit. BotID is invisible: visitors never see a challenge,
   which matters for people using screen readers or switch access. A page with a form must be listed in
   `src/instrumentation-client.ts`, or the check fails. Locally, BotID always says "not a bot".
-- Database functions for these pages are in `db/migrations/20261013000000_public_pages.sql`.
+- **Placeholders in the designs** (contact email, company number, access details, group sessions, shift times,
+  volunteer checks, price per gift) are set in `src/lib/site.ts`. Anything left empty is not shown. Opening times come
+  from the database. The contact email is `NEXT_PUBLIC_CONTACT_EMAIL`.
+- Database: `db/migrations/20261013000000_public_pages.sql` and `20261014000000_design_updates.sql` (decline an
+  offer and stay on the list, leave the list, volunteer questions, opening hours, calendar times).
 
 ## Setting up
 

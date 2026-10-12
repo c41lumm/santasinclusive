@@ -21,22 +21,29 @@ export const waitlistSchema = z.object({
   .refine((w) => !w.channels.includes('email') || w.email, { message: 'Please give an email address, or choose text instead', path: ['email'] })
   .refine((w) => w.channels.every((c) => c === 'email') || w.phone, { message: 'Please give a mobile number for texts or WhatsApp', path: ['phone'] });
 
-/** One box for "email or mobile", as people find that simplest */
+/** One box for "email or mobile", as in the design, then how to send the alert */
 export const alertSchema = z.object({
   name,
   contact: z.string().trim().min(1, 'Please give an email address or UK mobile number').max(200),
+  channels,
   is_group: z.boolean().default(false),
-  data_consent: mustTick('Please agree to us holding your details to send the alert'),
 }).transform((a, ctx) => {
-  if (a.contact.includes('@')) {
-    const email = z.string().email().safeParse(a.contact);
-    if (email.success) return { ...a, contact: a.contact.toLowerCase(), channels: ['email'] as const };
-  } else {
-    const phone = ukMobile.safeParse(a.contact);
-    if (phone.success) return { ...a, contact: phone.data, channels: ['sms'] as const };
+  const isEmail = a.contact.includes('@');
+  const email = isEmail ? z.string().email().safeParse(a.contact) : null;
+  const phone = isEmail ? null : ukMobile.safeParse(a.contact);
+  if (!email?.success && !phone?.success) {
+    ctx.addIssue({ code: 'custom', path: ['contact'], message: 'Please give an email address, or a UK mobile number starting 07' });
+    return z.NEVER;
   }
-  ctx.addIssue({ code: 'custom', path: ['contact'], message: 'Please give an email address or a UK mobile number starting 07' });
-  return z.NEVER;
+  if (isEmail && a.channels.some((c) => c !== 'email')) {
+    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave an email address, so we can only email you. Untick Text and WhatsApp, or give a mobile number instead.' });
+    return z.NEVER;
+  }
+  if (!isEmail && a.channels.includes('email')) {
+    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave a mobile number, so we can text or WhatsApp you. Untick Email, or give an email address instead.' });
+    return z.NEVER;
+  }
+  return { ...a, contact: isEmail ? a.contact.toLowerCase() : phone!.data! };
 });
 
 export const groupSchema = z.object({
@@ -49,33 +56,35 @@ export const groupSchema = z.object({
   staff: whole('the number of staff or carers', 0, 100),
   age_range: z.string().trim().min(1, 'Please give the ages').max(60),
   weeks: z.array(z.string().max(40)).max(6).default([]),
-  time_pref: z.array(z.enum(['morning', 'afternoon'])).max(2).default([]),
+  time_pref: z.array(z.enum(['morning', 'early_afternoon', 'any'])).max(3).default([]),
   needs: optText(2000),
   data_consent: mustTick('Please agree to us holding these details'),
 });
 
 export const volunteerSchema = z.object({
-  role: z.enum(['elf', 'lead_elf', 'santa'], { errorMap: () => ({ message: 'Please choose a role' }) }),
-  name,
+  role: z.enum(['santa', 'elf'], { errorMap: () => ({ message: 'Please choose Santa or Elf' }) }),
+  name: z.string().trim().min(1, 'Please give your full name').max(100),
   email: requiredEmail,
   phone: ukMobile,
-  available_days: z.array(day).min(1, 'Please choose at least one day you could help'),
-  over_18: mustTick('Volunteers need to be 18 or over'),
+  town: optText(80),
+  over_18: z.enum(['yes', 'no'], { errorMap: () => ({ message: 'Please tell us if you are 18 or over' }) })
+    .refine((v) => v === 'yes', { message: 'Volunteers need to be 18 or over. Thank you for wanting to help.' }),
+  available_weeks: z.array(z.string().max(40)).min(1, 'Please tick at least one week you could help').max(6),
+  day_types: z.array(z.enum(['Weekdays', 'Weekends', 'Evenings'])).min(1, 'Please tick which days suit you'),
   experience: optText(2000),
-  why: optText(2000),
-  own_suit: z.boolean().optional(),
+  own_suit: z.enum(['yes', 'no']).optional(),
+  why: z.string().trim().min(1, 'Please tell us why you would like to volunteer').max(2000),
+  checks_agreed: mustTick('Please confirm you understand the checks'),
   data_consent: mustTick('Please agree to us holding your details'),
 });
 
+/** The amount is worked out on the server from the number of gifts, not taken from the page */
 export const sponsorSchema = z.object({
   company: z.string().trim().min(1, 'Please give your company or organisation name').max(150),
   contact_name: name,
   email: requiredEmail,
   gifts: whole('the number of gifts', 1, 5000),
-  amount_pounds: z.coerce.number({ invalid_type_error: 'Please give an amount in pounds' })
-    .min(1, 'Please give an amount of at least £1').max(100000, 'Please contact us about gifts this large'),
   pay_method: z.enum(['card', 'invoice'], { errorMap: () => ({ message: 'Please choose how you would like to pay' }) }),
   show_on_wall: z.boolean().default(false),
   logo_requested: z.boolean().default(false),
-  data_consent: mustTick('Please agree to us holding these details'),
 });

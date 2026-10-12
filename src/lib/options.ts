@@ -1,31 +1,35 @@
 /**
  * Answer lists for the "about your visitor" questions. Families can also write anything in their own words.
- * Check this wording with your adviser before booking opens (see README).
+ * Wording from the approved designs (ChildForm, GroupBookings, Volunteer).
  */
 export const communicationOptions = [
-  'Does not use speech', 'Uses some words or short phrases', 'Uses Makaton or signs', 'Uses British Sign Language',
-  'Uses a communication device or app', 'Uses pictures or symbols', 'Needs extra time to answer',
+  'Speaks in sentences', 'Uses a few words', 'Uses a communication device or app', 'Uses sign language or Makaton',
+  'Uses sounds, gestures or facial expressions', 'Communicates best with a parent or carer helping',
 ];
 export const mobilityOptions = [
-  'Uses a wheelchair', 'Uses a walking frame or sticks', 'Needs step-free access', 'Needs to sit down often',
-  'Needs a hoist or changing places toilet', 'Needs space to move around',
+  'Walks independently', 'Needs help to walk', 'Uses a wheelchair', 'Needs a quiet space to change or rest',
+  'Needs a hoist or changing table',
 ];
 export const sensoryOptions = [
-  'Sensitive to noise', 'Sensitive to bright or flashing lights', 'Does not like being touched', 'Likes deep pressure or hugs',
-  'Blind or partially sighted', 'Deaf or hard of hearing', 'Finds crowds or waiting hard',
+  'Sensitive to loud noise', 'Sensitive to bright or flashing lights', 'Does not like being touched', 'Sensitive to smells',
+  'Needs ear defenders or headphones', 'Needs to move around or stim',
 ];
 export const meetOptions = [
-  'Sitting next to Santa', 'Santa sitting a little way away', 'Santa coming over to them', 'Waving from a distance',
-  'Whatever feels right on the day',
+  "Sit on Santa's lap", 'Sit beside Santa', 'Say hello from a distance', 'Let us see how they feel on the day',
 ];
 
 /** Weeks of December for school and group visits */
-export const groupWeeks = ['1 to 6 December', '7 to 13 December', '14 to 20 December', '21 to 24 December'];
+export const groupWeeks = ['1 to 4 December', '7 to 11 December', '14 to 18 December', 'Any of these'];
+export const groupTimes = [
+  { value: 'morning', label: 'Morning' }, { value: 'early_afternoon', label: 'Early afternoon' }, { value: 'any', label: 'No preference' },
+] as const;
+export const volunteerWeeks = ['1 to 7 December', '8 to 14 December', '15 to 21 December', '22 to 24 December'];
+export const volunteerDayTypes = ['Weekdays', 'Weekends', 'Evenings'];
 
 export const photoChoices = [
-  { value: 'share', label: 'Yes, you can take photos, and you may share them (for example on our website)' },
-  { value: 'family_only', label: 'Yes, you can take photos for our family only' },
-  { value: 'none', label: 'No photos, thank you' },
+  { value: 'share', label: 'Photos of the visitor are fine to share by the grotto team' },
+  { value: 'family_only', label: 'Photos for our family only' },
+  { value: 'none', label: 'No photos please' },
 ] as const;
 
 export const channelChoices = [

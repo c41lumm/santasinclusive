@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Waitlist flow</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #1B1B1B;outline-offset:3px}
+</style>
+</helmet>
+<div style="width: 1360px; height: 1010px; box-sizing: border-box; background: #FBF6EE; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 17px; line-height: 1.55; padding: 48px; display: flex; flex-direction: column; gap: 32px;">
+
+<div style="display: flex; align-items: center; gap: 20px;"><img src="../assets/fe280dc47312afb0480af2b9aadf11b9.png" alt="" style="height: 110px; width: auto; display: block; flex: none;"><div>
+<h1 style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 40px; color: #067E3E;">Waitlist: be first to know about a cancelled slot</h1>
+<p style="margin: 0; font-size: 18px; color: #45524F;">Three moments: a full date, the confirmation, and the message a family gets when a slot opens.</p>
+</div></div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; align-items: start;">
+
+<!-- Panel 1: join -->
+<section aria-labelledby="p1" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 32px; box-sizing: border-box;">
+<p style="margin: 0 0 12px; font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: #C8000B;">1. Date is full</p>
+<h2 id="p1" style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 26px; line-height: 1.2; color: #067E3E;">Saturday 12 December is fully booked</h2>
+<p style="margin: 0 0 20px;">Join the waitlist and we will message you the moment a slot opens, before anyone else hears.</p>
+
+<label for="w-name" style="display: block; font-weight: 700; margin-bottom: 6px;">Your name</label>
+<input id="w-name" type="text" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF;">
+
+<label for="w-mobile" style="display: block; font-weight: 700; margin: 16px 0 6px;">Mobile number</label>
+<input id="w-mobile" type="text" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF;">
+
+<fieldset style="border: 0; padding: 0; margin: 16px 0 0;">
+<legend style="font-weight: 700; margin-bottom: 6px; padding: 0;">Which times could you make?</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 20px;">
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px;"><input id="t-any" type="checkbox" checked style="width: 22px; height: 22px; accent-color: #067E3E;"><label for="t-any">Any time</label></div>
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px;"><input id="t-am" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E;"><label for="t-am">Mornings</label></div>
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px;"><input id="t-pm" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E;"><label for="t-pm">Afternoons</label></div>
+</div>
+</fieldset>
+
+<fieldset style="border: 0; padding: 0; margin: 8px 0 0;">
+<legend style="font-weight: 700; margin-bottom: 6px; padding: 0;">Tell me by</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 20px;">
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px;"><input id="n-sms" type="checkbox" checked style="width: 22px; height: 22px; accent-color: #067E3E;"><label for="n-sms">Text</label></div>
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px;"><input id="n-wa" type="checkbox" checked style="width: 22px; height: 22px; accent-color: #067E3E;"><label for="n-wa">WhatsApp</label></div>
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px;"><input id="n-em" type="checkbox" checked style="width: 22px; height: 22px; accent-color: #067E3E;"><label for="n-em">Email</label></div>
+</div>
+</fieldset>
+
+<button type="button" style="margin-top: 16px; width: 100%; background: #C8000B; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 19px; padding: 14px 24px; border: 0; border-radius: 999px; cursor: pointer; min-height: 52px;">Join the waitlist</button>
+<p style="margin: 14px 0 0; font-size: 15px; color: #45524F;">Joining is free and you can leave the list at any time.</p>
+</section>
+
+<!-- Panel 2: confirmation -->
+<section aria-labelledby="p2" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 32px; box-sizing: border-box;">
+<p style="margin: 0 0 12px; font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: #C8000B;">2. You're on the list</p>
+<div style="width: 56px; height: 56px; border-radius: 50%; background: #067E3E; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+</div>
+<h2 id="p2" style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 26px; line-height: 1.2; color: #067E3E;">You are on the waitlist for 12 December</h2>
+<p style="margin: 0 0 24px;">We have sent a confirmation to your phone and email.</p>
+
+<h3 style="margin: 0 0 12px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 20px;">What happens next</h3>
+<ol style="margin: 0 0 24px; padding-left: 24px;">
+<li style="margin-bottom: 10px;">If a family cancels, we message the first person on the list.</li>
+<li style="margin-bottom: 10px;">You have a short time to claim the slot with one tap.</li>
+<li>If you do not claim it, we offer it to the next family.</li>
+</ol>
+
+<div style="background: #F1E7D3; border-radius: 16px; padding: 16px 20px;">
+<p style="margin: 0; font-weight: 700;">Want to look at other dates too?</p>
+<p style="margin: 4px 0 12px;">You can join the waitlist for more than one date.</p>
+<a href="#" style="display: inline-block; color: #067E3E; font-weight: 700; padding: 10px 0;">See other dates</a>
+</div>
+</section>
+
+<!-- Panel 3: notification -->
+<section aria-labelledby="p3" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 32px; box-sizing: border-box;">
+<p style="margin: 0 0 12px; font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: #C8000B;">3. A slot opens</p>
+<h2 id="p3" style="margin: 0 0 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 26px; line-height: 1.2; color: #067E3E;">The message families receive</h2>
+
+<div style="background: #E6F2E8; border-radius: 20px 20px 20px 6px; padding: 18px 20px; margin-bottom: 20px;">
+<p style="margin: 0 0 8px;">Good news from Santa's Inclusive Grotto. A slot has opened on Saturday 12 December at 10:30.</p>
+<p style="margin: 0 0 8px;">It is held for you until 2:00 pm today. Tap below to claim it.</p>
+<p style="margin: 0; font-weight: 700; color: #067E3E;">santasgrotto.example/claim</p>
+</div>
+
+<div style="border: 2px solid #067E3E; border-radius: 20px; padding: 24px;">
+<h3 style="margin: 0 0 4px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 22px;">Saturday 12 December, 10:30</h3>
+<p style="margin: 0 0 16px; color: #45524F;">Held for you for a short while</p>
+<button type="button" style="width: 100%; background: #067E3E; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 19px; padding: 14px 24px; border: 0; border-radius: 999px; cursor: pointer; min-height: 52px;">Claim this slot</button>
+<button type="button" style="margin-top: 10px; width: 100%; background: transparent; color: #1E2B2A; font: inherit; font-weight: 700; font-size: 18px; padding: 12px 24px; border: 2px solid #5B6B68; border-radius: 999px; cursor: pointer; min-height: 52px;">No thanks, keep me on the list</button>
+</div>
+<p style="margin: 14px 0 0; font-size: 15px; color: #45524F;">Claiming takes you straight to the "about the visitor" form if we do not have it yet.</p>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1010}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

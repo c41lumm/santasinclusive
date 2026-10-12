@@ -1,0 +1,157 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AdminBookings.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Admin: bookings",
+      "w": 1360,
+      "x": 1440,
+      "y": 5400
+    },
+    "AdminChecks.dc.html": {
+      "h": 1420,
+      "is_interactive": true,
+      "title": "Admin: checks",
+      "w": 1360,
+      "x": 2880,
+      "y": 6520
+    },
+    "AdminRota.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Admin: staff rota",
+      "w": 1360,
+      "x": 5840,
+      "y": 3750
+    },
+    "AdminSlots.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "title": "Admin: visit times",
+      "w": 1360,
+      "x": 1440,
+      "y": 3720
+    },
+    "AdminToys.dc.html": {
+      "h": 2080,
+      "is_interactive": true,
+      "title": "Admin: toy stock",
+      "w": 1360,
+      "x": 4320,
+      "y": 5820
+    },
+    "ChildForm.dc.html": {
+      "expand": "fill",
+      "h": 4650,
+      "is_interactive": true,
+      "title": "About your child form",
+      "w": 1360,
+      "x": 2880,
+      "y": 0
+    },
+    "Confirmation.dc.html": {
+      "expand": "fill",
+      "h": 2000,
+      "is_interactive": true,
+      "title": "Booking confirmed",
+      "w": 1360,
+      "x": 4320,
+      "y": 3720
+    },
+    "ElfApp.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Elf web app",
+      "w": 1360,
+      "x": 7423,
+      "y": 3720
+    },
+    "GroupBookings.dc.html": {
+      "expand": "fill",
+      "h": 2700,
+      "is_interactive": true,
+      "title": "School and group visits",
+      "w": 1360,
+      "x": 2880,
+      "y": 3720
+    },
+    "HomeV2.dc.html": {
+      "expand": "fill",
+      "h": 7100,
+      "is_interactive": true,
+      "title": "Homepage v2",
+      "w": 1360,
+      "x": 0,
+      "y": 3720
+    },
+    "HorizontalLogo.dc.html": {
+      "h": 1180,
+      "title": "Horizontal logo",
+      "w": 1360,
+      "x": 8640,
+      "y": 0
+    },
+    "Logo.dc.html": {
+      "h": 1240,
+      "title": "Logo",
+      "w": 1360,
+      "x": 4320,
+      "y": 0
+    },
+    "Support.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "is_interactive": true,
+      "title": "Support the grotto",
+      "w": 1360,
+      "x": 5760,
+      "y": 0
+    },
+    "Volunteer.dc.html": {
+      "expand": "fill",
+      "h": 2700,
+      "is_interactive": true,
+      "title": "Volunteer application",
+      "w": 1360,
+      "x": 7200,
+      "y": 0
+    },
+    "Waitlist.dc.html": {
+      "h": 1010,
+      "title": "Waitlist flow",
+      "w": 1360,
+      "x": 1440,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-10T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {},
+  "order": [
+    "Waitlist.dc.html",
+    "ChildForm.dc.html",
+    "Logo.dc.html",
+    "Support.dc.html",
+    "Volunteer.dc.html",
+    "HorizontalLogo.dc.html",
+    "HomeV2.dc.html",
+    "AdminSlots.dc.html",
+    "GroupBookings.dc.html",
+    "Confirmation.dc.html",
+    "AdminBookings.dc.html",
+    "AdminChecks.dc.html",
+    "AdminToys.dc.html",
+    "AdminRota.dc.html",
+    "ElfApp.dc.html"
+  ],
+  "pages": [],
+  "title": "Santa's Inclusive Grotto Website"
+}

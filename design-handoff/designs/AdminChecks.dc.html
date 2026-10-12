@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin: checks</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a:focus-visible,button:focus-visible{outline:3px solid #1B1B1B;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1360px; height: 1420px; box-sizing: border-box; background: #F4F1EA; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 16px; line-height: 1.45; display: flex;">
+<aside style="flex: none; width: 230px; background: #0B3B21; color: #FFFFFF; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px;">
+<p style="margin: 0 0 4px 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Grotto admin</p>
+<p style="margin: 0 0 20px 16px; font-size: 14px; color: #BFD6C7;">Santa's Inclusive Grotto</p>
+<nav aria-label="Admin" style="display: flex; flex-direction: column; gap: 2px;"><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Dashboard</a><a href="AdminBookings.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Bookings</a><a href="#" aria-current="page" style="display: block; padding: 11px 16px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-weight: 700; text-decoration: none;">Checks</a><a href="AdminSlots.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Visit times</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Waitlist</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Early alerts</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Messages</a><a href="AdminToys.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Toy stock</a><a href="AdminRota.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Staff rota</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Volunteers</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Sponsorship</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Press releases</a></nav>
+</aside>
+
+<main style="flex: 1; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px;">Checks</h1>
+<p style="margin: 0; color: #45524F;">One visit per family, and visits kept for the people the grotto is for. Only admins can see this page.</p>
+</div>
+
+<div role="tablist" aria-label="Checks" style="display: flex; gap: 8px;">
+<sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="2">
+<button type="button" role="tab" aria-selected="{{ tb.selected }}" onClick="{{ tb.pick }}" style="{{ tb.style }}">{{ tb.label }}</button>
+</sc-for>
+</div>
+
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+
+<section aria-label="List" style="flex: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; overflow: hidden;">
+<sc-for list="{{ items }}" as="it" hint-placeholder-count="4">
+<button type="button" onClick="{{ it.pick }}" aria-pressed="{{ it.pressed }}" style="width: 100%; text-align: left; font: inherit; color: #1E2B2A; cursor: pointer; border: 0; border-bottom: 1px solid #F0EADF; padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start; {{ it.bg }}">
+<span style="flex: none; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; {{ it.tagStyle }}">{{ it.tag }}</span>
+<span style="flex: 1; min-width: 0;">
+<span style="display: block; font-weight: 700; font-size: 17px;">{{ it.title }}</span>
+<span style="display: block; color: #45524F; font-size: 15px;">{{ it.sub }}</span>
+</span>
+<span style="flex: none; font-size: 13px; font-weight: 700; color: {{ it.statusColor }};">{{ it.status }}</span>
+</button>
+</sc-for>
+</section>
+
+<aside aria-label="Details" style="flex: none; width: 430px; display: flex; flex-direction: column; gap: 16px;">
+<section style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<p style="margin: 0; font-size: 14px; font-weight: 700; color: {{ d.tagColor }};">{{ d.tag }}</p>
+<h2 style="margin: 2px 0 12px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 24px;">{{ d.title }}</h2>
+
+<sc-if value="{{ isDup }}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+<sc-for list="{{ d.pair }}" as="p" hint-placeholder-count="2">
+<div style="background: #F7F3EA; border-radius: 14px; padding: 12px 14px; font-size: 14px;">
+<p style="margin: 0; font-weight: 700; font-size: 15px;">{{ p.name }}</p>
+<p style="margin: 0;">{{ p.when }}</p>
+<p style="margin: 0; color: #45524F;">{{ p.phone }}</p>
+<p style="margin: 0; color: #45524F;">{{ p.email }}</p>
+<p style="margin: 0; color: #45524F;">{{ p.postcode }}</p>
+</div>
+</sc-for>
+</div>
+<p style="margin: 0 0 6px; font-weight: 700;">Why it was flagged</p>
+<ul style="margin: 0 0 16px; padding-left: 20px;">
+<sc-for list="{{ d.reasons }}" as="r" hint-placeholder-count="2"><li>{{ r.text }}</li></sc-for>
+</ul>
+</sc-if>
+
+<sc-if value="{{ isFlag }}" hint-placeholder-val="{{ false }}">
+<dl style="margin: 0 0 16px; display: grid; grid-template-columns: 110px 1fr; gap: 8px 12px; font-size: 15px;">
+<dt style="color: #45524F;">Contact</dt><dd style="margin: 0;">{{ d.contact }}</dd>
+<dt style="color: #45524F;">Reason</dt><dd style="margin: 0;">{{ d.reason }}</dd>
+<dt style="color: #45524F;">What happened</dt><dd style="margin: 0;">{{ d.note }}</dd>
+<dt style="color: #45524F;">Added by</dt><dd style="margin: 0;">{{ d.by }}</dd>
+<dt style="color: #45524F;">Review by</dt><dd style="margin: 0;">{{ d.expires }}</dd>
+<dt style="color: #45524F;">New bookings</dt><dd style="margin: 0; font-weight: 700;">{{ d.effect }}</dd>
+</dl>
+</sc-if>
+
+<sc-if value="{{ resolved }}" hint-placeholder-val="{{ false }}">
+<p role="status" style="margin: 0; padding: 12px 14px; border-radius: 14px; background: #E6F2E8; color: #067E3E; font-weight: 700;">{{ resolvedText }}</p>
+</sc-if>
+<sc-if value="{{ showDupActions }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<button type="button" onClick="{{ act1 }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; background: #C8000B; color: #FFFFFF; border: 2px solid #C8000B;">Cancel the newer booking and message the family</button>
+<button type="button" onClick="{{ act2 }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; background: #FFFFFF; color: #067E3E; border: 2px solid #067E3E;">Not a duplicate, keep both</button>
+<button type="button" onClick="{{ act3 }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; background: #FFFFFF; color: #1E2B2A; border: 2px solid #E7DCC8;">Contact the family first</button>
+</div>
+</sc-if>
+<sc-if value="{{ showFlagActions }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<button type="button" onClick="{{ act2 }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; background: #FFFFFF; color: #067E3E; border: 2px solid #067E3E;">Remove flag</button>
+<button type="button" onClick="{{ act3 }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; background: #FFFFFF; color: #1E2B2A; border: 2px solid #E7DCC8;">Add a note</button>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFF7E6; border-radius: 20px; padding: 20px 22px;">
+<h3 style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 19px;">{{ guideTitle }}</h3>
+<p style="margin: 0; font-size: 15px;">{{ guide }}</p>
+</section>
+</aside>
+</div>
+
+<section aria-labelledby="fam-h" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; padding: 22px; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;">
+<div style="flex: 1 1 300px;">
+<h2 id="fam-h" style="margin: 0 0 6px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">What families see when booking</h2>
+<p style="margin: 0; color: #45524F; font-size: 15px;">If the email, mobile or address already has a booking, the website stops them before a second one is made, and offers to change the first.</p>
+</div>
+<div style="flex: 1 1 420px; background: #FBF6EE; border: 2px solid #E7DCC8; border-radius: 18px; padding: 18px 20px;">
+<p style="margin: 0 0 6px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 20px;">You already have a visit booked</p>
+<p style="margin: 0 0 12px;">There is a visit for your family on Saturday 12 December at 10:20. We offer one visit per family so that everyone gets a turn. Bringing more than one child? They can all come to the same visit.</p>
+<span style="display: inline-block; background: #C8000B; color: #FFFFFF; font-weight: 700; padding: 10px 20px; border-radius: 999px;">Change my existing visit</span>
+</div>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1420}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { tab: 'dup', sel: 0, done: {} };
+}
+renderVals() {
+const st = this.state;
+const G = '#067E3E', R = '#C8000B', AMB = '#8A5A00', LINE = '#E7DCC8', INK = '#1E2B2A';
+const pill = (bg, fg) => 'background: ' + bg + '; color: ' + fg + ';';
+const DUP = [
+{ conf: 'Likely', title: 'Ethan S. and Ethan Smith', sub: '14 Dec at 14:40 and 18 Dec at 10:20',
+pair: [{ name: 'Ethan S.', when: 'Mon 14 Dec, 14:40', phone: '07700 900901', email: 's.family@example.com', postcode: 'LE2' }, { name: 'Ethan Smith', when: 'Fri 18 Dec, 10:20', phone: '07700 900901', email: 'ethan.mum@example.com', postcode: 'LE2' }],
+reasons: ['Same mobile number', 'Very similar visitor name', 'Same postcode area'] },
+{ conf: 'Likely', title: 'Ava R. and Ava Robinson', sub: '12 Dec at 10:20 and 20 Dec at 11:00',
+pair: [{ name: 'Ava R.', when: 'Sat 12 Dec, 10:20', phone: '07700 900456', email: 'r.family@example.com', postcode: 'LE4' }, { name: 'Ava Robinson', when: 'Sun 20 Dec, 11:00', phone: '07700 900111', email: 'r.family@example.com', postcode: 'LE4' }],
+reasons: ['Same email address', 'Same first name', 'Same postcode area'] },
+{ conf: 'Check', title: 'Sam K. and Ella K.', sub: '12 Dec at 10:00 and 16 Dec at 13:20',
+pair: [{ name: 'Sam K.', when: 'Sat 12 Dec, 10:00', phone: '07700 900123', email: 'k.family@example.com', postcode: 'LE5' }, { name: 'Ella K.', when: 'Wed 16 Dec, 13:20', phone: '07700 900222', email: 'k.family@example.com', postcode: 'LE5' }],
+reasons: ['Same email address', 'Different visitors, probably siblings', 'Siblings can share one visit'] },
+{ conf: 'Unlikely', title: 'Noah T. and Noah T.', sub: '12 Dec at 12:00 and 19 Dec at 15:00',
+pair: [{ name: 'Noah T.', when: 'Sat 12 Dec, 12:00', phone: '07700 900345', email: 't.family@example.com', postcode: 'LE3' }, { name: 'Noah T.', when: 'Sat 19 Dec, 15:00', phone: '07700 900333', email: 'noah.t@example.com', postcode: 'LE18' }],
+reasons: ['Same first name and initial only', 'Different contact details and area'] },
+];
+const FLAG = [
+{ title: 'J. Carter', sub: 'Eligibility concern, added December 2025', contact: '07700 900444, j.carter@example.com', reason: 'Eligibility concern',
+note: 'At the visit, the parent told the team they booked for the experience and that no one in the family has additional needs.', by: 'Cal, 14 Dec 2025', expires: 'December 2026', effect: 'Held for review before confirming' },
+{ title: 'Booking under several names', sub: 'Repeated duplicate bookings, added December 2025', contact: '07700 900555, three email addresses', reason: 'Repeated duplicate bookings',
+note: 'Four bookings made under three names with the same mobile, after being told one visit per family.', by: 'Cal, 9 Dec 2025', expires: 'December 2026', effect: 'Held for review before confirming' },
+];
+const isDup = st.tab === 'dup';
+const list = isDup ? DUP : FLAG;
+const sel = Math.min(st.sel, list.length - 1);
+const key = st.tab + sel;
+const confStyle = (c) => c === 'Likely' ? pill('#FDECEC', R) : (c === 'Check' ? pill('#FFF1D6', AMB) : pill('#EEF0F3', '#3D4A5C'));
+const items = list.map((x, i) => {
+const done = st.done[st.tab + i];
+return { title: x.title, sub: x.sub, tag: isDup ? x.conf + ' duplicate' : 'Flagged', tagStyle: isDup ? confStyle(x.conf) : pill('#FFF1D6', AMB),
+status: done ? 'Resolved' : 'Needs a decision', statusColor: done ? G : AMB,
+pressed: i === sel ? 'true' : 'false', bg: i === sel ? 'background: #EEF7F1;' : 'background: #FFFFFF;', pick: () => this.setState({ sel: i }) };
+});
+const x = list[sel];
+const d = isDup ? { tag: x.conf + ' duplicate', tagColor: x.conf === 'Likely' ? R : (x.conf === 'Check' ? AMB : '#3D4A5C'), title: x.title, pair: x.pair, reasons: x.reasons.map((t) => ({ text: t })) }
+: Object.assign({ tag: 'Flagged contact', tagColor: AMB, pair: [], reasons: [] }, x);
+const done = st.done[key];
+const mark = (text) => () => { const nd = Object.assign({}, st.done); nd[key] = text; this.setState({ done: nd }); };
+const tabStyle = (on) => 'min-height: 44px; padding: 0 20px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; border: 2px solid ' + G + '; ' + (on ? 'background: ' + G + '; color: #FFFFFF;' : 'background: #FFFFFF; color: ' + G + ';');
+const openDup = DUP.filter((_, i) => !st.done['dup' + i]).length, openFlag = FLAG.filter((_, i) => !st.done['flag' + i]).length;
+return {
+tabs: [
+{ label: 'Possible duplicates (' + openDup + ')', selected: isDup ? 'true' : 'false', style: tabStyle(isDup), pick: () => this.setState({ tab: 'dup', sel: 0 }) },
+{ label: 'Flagged contacts (' + openFlag + ')', selected: !isDup ? 'true' : 'false', style: tabStyle(!isDup), pick: () => this.setState({ tab: 'flag', sel: 0 }) },
+],
+items, d, isDup, isFlag: !isDup,
+resolved: !!done, resolvedText: done || '',
+showDupActions: isDup && !done, showFlagActions: !isDup && !done,
+act1: mark('Newer booking cancelled. The family has been sent a message and the time offered to the waitlist.'),
+act2: mark(isDup ? 'Marked as not a duplicate. These two will not be flagged again.' : 'Flag removed. New bookings from this contact confirm as normal.'),
+act3: mark(isDup ? 'Marked to contact the family. Both bookings stay on hold until you decide.' : 'Note added to the flag history.'),
+guideTitle: isDup ? 'How duplicates are found' : 'Using flags fairly',
+guide: isDup ? 'The system compares every new booking with existing ones by mobile, email, home address and visitor name. Nothing is cancelled automatically: you decide. Siblings can share one visit, so the family is told that rather than refused.'
+: 'Many disabilities are not visible, so a flag records what was said or what happened, never a guess from how someone looks. Flags are only seen by admins, never by Santa or the elves. A flagged contact can still book: their booking is held for you to review. Flags are reviewed each year and removed if no longer needed.',
+};
+}
+}
+</script>
+</body>
+</html>

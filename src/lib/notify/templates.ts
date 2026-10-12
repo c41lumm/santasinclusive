@@ -52,10 +52,10 @@ export const templates = {
     text: `You're booked in to see Santa on ${v.when}. Your reference is ${v.reference}. ` +
       `Please tell us who is coming and a little about them: ${manage(v.token)}`,
   }),
-  waitlistJoined: (day: string) => ({
+  waitlistJoined: (day: string, leaveToken: string) => ({
     subject: `You're on the waitlist for ${day}`,
     text: `You're on the waitlist for ${day}. If a visit opens up, we will message you straight away and hold it ` +
-      `for you for a while, so you have time to claim it.`,
+      `for you for a while, so you have time to claim it. To leave the list: ${site()}/waitlist/leave/${leaveToken}`,
   }),
   waitlistOffer: (when: string, claimToken: string, until: string) => ({
     subject: 'A visit to Santa has opened up',

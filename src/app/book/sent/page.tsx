@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
+import { site } from '@/lib/site';
 
 export const metadata: Metadata = { title: 'Check your messages' };
 
@@ -11,26 +13,32 @@ export default async function Sent({ searchParams }: { searchParams: Promise<{ v
   const where = via.split(',').map((c) => names[c]).filter(Boolean);
   const list = where.length > 1 ? `${where.slice(0, -1).join(', ')} and ${where.at(-1)}` : where[0] ?? 'messages';
   return (
-    <div className="content">
-      <ol className="steps" aria-label="Booking steps">
-        <li>1. Choose a time</li>
-        <li>2. Who is coming</li>
-        <li aria-current="step">3. Check your messages</li>
-      </ol>
-      <div className="success" role="status">
-        <h1>Thank you. Please check your {list}.</h1>
-        <p>We have sent the details of your visit, with your own link to look at or change it.</p>
+    <div className="wrap page" style={{ maxWidth: 1140 }}>
+      <section className="hero" style={{ marginBottom: 40 }} role="status">
+        <Image src="/images/illustration-santa-waving.png" alt="Santa smiling and waving" width={213} height={300} className="hero-art" style={{ maxHeight: 300 }} />
+        <div className="text" style={{ flexBasis: 460 }}>
+          <p className="status-pill">Nearly done</p>
+          <h1>Check your {list}</h1>
+          <p className="lead" style={{ fontSize: '1.2rem' }}>We have sent your booking, with your own link to see it, change it and tell Santa about your visitors.</p>
+        </div>
+      </section>
+      <div className="split">
+        <section className="card main" aria-labelledby="next-h">
+          <h2 id="next-h" style={{ fontSize: '1.75rem', fontWeight: 600 }}>What happens next</h2>
+          <ol className="stack" style={{ listStyle: 'none', padding: 0, gap: 18, margin: 0 }}>
+            <li className="fact"><span className="step-num" aria-hidden="true">1</span><p>Open the link in our message and tell us about your visitor. It takes about five minutes, and Santa and the elves read it before you arrive.</p></li>
+            <li className="fact"><span className="step-num" aria-hidden="true">2</span><p>We will remind you a week before, and ask you to confirm two days before, with directions.</p></li>
+            <li className="fact"><span className="step-num" aria-hidden="true">3</span><p>If plans change, use the same link to move or cancel. Your time then goes to a family on the waitlist.</p></li>
+          </ol>
+        </section>
+        <aside className="side stack">
+          <section className="card card-sand">
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Nothing arrived?</h2>
+            <p>Give it 15 minutes and check your spam folder.{site.contactEmail ? <> If it is still not there, email <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a>.</> : null}</p>
+            <Link href="/">Back to the homepage</Link>
+          </section>
+        </aside>
       </div>
-      <h2>What happens next</h2>
-      <ol>
-        <li>Use the link in our message to tell Santa about your visitors. It takes about five minutes and makes a big difference.</li>
-        <li>We will remind you a week before, and ask you to confirm two days before.</li>
-        <li>If you need to change or cancel, use the same link. Your time then goes to a family on the waitlist.</li>
-      </ol>
-      <p>
-        Nothing arrived after 15 minutes? Check your spam folder. If it is still not there, please{' '}
-        <Link href="/privacy#contact">contact us</Link>.
-      </p>
     </div>
   );
 }

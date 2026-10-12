@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin: staff rota</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a:focus-visible,button:focus-visible{outline:3px solid #1B1B1B;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1360px; height: 1500px; box-sizing: border-box; background: #F4F1EA; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 16px; line-height: 1.45; display: flex;">
+<aside style="flex: none; width: 230px; background: #0B3B21; color: #FFFFFF; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px;">
+<p style="margin: 0 0 4px 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Grotto admin</p>
+<p style="margin: 0 0 20px 16px; font-size: 14px; color: #BFD6C7;">Santa's Inclusive Grotto</p>
+<nav aria-label="Admin" style="display: flex; flex-direction: column; gap: 2px;"><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Dashboard</a><a href="AdminBookings.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Bookings</a><a href="AdminChecks.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Checks</a><a href="AdminSlots.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Visit times</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Waitlist</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Early alerts</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Messages</a><a href="AdminToys.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Toy stock</a><a href="#" aria-current="page" style="display: block; padding: 11px 16px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-weight: 700; text-decoration: none;">Staff rota</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Volunteers</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Sponsorship</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Press releases</a></nav>
+</aside>
+
+<main style="flex: 1; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px;">Staff rota</h1>
+<p style="margin: 0; color: #45524F;">Santas and elves for every shift, from volunteers' availability.</p>
+</div>
+<div style="display: flex; gap: 10px; align-items: center;">
+<sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}"><span role="status" style="color: #067E3E; font-weight: 700;">{{ sentText }}</span></sc-if>
+<button type="button" onClick="{{ send }}" style="min-height: 46px; padding: 0 20px; border-radius: 999px; border: 0; background: #C8000B; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">Send this week's rota</button>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+<div role="group" aria-label="Choose a week" style="display: flex; gap: 8px;">
+<sc-for list="{{ weeks }}" as="w" hint-placeholder-count="4"><button type="button" onClick="{{ w.pick }}" aria-pressed="{{ w.pressed }}" style="{{ w.style }}">{{ w.label }}</button></sc-for>
+</div>
+<div style="display: flex; gap: 18px; font-size: 15px;">
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="3"><span><strong style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 22px; color: {{ s.color }};">{{ s.value }}</strong> {{ s.label }}</span></sc-for>
+</div>
+</div>
+
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+<section aria-label="Week grid" style="flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+<div style="text-align: center; padding: 6px 0; border-radius: 12px; {{ d.headStyle }}"><span style="display: block; font-size: 13px; font-weight: 700;">{{ d.wd }}</span><span style="display: block; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 20px;">{{ d.n }}</span></div>
+<sc-for list="{{ d.shifts }}" as="c" hint-placeholder-count="2">
+<button type="button" onClick="{{ c.pick }}" aria-pressed="{{ c.pressed }}" aria-label="{{ c.aria }}" style="text-align: left; font: inherit; color: #1E2B2A; cursor: pointer; border-radius: 14px; padding: 10px; min-height: 150px; display: flex; flex-direction: column; gap: 4px; {{ c.style }}">
+<span style="font-size: 12px; font-weight: 700; color: #45524F;">{{ c.label }}</span>
+<sc-for list="{{ c.people }}" as="p" hint-placeholder-count="3"><span style="font-size: 13px; font-weight: 700; {{ p.style }}">{{ p.text }}</span></sc-for>
+<sc-if value="{{ c.hasGap }}" hint-placeholder-val="{{ false }}"><span style="margin-top: auto; font-size: 12px; font-weight: 700; color: #C8000B;">{{ c.gapText }}</span></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-for>
+</section>
+
+<aside aria-label="Shift details" style="flex: none; width: 340px; background: #FFFFFF; border: 2px solid #067E3E; border-radius: 20px; padding: 20px; box-sizing: border-box;">
+<p style="margin: 0; font-size: 14px; color: #45524F;">{{ sel.times }}</p>
+<h2 style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 22px;">{{ sel.title }}</h2>
+<div style="margin-top: 16px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+<p style="margin: 0; font-weight: 700;">Santas</p>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 14px; color: #45524F;">Needed</span><button type="button" onClick="{{ sel.santaDec }}" aria-label="Fewer santas needed" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none;">-</button><span style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 20px; min-width: 22px; text-align: center;">{{ sel.santaNeed }}</span><button type="button" onClick="{{ sel.santaInc }}" aria-label="More santas needed" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none;">+</button></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<sc-for list="{{ sel.santaOn }}" as="p" hint-placeholder-count="2">
+<div style="display: flex; justify-content: space-between; align-items: center; background: #E6F2E8; border-radius: 12px; padding: 6px 8px 6px 14px;"><span style="font-weight: 700; color: #067E3E;">{{ p.name }}</span><button type="button" onClick="{{ p.remove }}" aria-label="{{ p.aria }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid #F2C7C9; background: #FFFFFF; color: #C8000B; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer;">Remove</button></div>
+</sc-for>
+<sc-for list="{{ sel.santaGaps }}" as="gp" hint-placeholder-count="1">
+<div style="border: 2px dashed #C8000B; border-radius: 12px; padding: 8px 14px; color: #C8000B; font-weight: 700; font-size: 14px;">{{ gp.text }}</div>
+</sc-for>
+</div>
+<p style="margin: 12px 0 6px; font-size: 14px; font-weight: 700; color: #45524F;">Available to add</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px;">
+<sc-for list="{{ sel.santaFree }}" as="p" hint-placeholder-count="3"><button type="button" onClick="{{ p.add }}" aria-label="{{ p.aria }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer;">+ {{ p.name }}</button></sc-for>
+</div>
+<p style="margin: 8px 0 0; font-size: 13px; color: #45524F;">{{ sel.santaAway }}</p>
+</div>
+<div style="margin-top: 16px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+<p style="margin: 0; font-weight: 700;">Elves</p>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 14px; color: #45524F;">Needed</span><button type="button" onClick="{{ sel.elfDec }}" aria-label="Fewer elves needed" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none;">-</button><span style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 20px; min-width: 22px; text-align: center;">{{ sel.elfNeed }}</span><button type="button" onClick="{{ sel.elfInc }}" aria-label="More elves needed" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 20px; line-height: 1; cursor: pointer; flex: none;">+</button></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<sc-for list="{{ sel.elfOn }}" as="p" hint-placeholder-count="2">
+<div style="display: flex; justify-content: space-between; align-items: center; background: #E6F2E8; border-radius: 12px; padding: 6px 8px 6px 14px;"><span style="font-weight: 700; color: #067E3E;">{{ p.name }}</span><button type="button" onClick="{{ p.remove }}" aria-label="{{ p.aria }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid #F2C7C9; background: #FFFFFF; color: #C8000B; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer;">Remove</button></div>
+</sc-for>
+<sc-for list="{{ sel.elfGaps }}" as="gp" hint-placeholder-count="1">
+<div style="border: 2px dashed #C8000B; border-radius: 12px; padding: 8px 14px; color: #C8000B; font-weight: 700; font-size: 14px;">{{ gp.text }}</div>
+</sc-for>
+</div>
+<p style="margin: 12px 0 6px; font-size: 14px; font-weight: 700; color: #45524F;">Available to add</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px;">
+<sc-for list="{{ sel.elfFree }}" as="p" hint-placeholder-count="3"><button type="button" onClick="{{ p.add }}" aria-label="{{ p.aria }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer;">+ {{ p.name }}</button></sc-for>
+</div>
+<p style="margin: 8px 0 0; font-size: 13px; color: #45524F;">{{ sel.elfAway }}</p>
+</div>
+</aside>
+</div>
+
+<section style="background: #FFF7E6; border-radius: 18px; padding: 16px 20px;">
+<p style="margin: 0; font-size: 15px;"><strong>How it works.</strong> Each volunteer's availability comes from their application and can be changed on the Volunteers page. Only people who can do that day are offered for a shift. Sending the rota messages each person their own shifts by text, WhatsApp or email, and it appears in their elf app. Shift times shown are examples and follow each day's opening hours.</p>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1500}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+const V = this.volunteers();
+const as = {}; const need = {};
+for (let d = 1; d <= 24; d++) for (let s = 0; s < 2; s++) {
+const k = d + '|' + s; need[k] = { santa: 1, elf: 2 };
+const sOk = V.filter((v) => v.role === 'santa' && this.canDo(v, d));
+const eOk = V.filter((v) => v.role === 'elf' && this.canDo(v, d));
+const santa = (d === 13 && s === 1) || !sOk.length ? [] : [sOk[(d + s) % sOk.length].name];
+let elves = [];
+if (eOk.length) { elves.push(eOk[(d * 2 + s) % eOk.length].name); const second = eOk[(d * 2 + s + 1) % eOk.length].name; if (second !== elves[0] && (d * 2 + s) % 7 !== 3) elves.push(second); }
+as[k] = { santa, elf: elves };
+}
+this.state = { week: 1, sel: '12|0', as, need, sent: false };
+}
+volunteers() {
+const all = [0,1,2,3,4,5,6], wkd = [1,2,3,4,5], wke = [0,6];
+return [
+{ name: 'Santa Mike', role: 'santa', days: all, weeks: [0,1,2,3], note: 'any day' },
+{ name: 'Santa Dave', role: 'santa', days: wke, weeks: [0,1,2,3], note: 'weekends only' },
+{ name: 'Santa Peter', role: 'santa', days: wkd, weeks: [1,2,3], note: 'weekdays from 7 Dec' },
+{ name: 'Santa George', role: 'santa', days: [3,4,5,6,0], weeks: [2,3], note: 'Wed to Sun from 14 Dec' },
+{ name: 'Jess', role: 'elf', days: all, weeks: [0,1,2,3], note: 'any day' },
+{ name: 'Tom', role: 'elf', days: wkd, weeks: [0,1,2,3], note: 'weekdays only' },
+{ name: 'Priya', role: 'elf', days: [5,6,0], weeks: [0,1,2,3], note: 'Fri to Sun' },
+{ name: 'Amara', role: 'elf', days: all, weeks: [0,1], note: 'until 13 Dec' },
+{ name: 'Ben', role: 'elf', days: [2,4,6], weeks: [0,1,2,3], note: 'Tue, Thu, Sat' },
+{ name: 'Chloe', role: 'elf', days: all, weeks: [2,3], note: 'from 14 Dec' },
+{ name: 'Sam', role: 'elf', days: [1,3,5], weeks: [0,1,2,3], note: 'Mon, Wed, Fri' },
+{ name: 'Hannah', role: 'elf', days: wke, weeks: [0,1,2,3], note: 'weekends only' },
+];
+}
+weekOf(d) { return d <= 6 ? 0 : d <= 13 ? 1 : d <= 20 ? 2 : 3; }
+canDo(v, d) { return v.days.indexOf(new Date(2026, 11, d).getDay()) !== -1 && v.weeks.indexOf(this.weekOf(d)) !== -1; }
+renderVals() {
+const st = this.state;
+const G = '#067E3E', R = '#C8000B', AMB = '#8A5A00', LINE = '#E7DCC8', INK = '#1E2B2A';
+const V = this.volunteers();
+const long = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const short = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const SH = [['Morning','09:30 to 13:00'],['Afternoon','12:30 to 16:30']];
+const W = [[1,6],[7,13],[14,20],[21,24]];
+const WL = ['1 to 6 Dec','7 to 13 Dec','14 to 20 Dec','21 to 24 Dec'];
+const upd = (k, role, list) => { const as = Object.assign({}, st.as); as[k] = Object.assign({}, as[k], { [role]: list }); this.setState({ as, sent: false }); };
+const gapOf = (k) => { const a = st.as[k], n = st.need[k]; return Math.max(0, n.santa - a.santa.length) + Math.max(0, n.elf - a.elf.length); };
+let shifts = 0, full = 0, gaps = 0; const people = {};
+const [a, b] = W[st.week];
+const days = [];
+for (let d = a; d <= b; d++) {
+const wd = new Date(2026, 11, d).getDay();
+const sh = SH.map((x, s) => {
+const k = d + '|' + s; const as = st.as[k]; const n = st.need[k]; const g = gapOf(k);
+shifts++; if (!g) full++; gaps += g; as.santa.concat(as.elf).forEach((p) => people[p] = 1);
+const ps = as.santa.map((p) => ({ text: p, style: 'color: ' + R + ';' })).concat(as.elf.map((p) => ({ text: 'Elf ' + p, style: 'color: ' + INK + ';' })));
+const sGap = Math.max(0, n.santa - as.santa.length), eGap = Math.max(0, n.elf - as.elf.length);
+const gt = [sGap ? sGap + ' Santa' : '', eGap ? eGap + (eGap > 1 ? ' elves' : ' elf') : ''].filter(Boolean).join(' and ') + ' needed';
+const isSel = st.sel === k;
+return { label: x[0], people: ps, hasGap: g > 0, gapText: gt, pressed: isSel ? 'true' : 'false',
+aria: long[wd] + ' ' + d + ' December, ' + x[0] + (g ? ', ' + gt : ', fully covered'),
+style: (isSel ? 'border: 3px solid ' + G + '; background: #EEF7F1;' : (g ? 'border: 2px dashed ' + R + '; background: #FFFFFF;' : 'border: 2px solid ' + LINE + '; background: #FFFFFF;')),
+pick: () => this.setState({ sel: k }) };
+});
+days.push({ n: String(d), wd: short[wd], shifts: sh, headStyle: (wd === 0 || wd === 6) ? 'background: #E6F2E8; color: ' + G + ';' : 'background: #FFFFFF; color: ' + INK + ';' });
+}
+const [sd, ss] = st.sel.split('|').map(Number);
+const k = st.sel, as = st.as[k], n = st.need[k];
+const role = (r) => {
+const on = as[r].map((p) => ({ name: r === 'elf' ? 'Elf ' + p : p, aria: 'Remove ' + p, remove: () => upd(k, r, as[r].filter((x) => x !== p)) }));
+const missing = Math.max(0, n[r] - as[r].length);
+const gapsL = []; for (let i = 0; i < missing; i++) gapsL.push({ text: (r === 'santa' ? 'Santa' : 'Elf') + ' needed' });
+const pool = V.filter((v) => v.role === r && as[r].indexOf(v.name) === -1);
+const free = pool.filter((v) => this.canDo(v, sd)).map((v) => ({ name: v.name.replace('Santa ', ''), aria: 'Add ' + v.name, add: () => upd(k, r, as[r].concat([v.name])) }));
+const away = pool.filter((v) => !this.canDo(v, sd)).map((v) => v.name.replace('Santa ', '') + ' (' + v.note + ')');
+return { on, gapsL, free, away: away.length ? 'Not available: ' + away.join(', ') : '' };
+};
+const rs = role('santa'), re = role('elf');
+const setNeed = (r, d) => () => { const nd = Object.assign({}, st.need); nd[k] = Object.assign({}, n, { [r]: Math.max(0, Math.min(6, n[r] + d)) }); this.setState({ need: nd, sent: false }); };
+return {
+weeks: WL.map((l, i) => ({ label: l, pressed: i === st.week ? 'true' : 'false', pick: () => this.setState({ week: i, sel: W[i][0] + '|0' }),
+style: 'min-height: 44px; padding: 0 16px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; border: 2px solid ' + G + '; ' + (i === st.week ? 'background: ' + G + '; color: #FFFFFF;' : 'background: #FFFFFF; color: ' + G + ';') })),
+stats: [
+{ value: full + '/' + shifts, label: 'shifts covered', color: G },
+{ value: String(gaps), label: gaps === 1 ? 'person needed' : 'people needed', color: gaps ? R : G },
+{ value: String(Object.keys(people).length), label: 'volunteers this week', color: INK },
+],
+days,
+sel: { title: long[new Date(2026, 11, sd).getDay()] + ' ' + sd + ' December, ' + SH[ss][0], times: SH[ss][1],
+santaNeed: String(n.santa), elfNeed: String(n.elf), santaDec: setNeed('santa', -1), santaInc: setNeed('santa', 1), elfDec: setNeed('elf', -1), elfInc: setNeed('elf', 1),
+santaOn: rs.on, santaGaps: rs.gapsL, santaFree: rs.free, santaAway: rs.away,
+elfOn: re.on, elfGaps: re.gapsL, elfFree: re.free, elfAway: re.away },
+sent: st.sent, sentText: 'Sent to ' + Object.keys(people).length + ' volunteers',
+send: () => this.setState({ sent: true }),
+};
+}
+}
+</script>
+</body>
+</html>

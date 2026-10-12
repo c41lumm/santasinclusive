@@ -1,106 +1,307 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { getSeason } from '@/lib/public-data';
-import { seasonDates } from '@/lib/dates';
+import { getDays, getHours, getSeason, getSlots } from '@/lib/public-data';
+import { dayName, hoursText, seasonDates } from '@/lib/dates';
+import { site } from '@/lib/site';
+import { DayPicker, TimeList } from '@/components/pickers';
+import { Calendar, Clock, Family, Gift, Heart, Pin, QuoteMark, Sparkle } from '@/components/icons';
+import { AlertForm } from './alerts/alert-form';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
+const stories = [
+  { quote: 'My son had the best experience last time. He even said his first word while we were there, it was so magical.', who: 'A parent' },
+  { quote: 'Thank you so much for Henry’s visit yesterday, he was absolutely over the moon. He is so proud that he is at the top of the nice list and I think he wants Jingle Bells to be his new best friend.', who: 'A parent' },
+  { quote: 'We have purposely avoided all grottos in fear of how E would react, so to know it’s a safe space for him will be amazing!', who: 'A parent, before their first visit' },
+  { quote: 'She was amazing, had our kids in stitches and relaxed. Worth her weight in gold, a real gem.', who: 'A parent, about one of our elves' },
+  { quote: 'Your Santas are amazing. I truly hope more people are inspired by this grotto and thoughtful Santas become standard.', who: 'A parent' },
+  { quote: 'If I could I’d definitely book in to come again. I loved it.', who: 'An adult visitor' },
+];
+const shortQuotes = [
+  'My SEN kiddos loved it.', 'Franklin loved every minute.', 'My gorgeous boy in awe of Santa.', 'Lovely memories made.',
+  'Thank you for creating this safe space for anyone who would benefit.', 'This is absolutely the best thing to happen to Leicester.',
+];
+const faqs = [
+  { q: 'Who can book?', a: "Santa's Inclusive Grotto is only for families with a child or adult who has a disability. Brothers, sisters, parents and carers are very welcome to come in too." },
+  { q: 'Is it really free?', a: 'Yes. Our family funds the grotto and buys every gift. Booking is only so we can prepare for each visitor.' },
+  { q: 'What if the day does not go to plan?', a: 'Message us or use the link in your reminder and we will move your booking, with no fuss. Cancelling early lets a family on the waitlist take the slot.' },
+  { q: 'Who sees what I tell you about my child?', a: 'Only the Santa, elves and organisers who need it on the day. Health details are seen only by our organisers. We delete it all after the season ends.' },
+  { q: 'Can we take a break during the visit?', a: 'Of course. There is no rush and no queue behind you. Step out whenever you need to and come back when you are ready.' },
+];
+
+export default async function Home({ searchParams }: { searchParams: Promise<{ day?: string }> }) {
   const season = await getSeason();
-  const open = season?.booking_open;
+  const open = !!season?.booking_open;
+  const [hours, days] = season ? await Promise.all([getHours(season.year), open ? getDays(season.year) : []]) : [null, []];
+  const { day } = await searchParams;
+  const chosen = days.find((d) => d.day === day);
+  const slots = chosen ? await getSlots(chosen.day) : [];
+  const dates = season ? seasonDates(season.first_day, season.last_day).replace(/ \d{4}$/, '') : '';
+  const times = hours ? hoursText(hours.opens_at, hours.closes_at) : '';
+
   return (
     <>
-      <section className="hero">
-        <div>
-          <h1>A calm visit to Santa, made around your family</h1>
-          <p className="lead">
-            Santa&apos;s Inclusive Grotto in Leicester is for children and adults with disabilities, and their families.
-            Every family has its own booked time, so there is no queue, and you can tell Santa beforehand what will
-            make the visit right for you.
+      <section id="top" className="wrap hero" style={{ paddingBlock: '40px 72px' }}>
+        <div className="text">
+          <p className="badge-pill">{dates ? <>{dates} <span aria-hidden="true">·</span> </> : null}Leicester city centre <span aria-hidden="true">·</span> Free</p>
+          <h1>Meet Santa your way, <span className="red">at your pace.</span></h1>
+          <p className="lead" style={{ fontSize: '1.17rem', maxWidth: 580, marginBottom: 30 }}>
+            A calm Christmas grotto made only for children and adults with disabilities, and the families who love them.
+            Every visit is shaped around the person at its heart, and every child leaves with a gift.
           </p>
-          {season ? <p><strong>Open {seasonDates(season.first_day, season.last_day)}</strong></p> : null}
-          <div className="actions">
+          <div className="btn-row">
+            <Link className="btn" href="/#book">Book your visit</Link>
+            <Link className="btn btn-outline" href="/#expect">See what to expect</Link>
+          </div>
+          <div className="featured">
+            <span style={{ fontWeight: 700, color: 'var(--muted)' }}>As featured on</span>
+            <Image src="/images/bbc-news.jpg" alt="BBC News" width={52} height={52} style={{ borderRadius: 12 }} />
+            <Image src="/images/sky-news.jpg" alt="Sky News" width={52} height={52} style={{ borderRadius: '50%' }} />
+          </div>
+        </div>
+        <div className="card stack" style={{ flex: '1 1 380px', borderRadius: 32, padding: 34, gap: 22 }}>
+          <div className="fact"><span className="icon-circle"><Calendar /></span><div>
+            <p className="title">{hours?.every_day ? 'Every day, ' : ''}{dates || 'December'}</p>
+            {times ? <p className="sub">{times}</p> : null}
+          </div></div>
+          <div className="fact"><span className="icon-circle"><Pin /></span><div>
+            <p className="title">{site.shortAddress}</p><p className="sub">Leicester LE1 4FY, city centre</p>
+          </div></div>
+          <div className="fact"><span className="icon-circle"><Gift /></span><div>
+            <p className="title">Free, and a gift for every child</p><p className="sub">Funded by our family, booking only</p>
+          </div></div>
+          <div className="fact"><span className="icon-circle"><Family /></span><div>
+            <p className="title">The whole family is welcome</p><p className="sub">Siblings, parents and carers come in too</p>
+          </div></div>
+        </div>
+      </section>
+
+      <section aria-label="Who the grotto is for" className="who-band">
+        <div className="wrap">
+          <Heart color="#FFFFFF" />
+          <p>Only for families with a child or adult who has a disability, so every visit stays calm and unhurried.</p>
+        </div>
+      </section>
+
+      <section id="expect" className="wrap" style={{ paddingBlock: '88px 64px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px 32px', marginBottom: 36 }}>
+          <div style={{ flex: '1 1 520px', minWidth: 0 }}>
+            <h2>What to expect</h2>
+            <p className="lead" style={{ maxWidth: 680, margin: 0 }}>
+              You tell us about your visitor when you book. Santa and the elves read it before you arrive, so nothing is a
+              surprise for them, or for you.
+            </p>
+          </div>
+          <Image src="/images/illustration-expect.png" alt="" width={143} height={230} className="hero-art" style={{ maxHeight: 230 }} />
+        </div>
+        <div className="grid-cards">
+          {[
+            { icon: <Sparkle />, title: 'Made for each visitor', text: 'Santa knows their name, what they love, and how they like to communicate before they walk in.' },
+            { icon: <Clock />, title: 'No queues, no rush', text: 'Soft lighting, quiet music and time to settle. Step out for a break whenever you need one.' },
+            { icon: <Gift />, title: 'A gift for every child', text: "Chosen by the elves around each child's interests, whether or not they say a word to Santa." },
+            { icon: <Heart />, title: 'Meet Santa your way', text: 'On his lap, beside him, or with a wave from across the room. Whatever feels right on the day.' },
+          ].map((c) => (
+            <div className="card" key={c.title}>
+              <div className="icon-dotted">{c.icon}</div>
+              <h3>{c.title}</h3>
+              <p className="muted">{c.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="wrap hero" style={{ paddingBlock: '24px 88px', gap: 56 }}>
+        <figure style={{ flex: '1 1 380px', maxWidth: 480 }}>
+          <div className="photo-ring"><div>
+            <Image src="/images/opening-day-2022.png" width={480} height={480} sizes="(max-width: 600px) 90vw, 480px"
+              alt="Opening day of the first grotto: a child in a green beanie cuts a red ribbon with help from a parent while the other parent smiles beside them." />
+          </div></div>
+          <figcaption className="small" style={{ marginTop: 14, textAlign: 'center' }}>Opening day of the very first grotto, 2022.</figcaption>
+        </figure>
+        <div style={{ flex: '1 1 460px', minWidth: 0 }}>
+          <p className="eyebrow">Our story</p>
+          <h2>It began with our son, Hudson.</h2>
+          <p className="lead">In 2022 we opened the first grotto so that children with disabilities could meet Santa without crowds, noise or a ticking clock.</p>
+          <p className="lead" style={{ margin: 0 }}>
+            It has grown into one of the largest inclusive Christmas experiences in the world. It is still funded by our family
+            every year, we buy every gift ourselves, and a team who care deeply about getting it right helps us make each
+            visit special.
+          </p>
+        </div>
+      </section>
+
+      <section id="stories" aria-labelledby="stories-h" className="wrap" style={{ paddingBlock: '24px 88px' }}>
+        <p className="eyebrow">From families who have visited</p>
+        <h2 id="stories-h" style={{ marginBottom: 32 }}>What families say</h2>
+        <figure className="big-quote">
+          <blockquote>“You really are a miracle team, bringing not only joy to the children but also making it special for the parents by giving them a space where they’re not judged or rushed.”</blockquote>
+          <figcaption style={{ fontWeight: 700 }}>A parent</figcaption>
+        </figure>
+        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', marginBottom: 28 }}>
+          {stories.map((s) => (
+            <figure className="quote-card" key={s.quote}>
+              <QuoteMark />
+              <blockquote>{s.quote}</blockquote>
+              <figcaption>{s.who}</figcaption>
+            </figure>
+          ))}
+        </div>
+        <ul className="chips" aria-label="More from families">
+          {shortQuotes.map((q) => <li key={q}>“{q}”</li>)}
+        </ul>
+      </section>
+
+      <section aria-label="Kind words from local organisations" className="band-white" style={{ borderBottom: 0 }}>
+        <div className="wrap" style={{ paddingBlock: 44 }}>
+          <p className="eyebrow" style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: 24 }}>Kind words from local organisations</p>
+          <div className="orgs">
+            {[
+              { img: '/images/lily-foundation.jpg', name: 'The Lily Foundation', quote: 'Fabulous. You are doing a wonderful thing.' },
+              { img: '/images/visit-leicester.jpg', name: 'Visit Leicester', quote: 'Fantastic to see you guys back for this year!' },
+              { img: '/images/discover-leicester.jpg', name: 'Discover Leicester', quote: 'Lovely and magical.' },
+            ].map((o) => (
+              <div key={o.name}>
+                <Image src={o.img} alt={`${o.name} logo`} width={96} height={96} />
+                <p style={{ marginBottom: 6 }}>“{o.quote}”</p>
+                <p className="org">{o.name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {!open ? (
+        <section id="alerts" aria-labelledby="alerts-h" className="wrap" style={{ paddingBlock: '0 72px' }}>
+          <div className="card card-dotted" style={{ borderRadius: 32, padding: 40, display: 'flex', flexWrap: 'wrap', gap: '28px 40px', alignItems: 'center' }}>
+            <Image src="/images/illustration-alerts.png" alt="" width={112} height={200} className="hero-art" style={{ maxHeight: 200 }} />
+            <div style={{ flex: '1 1 520px', minWidth: 0 }}>
+              <h2 id="alerts-h" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)' }}>Be first to know when booking opens</h2>
+              <p className="lead" style={{ marginBottom: 22 }}>
+                Times for this year are not out yet. Leave your details and we will message you as soon as the schedule is
+                released, before we announce it anywhere else.
+              </p>
+              <AlertForm />
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section id="book" className="band-white">
+        <div className="wrap section" style={{ display: 'flex', flexWrap: 'wrap', gap: 56 }}>
+          <div style={{ flex: '1 1 360px', minWidth: 0 }}>
+            <h2>Book your visit</h2>
+            <p className="lead" style={{ marginBottom: 32 }}>It takes about five minutes, and it is free.</p>
+            <ol className="stack" style={{ listStyle: 'none', padding: 0 }}>
+              {[
+                ['Choose a day', `Pick any day${dates ? ` from ${dates}` : ''}.`],
+                ['Pick a time', 'See the slots left on that day.'],
+                ['Tell us about your visitor', 'What they love, what to avoid, and how they communicate.'],
+                ['Get reminders your way', 'By email, text or WhatsApp, with directions and a one-tap link to change plans.'],
+              ].map(([t, s], i) => (
+                <li className="fact" key={t}><span className="step-num" aria-hidden="true">{i + 1}</span>
+                  <div><p className="title">{t}</p><p className="sub">{s}</p></div></li>
+              ))}
+            </ol>
+            <Image src="/images/illustration-booking.png" alt="" width={186} height={230} style={{ marginTop: 36, height: 230, width: 'auto' }} />
+          </div>
+          <div className="card" style={{ flex: '1 1 520px', background: 'var(--cream)', borderRadius: 32 }}>
             {open ? (
               <>
-                <Link className="button" href="/book">Book a visit</Link>
-                <Link className="button secondary" href="/waitlist">Join the waitlist</Link>
+                <h3 style={{ fontSize: '1.6rem' }}>December {season!.year}</h3>
+                <p className="muted" style={{ marginBottom: 20 }}>Choose a day to see the times.</p>
+                <DayPicker days={days} selected={chosen?.day} href={(d) => `/?day=${d}#book`} label="Choose a day in December" />
+                {chosen ? (
+                  <div style={{ marginTop: 26 }} id="times">
+                    <h3>Choose a time on {dayName(chosen.day)}</h3>
+                    {chosen.spaces_left ? (
+                      <>
+                        <p className="muted" style={{ marginBottom: 16 }}>Each visit is 15 minutes. Times marked “Break” are not available.</p>
+                        <TimeList slots={slots} href={(s) => `/book/details?slot=${s.slot_id}&day=${chosen.day}`} />
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
+                <div className="picker-summary" aria-live="polite">
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: '1.05rem' }}>
+                      {!chosen ? 'No day chosen yet' : chosen.spaces_left ? `${dayName(chosen.day)}, now choose a time` : `${dayName(chosen.day)} is fully booked`}
+                    </p>
+                    <p className="muted" style={{ fontSize: '0.9rem' }}>Day full? You can join the waitlist and hear first if a slot opens.</p>
+                  </div>
+                  {chosen && !chosen.spaces_left ? <Link className="btn" href={`/waitlist?day=${chosen.day}`}>Join the waitlist</Link> : null}
+                </div>
               </>
             ) : (
-              <>
-                <Link className="button" href="/alerts">Get an alert when booking opens</Link>
-                <Link className="button secondary" href="/groups">Schools and groups</Link>
-              </>
+              <div className="stack" style={{ gap: 16 }}>
+                <h3 style={{ fontSize: '1.6rem' }}>Booking opens soon</h3>
+                <p style={{ margin: 0 }}>
+                  Times for {season?.year ?? 'this year'} are not out yet. Get an alert and we will message you the moment you can book.
+                </p>
+                <div><Link className="btn" href="/#alerts">Get an alert</Link></div>
+              </div>
             )}
           </div>
         </div>
-        <Tree />
       </section>
 
-      <h2>How a visit works</h2>
-      <ol className="cards">
-        <li>
-          <h3>1. Choose a time</h3>
-          <p>Pick a day and time that suits you. Each visit has time set aside before the next, so nobody is rushed.</p>
-        </li>
-        <li>
-          <h3>2. Tell Santa about you</h3>
-          <p>
-            Let us know how your visitor communicates, what they love, what they find hard, and how they would like to
-            meet Santa. It takes about five minutes.
-          </p>
-        </li>
-        <li>
-          <h3>3. Meet Santa</h3>
-          <p>
-            Santa will know how to say hello. Brothers and sisters are welcome too. We only take photos if you say yes.
-          </p>
-        </li>
-      </ol>
+      <section id="visit" className="wrap section hero">
+        <div style={{ flex: '1 1 400px', minWidth: 0 }}>
+          <Image src="/images/illustration-finding-us.png" alt="" width={126} height={200} className="float-art" style={{ maxHeight: 200 }} />
+          <h2>Finding us</h2>
+          <p style={{ fontWeight: 700, fontSize: '1.17rem', margin: '0 0 4px' }}>{site.address}</p>
+          <p className="muted" style={{ marginBottom: 24 }}>In Leicester city centre.{times ? ` Open ${times}.` : ''}</p>
+          {site.access.length ? <ul style={{ marginBottom: 28 }}>{site.access.map((a) => <li key={a}>{a}</li>)}</ul> : null}
+          <a className="btn" href={site.directions}>Get directions<span className="visually-hidden"> (opens Google Maps)</span></a>
+        </div>
+        <div className="map" style={{ flex: '1 1 440px', minWidth: 0 }}>
+          <svg viewBox="0 0 600 420" role="img" aria-label="Map showing 20 Freeschool Lane in Leicester city centre">
+            <rect width="600" height="420" fill="#EFE7D6" />
+            <rect x="40" y="36" width="150" height="110" rx="14" fill="#DCEBDF" />
+            <rect x="420" y="282" width="140" height="104" rx="14" fill="#DCEBDF" />
+            <path d="M0 200 L600 162" stroke="#FFFFFF" strokeWidth="26" strokeLinecap="round" />
+            <path d="M300 0 L270 420" stroke="#FFFFFF" strokeWidth="22" strokeLinecap="round" />
+            <path d="M0 326 L600 346" stroke="#FFFFFF" strokeWidth="14" strokeLinecap="round" />
+            <path d="M120 0 L150 420" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
+            <path d="M470 0 L450 420" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
+            <circle cx="288" cy="182" r="36" fill="#DE000C" fillOpacity="0.16" />
+            <path d="M288 206 C262 174 256 162 256 148 a32 32 0 1 1 64 0 C320 162 314 174 288 206z" fill="#C8000B" />
+            <circle cx="288" cy="148" r="12" fill="#FFFFFF" />
+            <rect x="332" y="118" width="230" height="58" rx="14" fill="#FFFFFF" />
+            <text x="350" y="144" fontFamily="Atkinson Hyperlegible, sans-serif" fontWeight="700" fontSize="17" fill="#1E2B2A">Santa&apos;s Inclusive Grotto</text>
+            <text x="350" y="165" fontFamily="Atkinson Hyperlegible, sans-serif" fontSize="14" fill="#45524F">20 Freeschool Lane, LE1 4FY</text>
+          </svg>
+        </div>
+      </section>
 
-      <div className="content">
-        <h2>Who can book</h2>
-        <p>
-          Any family or group that includes a child or an adult with a disability, including hidden disabilities,
-          autism, learning disabilities and sensory needs. You do not need a diagnosis or any proof.
-        </p>
-        <p>
-          We offer one visit per family so that everyone gets a turn. Brothers, sisters, parents and carers can all come
-          to the same visit.
-        </p>
+      <section id="help" className="wrap" style={{ paddingBlock: '0 88px' }}>
+        <h2 style={{ marginBottom: 28 }}>Get involved</h2>
+        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+          <div className="card card-green" style={{ borderRadius: 32, padding: 40 }}>
+            <Image src="/images/illustration-gifts.png" alt="" width={92} height={170} className="float-art" style={{ maxHeight: 170 }} />
+            <h3 style={{ fontSize: '1.85rem' }}>Sponsor gifts</h3>
+            <p style={{ fontSize: '1.05rem', marginBottom: 24 }}>Companies can help by sponsoring toys for the children who visit. 100% of sponsorship is spent on toys for the children.</p>
+            <Link className="btn btn-white" href="/support">Support the grotto</Link>
+          </div>
+          <div className="card" style={{ borderRadius: 32, padding: 40 }}>
+            <Image src="/images/illustration-elf.png" alt="" width={97} height={170} className="float-art" style={{ maxHeight: 170 }} />
+            <h3 style={{ fontSize: '1.85rem' }}>Be a Santa or an elf</h3>
+            <p className="lead" style={{ fontSize: '1.05rem', marginBottom: 24 }}>We are looking for warm, patient people to help{dates ? ` from ${dates}` : ''}.</p>
+            <Link className="btn btn-outline" href="/volunteer">Volunteer with us</Link>
+          </div>
+        </div>
+      </section>
 
-        <h2>Finding us</h2>
-        <p>
-          20 Freeschool Lane, Leicester LE1 4FY.{' '}
-          <a href="https://www.google.com/maps/dir/?api=1&destination=20+Freeschool+Ln+Leicester+LE1+4FY">
-            Get directions<span className="visually-hidden"> (opens Google Maps)</span>
-          </a>
-        </p>
-        <p>
-          If there is anything we should know to help you get here or get in, tell us when you book and we will
-          plan for it.
-        </p>
-
-        <h2>Other ways to visit or help</h2>
-        <ul>
-          <li><Link href="/groups">Bring a school or group</Link></li>
-          <li><Link href="/volunteer">Volunteer as an elf or as Santa</Link></li>
-          <li><Link href="/support">Sponsor gifts as a business</Link></li>
-        </ul>
-      </div>
+      <section id="faq" className="band-white" style={{ borderBottom: 0 }}>
+        <div className="section" style={{ maxWidth: 880, margin: '0 auto', paddingInline: 'clamp(16px, 4vw, 40px)' }}>
+          <h2>Questions families ask</h2>
+          {faqs.map((f) => (
+            <details className="faq" key={f.q}>
+              <summary><span>{f.q}</span><span className="sign" aria-hidden="true" /></summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
     </>
-  );
-}
-
-function Tree() {
-  return (
-    <svg className="hero-art" viewBox="0 0 200 220" role="img" aria-label="A decorated Christmas tree with a star">
-      <path d="M100 18l8 16 18 2-13 12 3 18-16-9-16 9 3-18-13-12 18-2z" fill="var(--gold)" />
-      <path d="M100 52 L150 122 H124 L166 178 H34 L76 122 H50 Z" fill="currentColor" />
-      <rect x="88" y="178" width="24" height="26" rx="3" fill="var(--accent)" />
-      <circle cx="84" cy="112" r="6" fill="var(--gold)" />
-      <circle cx="118" cy="138" r="6" fill="var(--accent)" />
-      <circle cx="76" cy="160" r="6" fill="var(--gold)" />
-      <circle cx="128" cy="166" r="6" fill="var(--gold)" />
-      <circle cx="104" cy="92" r="5" fill="var(--accent)" />
-    </svg>
   );
 }

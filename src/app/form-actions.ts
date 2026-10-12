@@ -4,6 +4,7 @@ import { alertSchema, groupSchema, sponsorSchema, volunteerSchema, waitlistSchem
 import { checkPublicForm } from '@/lib/public-form';
 import { getDays, getSeason } from '@/lib/public-data';
 import { dayName } from '@/lib/dates';
+import { site } from '@/lib/site';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
 import { all, problem, text, ticked, zodErrors, type FormState } from '@/lib/forms';
@@ -12,9 +13,13 @@ import { all, problem, text, ticked, zodErrors, type FormState } from '@/lib/for
 // Rows go in as the public (anon) role, so the database's own insert rules apply, except the waitlist,
 // which also sends a message and so needs the new row's id.
 
+/** "Which times could you make?" ticks to the one preference the waitlist keeps */
+const timePref = (times: string[]) =>
+  times.includes('any') || (times.includes('morning') && times.includes('afternoon')) || !times.length ? 'any' : times[0];
+
 export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<FormState> {
   const parsed = waitlistSchema.safeParse({
-    day: text(fd, 'day'), time_pref: text(fd, 'time_pref'), contact_name: text(fd, 'contact_name'),
+    day: text(fd, 'day'), time_pref: timePref(all(fd, 'times')), contact_name: text(fd, 'contact_name'),
     email: text(fd, 'email'), phone: text(fd, 'phone'), channels: all(fd, 'channels'),
     eligibility_confirmed: ticked(fd, 'eligibility_confirmed'), data_consent: ticked(fd, 'data_consent'),
   });
@@ -30,23 +35,23 @@ export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<Form
   const [row] = await db()`
     insert into waitlist_entries (day, time_pref, contact_name, email, phone, channels, eligibility_confirmed, data_consent)
     values (${w.day}, ${w.time_pref}, ${w.contact_name}, ${w.email ?? null}, ${w.phone ?? null}, ${w.channels}::channel[], true, true)
-    returning id`;
-  await send({ email: w.email, phone: w.phone, channels: w.channels }, templates.waitlistJoined(dayName(w.day)),
+    returning id, manage_token`;
+  await send({ email: w.email, phone: w.phone, channels: w.channels }, templates.waitlistJoined(dayName(w.day), row.manage_token as string),
     { waitlist_id: row.id as string, template: 'waitlistJoined' });
   return { done: dayName(w.day) };
 }
 
 export async function signUpForAlert(_prev: FormState, fd: FormData): Promise<FormState> {
   const parsed = alertSchema.safeParse({
-    name: text(fd, 'name'), contact: text(fd, 'contact'), is_group: ticked(fd, 'is_group'), data_consent: ticked(fd, 'data_consent'),
+    name: text(fd, 'name'), contact: text(fd, 'contact'), channels: all(fd, 'channels'), is_group: ticked(fd, 'is_group'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
   const blocked = await checkPublicForm('alert');
   if (blocked) return blocked;
   const a = parsed.data;
   await asPublic((sql) => [sql`
-    insert into early_alerts (name, contact, channels, is_group) values (${a.name}, ${a.contact}, ${[...a.channels]}::channel[], ${a.is_group})`]);
-  return { done: a.channels[0] === 'email' ? 'email' : 'text' };
+    insert into early_alerts (name, contact, channels, is_group) values (${a.name}, ${a.contact}, ${a.channels}::channel[], ${a.is_group})`]);
+  return { done: a.channels.includes('email') ? 'an email' : a.channels.includes('sms') ? 'a text' : 'a WhatsApp message' };
 }
 
 export async function sendGroupEnquiry(_prev: FormState, fd: FormData): Promise<FormState> {
@@ -68,28 +73,29 @@ export async function sendGroupEnquiry(_prev: FormState, fd: FormData): Promise<
 }
 
 export async function applyToVolunteer(_prev: FormState, fd: FormData): Promise<FormState> {
+  const role = text(fd, 'role');
   const parsed = volunteerSchema.safeParse({
-    role: text(fd, 'role'), name: text(fd, 'name'), email: text(fd, 'email'), phone: text(fd, 'phone'),
-    available_days: all(fd, 'available_days'), over_18: ticked(fd, 'over_18'), experience: text(fd, 'experience'),
-    why: text(fd, 'why'), own_suit: text(fd, 'own_suit') === 'yes' ? true : text(fd, 'own_suit') === 'no' ? false : undefined,
-    data_consent: ticked(fd, 'data_consent'),
+    role, name: text(fd, 'name'), email: text(fd, 'email'), phone: text(fd, 'phone'), town: text(fd, 'town'),
+    over_18: text(fd, 'over_18'), available_weeks: all(fd, 'available_weeks'), day_types: all(fd, 'day_types'),
+    experience: text(fd, role === 'santa' ? 'santa_experience' : 'elf_experience'),
+    own_suit: role === 'santa' ? text(fd, 'own_suit') : undefined, why: text(fd, 'why'),
+    checks_agreed: ticked(fd, 'checks_agreed'), data_consent: ticked(fd, 'data_consent'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
   const blocked = await checkPublicForm('volunteer');
   if (blocked) return blocked;
   const v = parsed.data;
   await asPublic((sql) => [sql`
-    insert into volunteers (name, email, phone, role, available_days, over_18, experience, why, own_suit)
-    values (${v.name}, ${v.email}, ${v.phone}, ${v.role}, ${v.available_days}::date[], true, ${v.experience ?? null},
-            ${v.why ?? null}, ${v.role === 'santa' ? (v.own_suit ?? null) : null})`]);
-  return { done: 'yes' };
+    insert into volunteers (name, email, phone, role, town, available_weeks, day_types, over_18, experience, why, own_suit, checks_agreed)
+    values (${v.name}, ${v.email}, ${v.phone}, ${v.role}, ${v.town ?? null}, ${v.available_weeks}, ${v.day_types}, true,
+            ${v.experience ?? null}, ${v.why}, ${v.own_suit ? v.own_suit === 'yes' : null}, true)`]);
+  return { done: v.role === 'santa' ? 'Santa' : 'an elf' };
 }
 
 export async function offerSponsorship(_prev: FormState, fd: FormData): Promise<FormState> {
   const parsed = sponsorSchema.safeParse({
     company: text(fd, 'company'), contact_name: text(fd, 'contact_name'), email: text(fd, 'email'), gifts: text(fd, 'gifts'),
-    amount_pounds: text(fd, 'amount_pounds'), pay_method: text(fd, 'pay_method'), show_on_wall: ticked(fd, 'show_on_wall'),
-    logo_requested: ticked(fd, 'logo_requested'), data_consent: ticked(fd, 'data_consent'),
+    pay_method: text(fd, 'pay_method'), show_on_wall: ticked(fd, 'show_on_wall'), logo_requested: ticked(fd, 'logo_requested'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
   const blocked = await checkPublicForm('sponsor');
@@ -97,7 +103,7 @@ export async function offerSponsorship(_prev: FormState, fd: FormData): Promise<
   const s = parsed.data;
   await asPublic((sql) => [sql`
     insert into sponsorships (company, contact_name, email, gifts, amount_pence, pay_method, show_on_wall, logo_requested)
-    values (${s.company}, ${s.contact_name}, ${s.email}, ${s.gifts}, ${Math.round(s.amount_pounds * 100)}, ${s.pay_method},
+    values (${s.company}, ${s.contact_name}, ${s.email}, ${s.gifts}, ${s.gifts * site.giftPricePounds * 100}, ${s.pay_method},
             ${s.show_on_wall}, ${s.logo_requested})`]);
-  return { done: 'yes' };
+  return { done: s.pay_method };
 }

@@ -10,6 +10,13 @@ export async function getSeason(): Promise<Season | null> {
   return (rows[0] as Season | undefined) ?? null;
 }
 
+export type Hours = { opens_at: string; closes_at: string; every_day: boolean };
+export async function getHours(year: number): Promise<Hours | null> {
+  const [rows] = await asPublic((sql) => [sql`select opens_at, closes_at, every_day from season_hours(${year})`]);
+  const h = rows[0] as Hours | undefined;
+  return h?.opens_at ? h : null;
+}
+
 export type Day = { day: string; spaces_left: number };
 export async function getDays(year: number): Promise<Day[]> {
   const [rows] = await asPublic((sql) => [sql`select day::text as day, spaces_left from available_days(${year})`]);
@@ -36,6 +43,7 @@ export type BookingVisitor = {
 export type Booking = {
   reference: string; status: 'pending_review' | 'confirmed' | 'cancelled' | 'attended' | 'no_show';
   reply: 'awaiting' | 'confirmed' | 'no_reply'; day: string; starts_at: string; ends_at: string; started: boolean;
+  starts_utc: string; ends_utc: string;
   contact_name: string | null; details_complete: boolean; photo_consent: 'share' | 'family_only' | 'none';
   visitors: BookingVisitor[];
 };

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getDays, getSeason } from '@/lib/public-data';
 import { dayName } from '@/lib/dates';
@@ -9,27 +10,36 @@ export const metadata: Metadata = { title: 'Waitlist' };
 
 export default async function Waitlist({ searchParams }: { searchParams: Promise<{ day?: string }> }) {
   const season = await getSeason();
-  if (!season?.booking_open) {
-    return (
-      <div className="content">
-        <h1>Waitlist</h1>
-        <p>The waitlist opens when booking opens. <Link href="/alerts">Get an alert</Link> and we will tell you when.</p>
-      </div>
-    );
-  }
   const { day } = await searchParams;
-  const days = (await getDays(season.year)).map((d) => ({
-    value: d.day, label: `${dayName(d.day)}${d.spaces_left ? ` (${d.spaces_left} times free now)` : ' (full)'}`,
-  }));
+  const days = season?.booking_open ? await getDays(season.year) : [];
+  const chosen = days.find((d) => d.day === day);
   return (
-    <div className="content">
-      <h1>Join the waitlist</h1>
-      <p className="lead">
-        If the day you want is full, we will message you when a visit opens up, often because another family has had to
-        cancel. The first family on the list gets the first offer.
-      </p>
-      <p>Times are still free on some days. <Link href="/book">See free times</Link></p>
-      <WaitlistForm days={days} day={day} />
+    <div className="narrow page" style={{ maxWidth: 760 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28 }}>
+        <Image src="/images/illustration-alerts.png" alt="" width={61} height={110} />
+        <div>
+          <p className="eyebrow">Waitlist</p>
+          <h1 className="green" style={{ fontSize: 'clamp(2rem, 5vw, 2.6rem)', margin: 0 }}>Be first to know about a cancelled slot</h1>
+        </div>
+      </div>
+      {!season?.booking_open ? (
+        <div className="card card-lg">
+          <p>The waitlist opens when booking opens.</p>
+          <Link className="btn" href="/#alerts">Get an alert</Link>
+        </div>
+      ) : (
+        <section aria-labelledby="join-h" className="card card-lg">
+          <p className="eyebrow">{chosen && !chosen.spaces_left ? 'Date is full' : 'Join the waitlist'}</p>
+          <h2 id="join-h" className="green" style={{ fontSize: '1.65rem' }}>
+            {chosen ? (chosen.spaces_left ? `Waitlist for ${dayName(chosen.day)}` : `${dayName(chosen.day)} is fully booked`) : 'Choose the day you would like'}
+          </h2>
+          <p style={{ marginBottom: 20 }}>Join the waitlist and we will message you the moment a slot opens, before anyone else hears.
+            {chosen?.spaces_left ? <> Times are still free on this day: <Link href={`/?day=${chosen.day}#book`}>book one now</Link>.</> : null}</p>
+          <WaitlistForm day={chosen?.day} days={days.map((d) => ({
+            value: d.day, label: `${dayName(d.day)}${d.spaces_left ? ` (${d.spaces_left} times free now)` : ' (full)'}`,
+          }))} />
+        </section>
+      )}
     </div>
   );
 }

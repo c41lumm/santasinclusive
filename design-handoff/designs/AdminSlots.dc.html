@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin: visit times</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a:focus-visible,button:focus-visible{outline:3px solid #1B1B1B;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1360px; height: 1560px; box-sizing: border-box; background: #F4F1EA; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 16px; line-height: 1.45; display: flex;">
+
+<aside style="flex: none; width: 230px; background: #0B3B21; color: #FFFFFF; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px;">
+<p style="margin: 0 0 4px 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Grotto admin</p>
+<p style="margin: 0 0 20px 16px; font-size: 14px; color: #BFD6C7;">Santa's Inclusive Grotto</p>
+<nav aria-label="Admin" style="display: flex; flex-direction: column; gap: 2px;"><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Dashboard</a><a href="AdminBookings.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Bookings</a><a href="AdminChecks.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Checks</a><a href="#" aria-current="page" style="display: block; padding: 11px 16px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-weight: 700; text-decoration: none;">Visit times</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Waitlist</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Early alerts</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Messages</a><a href="AdminToys.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Toy stock</a><a href="AdminRota.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Staff rota</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Volunteers</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Sponsorship</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Press releases</a></nav>
+</aside>
+
+<main style="flex: 1; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px;">Visit times</h1>
+<p style="margin: 0; color: #45524F;">Set the hours for each day. Longer days add more bookable times to the calendar straight away.</p>
+</div>
+<button type="button" style="min-height: 48px; padding: 0 26px; border-radius: 999px; border: 0; background: #067E3E; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">Save changes</button>
+</div>
+
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+
+<section aria-labelledby="all-h" style="flex: none; width: 300px; background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<h2 id="all-h" style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Every day</h2>
+<div style="padding: 14px 0; border-bottom: 1px solid #E7DCC8;">
+<p style="margin: 0; font-weight: 700;">Visit length</p>
+<p style="margin: 0 0 10px; font-size: 14px; color: #45524F;">How long each family has with Santa.</p>
+<div style="display: flex; align-items: center; gap: 14px;">
+<button type="button" onClick="{{ len.dec }}" aria-label="Decrease visit length" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">-</button>
+<span aria-live="polite" style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 24px; min-width: 96px; text-align: center;">{{ len.text }}</span>
+<button type="button" onClick="{{ len.inc }}" aria-label="Increase visit length" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">+</button>
+</div>
+</div>
+<div style="padding: 14px 0; border-bottom: 1px solid #E7DCC8;">
+<p style="margin: 0; font-weight: 700;">Gap between visits</p>
+<p style="margin: 0 0 10px; font-size: 14px; color: #45524F;">Time to reset and read the next notes.</p>
+<div style="display: flex; align-items: center; gap: 14px;">
+<button type="button" onClick="{{ gap.dec }}" aria-label="Decrease gap between visits" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">-</button>
+<span aria-live="polite" style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 24px; min-width: 96px; text-align: center;">{{ gap.text }}</span>
+<button type="button" onClick="{{ gap.inc }}" aria-label="Increase gap between visits" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">+</button>
+</div>
+</div>
+<div style="padding: 14px 0; border-bottom: 1px solid #E7DCC8;">
+<p style="margin: 0; font-weight: 700;">Families per time</p>
+<p style="margin: 0 0 10px; font-size: 14px; color: #45524F;">Usually one, so every visit stays calm.</p>
+<div style="display: flex; align-items: center; gap: 14px;">
+<button type="button" onClick="{{ cap.dec }}" aria-label="Decrease families per time" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">-</button>
+<span aria-live="polite" style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 24px; min-width: 96px; text-align: center;">{{ cap.text }}</span>
+<button type="button" onClick="{{ cap.inc }}" aria-label="Increase families per time" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">+</button>
+</div>
+</div>
+<div style="padding-top: 16px;">
+<p style="margin: 0; font-size: 14px; color: #45524F;">Whole season</p>
+<p aria-live="polite" style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px; color: #067E3E;">{{ seasonTotal }}</p>
+<p style="margin: 0; font-size: 14px; color: #45524F;">bookable times across {{ openDays }} open days</p>
+</div>
+</section>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+
+<section aria-labelledby="days-h" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<h2 id="days-h" style="margin: 0 0 4px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Opening hours, 1 to 24 December</h2>
+<p style="margin: 0 0 16px; color: #45524F; font-size: 15px;">Choose a day to change its hours.</p>
+<div role="group" aria-label="Days" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="24">
+<button type="button" onClick="{{ d.pick }}" aria-pressed="{{ d.pressed }}" aria-label="{{ d.aria }}" style="{{ d.style }}">
+<span style="display: block; font-size: 13px; font-weight: 700;">{{ d.wd }} {{ d.n }}</span>
+<span style="display: block; font-size: 14px;">{{ d.hours }}</span>
+<span style="display: block; font-size: 12px; opacity: 0.85;">{{ d.count }}</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="ed-h" style="background: #FFFFFF; border: 2px solid #067E3E; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px;">
+<div>
+<h2 id="ed-h" style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 26px;">{{ selLong }}</h2>
+<p aria-live="polite" style="margin: 0; color: #067E3E; font-weight: 700;">{{ selSummary }}</p>
+</div>
+<button type="button" onClick="{{ toggleClosed }}" aria-pressed="{{ closedPressed }}" style="{{ closedStyle }}">{{ closedLabel }}</button>
+</div>
+
+<sc-if value="{{ selOpen }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; gap: 28px; margin-top: 18px;">
+<div><p style="margin: 0 0 8px; font-weight: 700;">Opens</p><div style="display: flex; align-items: center; gap: 12px;"><button type="button" onClick="{{ openDec }}" aria-label="Open earlier" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">-</button><span style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 26px; min-width: 80px; text-align: center;">{{ openText }}</span><button type="button" onClick="{{ openInc }}" aria-label="Open later" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">+</button></div></div>
+<div><p style="margin: 0 0 8px; font-weight: 700;">Closes</p><div style="display: flex; align-items: center; gap: 12px;"><button type="button" onClick="{{ closeDec }}" aria-label="Close earlier" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">-</button><span style="font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 26px; min-width: 80px; text-align: center;">{{ closeText }}</span><button type="button" onClick="{{ closeInc }}" aria-label="Close later" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 22px; line-height: 1; cursor: pointer; flex: none;">+</button></div></div>
+<div style="display: flex; flex-direction: column; gap: 8px; justify-content: flex-end;">
+<p style="margin: 0; font-weight: 700;">Copy these hours to</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+<button type="button" onClick="{{ copyAll }}" style="min-height: 42px; padding: 0 16px; border-radius: 999px; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;">Every day</button>
+<button type="button" onClick="{{ copyWeekdays }}" style="min-height: 42px; padding: 0 16px; border-radius: 999px; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;">Weekdays</button>
+<button type="button" onClick="{{ copyWeekends }}" style="min-height: 42px; padding: 0 16px; border-radius: 999px; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;">Weekends</button>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin: 24px 0 12px;">
+<div>
+<p style="margin: 0; font-weight: 700;">Times on this day</p>
+<p style="margin: 0; color: #45524F; font-size: 15px;">Tap a time to block it for a break, tap again to open it.</p>
+</div>
+<button type="button" onClick="{{ toggleAllBreaks }}" aria-pressed="{{ allPressed }}" style="{{ allStyle }}">{{ allLabel }}</button>
+</div>
+<div role="group" aria-label="Times" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px;">
+<sc-for list="{{ slots }}" as="t" hint-placeholder-count="18">
+<button type="button" onClick="{{ t.toggle }}" aria-pressed="{{ t.pressed }}" aria-label="{{ t.aria }}" style="min-height: 56px; width: 100%; border-radius: 12px; font: inherit; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; {{ t.style }}"><span>{{ t.label }}</span><span style="font-size: 12px; font-weight: 700;">{{ t.sub }}</span></button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ selClosed }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 18px 0 0; padding: 16px 18px; border-radius: 14px; background: #F4F1EA; color: #45524F;">The grotto is closed on this day, so families cannot book it. Tap "Open this day" to add hours.</p>
+</sc-if>
+
+<div style="margin-top: 20px; background: #FFF7E6; border-radius: 14px; padding: 14px 18px;">
+<p style="margin: 0; font-size: 15px;"><strong>Families already booked?</strong> Making a day longer simply adds new times. If you shorten or close a day that has bookings outside the new hours, you will be asked to move those families first, and they get a message with new times to choose from.</p>
+</div>
+</section>
+
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1560}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+const hours = {};
+for (let n = 1; n <= 24; n++) hours[n] = { open: 600, close: 960, closed: false };
+this.state = { len: 15, gap: 5, cap: 1, hours, sel: 1, allBreaks: true, blocked: { 'all|12:40': true, 'all|13:00': true } };
+}
+renderVals() {
+const st = this.state;
+const G = '#067E3E', R = '#C8000B', LINE = '#E7DCC8', INK = '#1E2B2A', MUTE = '#45524F';
+const long = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const short = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const fmt = (m) => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const wdOf = (n) => new Date(2026, 11, n).getDay();
+const times = (h) => { const out = []; if (h.closed) return out; for (let m = h.open; m + st.len <= h.close; m += st.len + st.gap) out.push(m); return out; };
+const isBlocked = (n, label) => !!st.blocked[(st.allBreaks ? 'all' : String(n)) + '|' + label];
+const bookable = (n) => times(st.hours[n]).filter((m) => !isBlocked(n, fmt(m))).length;
+const setHours = (n, patch) => { const hs = Object.assign({}, st.hours); hs[n] = Object.assign({}, hs[n], patch); this.setState({ hours: hs }); };
+const copyTo = (pred) => { const src = st.hours[st.sel]; const hs = Object.assign({}, st.hours); for (let n = 1; n <= 24; n++) if (pred(wdOf(n))) hs[n] = Object.assign({}, src); this.setState({ hours: hs }); };
+let season = 0, openDays = 0;
+const days = [];
+for (let n = 1; n <= 24; n++) {
+const h = st.hours[n]; const c = bookable(n); season += c; if (!h.closed) openDays++;
+const sel = n === st.sel;
+const base = 'min-height: 74px; border-radius: 14px; font: inherit; cursor: pointer; text-align: left; padding: 8px 10px; line-height: 1.25; ';
+const look = sel ? 'background: ' + G + '; color: #FFFFFF; border: 2px solid ' + G + ';' : (h.closed ? 'background: #F4F1EA; color: ' + MUTE + '; border: 2px dashed #C9BFAE;' : 'background: #FFFFFF; color: ' + INK + '; border: 2px solid ' + LINE + ';');
+days.push({ n: String(n), wd: short[wdOf(n)], hours: h.closed ? 'Closed' : fmt(h.open) + ' to ' + fmt(h.close), count: h.closed ? '' : c + ' times',
+aria: long[wdOf(n)] + ' ' + n + ' December, ' + (h.closed ? 'closed' : fmt(h.open) + ' to ' + fmt(h.close) + ', ' + c + ' bookable times'),
+pressed: sel ? 'true' : 'false', style: base + look, pick: () => this.setState({ sel: n }) });
+}
+const n = st.sel, h = st.hours[n];
+const slots = times(h).map((m) => {
+const label = fmt(m); const b = isBlocked(n, label);
+const key = (st.allBreaks ? 'all' : String(n)) + '|' + label;
+return { label, sub: b ? 'Blocked' : 'to ' + fmt(m + st.len), pressed: b ? 'true' : 'false', aria: label + (b ? ', blocked, tap to open' : ', open, tap to block'),
+style: b ? 'border: 2px dashed ' + R + '; background: #FDECEC; color: ' + R + ';' : 'border: 2px solid ' + LINE + '; background: #FFFFFF; color: ' + INK + ';',
+toggle: () => { const nb = Object.assign({}, this.state.blocked); if (nb[key]) delete nb[key]; else nb[key] = true; this.setState({ blocked: nb }); } };
+});
+const pillBtn = (on) => 'min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; border: 2px solid ' + G + '; ' + (on ? 'background: ' + G + '; color: #FFFFFF;' : 'background: #FFFFFF; color: ' + G + ';');
+const c = bookable(n);
+return {
+len: { text: st.len + ' min', dec: () => this.setState({ len: Math.max(5, st.len - 5) }), inc: () => this.setState({ len: Math.min(60, st.len + 5) }) },
+gap: { text: st.gap + ' min', dec: () => this.setState({ gap: Math.max(0, st.gap - 5) }), inc: () => this.setState({ gap: Math.min(30, st.gap + 5) }) },
+cap: { text: String(st.cap), dec: () => this.setState({ cap: Math.max(1, st.cap - 1) }), inc: () => this.setState({ cap: Math.min(6, st.cap + 1) }) },
+seasonTotal: String(season * st.cap), openDays: String(openDays),
+days, slots,
+selLong: long[wdOf(n)] + ' ' + n + ' December',
+selSummary: h.closed ? 'Closed' : fmt(h.open) + ' to ' + fmt(h.close) + ', ' + c + ' bookable times' + (st.cap > 1 ? ', up to ' + c * st.cap + ' families' : ''),
+selOpen: !h.closed, selClosed: h.closed,
+closedLabel: h.closed ? 'Open this day' : 'Close this day', closedPressed: h.closed ? 'true' : 'false',
+closedStyle: 'min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; border: 2px solid ' + (h.closed ? G : R) + '; background: #FFFFFF; color: ' + (h.closed ? G : R) + ';',
+toggleClosed: () => setHours(n, { closed: !h.closed }),
+openText: fmt(h.open), closeText: fmt(h.close),
+openDec: () => setHours(n, { open: Math.max(480, h.open - 30) }),
+openInc: () => setHours(n, { open: Math.min(h.close - 60, h.open + 30) }),
+closeDec: () => setHours(n, { close: Math.max(h.open + 60, h.close - 30) }),
+closeInc: () => setHours(n, { close: Math.min(1260, h.close + 30) }),
+copyAll: () => copyTo(() => true),
+copyWeekdays: () => copyTo((w) => w >= 1 && w <= 5),
+copyWeekends: () => copyTo((w) => w === 0 || w === 6),
+allLabel: st.allBreaks ? 'Same breaks every day' : 'Breaks for this day only', allPressed: st.allBreaks ? 'true' : 'false', allStyle: pillBtn(st.allBreaks),
+toggleAllBreaks: () => this.setState({ allBreaks: !st.allBreaks }),
+};
+}
+}
+</script>
+</body>
+</html>

@@ -18,14 +18,14 @@ export default async function Confirm({ params }: { params: Promise<{ token: str
   if (b.reply === 'confirmed') redirect(`${back}?done=confirmed`);
   if (b.started || !['confirmed', 'pending_review'].includes(b.status)) redirect(back);
   return (
-    <div className="content">
-      <h1>Are you still coming?</h1>
-      <p className="lead">{visitWhen(b.day, b.starts_at)}</p>
+    <div className="narrow page"><div className="card card-lg">
+      <h1 className="green" style={{ fontSize: '2rem' }}>Are you still coming?</h1>
+      <p className="lead" style={{ fontWeight: 700 }}>{visitWhen(b.day, b.starts_at)}</p>
       <ActionForm action={confirmVisit.bind(null, token)} submitLabel="Yes, we are coming"
-        secondary={<Link href={`${back}/change`}>We need a different time</Link>}>
+        secondary={<Link href={`${back}/change`} style={{ fontWeight: 700 }}>We need a different time</Link>}>
         {null}
       </ActionForm>
-      <p style={{ marginTop: '1.5rem' }}>Cannot come at all? <Link href={`${back}/cancel`}>Cancel your visit</Link> so another family can have the time.</p>
-    </div>
+      <p style={{ marginTop: '1.5rem', marginBottom: 0 }}>Cannot come at all? <Link href={`${back}/cancel`}>Cancel your visit</Link> so another family can have the time.</p>
+    </div></div>
   );
 }

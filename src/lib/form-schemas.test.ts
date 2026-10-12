@@ -3,17 +3,21 @@ import { alertSchema } from './form-schemas';
 import { bookingSchema } from './booking-schema';
 
 describe('alertSchema', () => {
-  const base = { name: 'Sam', is_group: false, data_consent: true };
+  const base = { name: 'Sam', is_group: false };
   it('sends an email alert to an email address', () => {
-    expect(alertSchema.parse({ ...base, contact: 'Sam@Example.com' })).toMatchObject({ contact: 'sam@example.com', channels: ['email'] });
+    expect(alertSchema.parse({ ...base, contact: 'Sam@Example.com', channels: ['email'] })).toMatchObject({ contact: 'sam@example.com', channels: ['email'] });
   });
   it('sends a text to a UK mobile, stored as +447', () => {
-    expect(alertSchema.parse({ ...base, contact: '07700 900123' })).toMatchObject({ contact: '+447700900123', channels: ['sms'] });
+    expect(alertSchema.parse({ ...base, contact: '07700 900123', channels: ['sms', 'whatsapp'] })).toMatchObject({ contact: '+447700900123', channels: ['sms', 'whatsapp'] });
   });
   it('refuses anything else, pointing at the contact box', () => {
-    const r = alertSchema.safeParse({ ...base, contact: '0116 496 0000' });
+    const r = alertSchema.safeParse({ ...base, contact: '0116 496 0000', channels: ['sms'] });
     expect(r.success).toBe(false);
     expect(r.error?.issues[0].path).toEqual(['contact']);
+  });
+  it('explains when the ticks do not match the contact given', () => {
+    const r = alertSchema.safeParse({ ...base, contact: 'sam@example.com', channels: ['email', 'sms'] });
+    expect(r.error?.issues[0].path).toEqual(['channels']);
   });
 });
 

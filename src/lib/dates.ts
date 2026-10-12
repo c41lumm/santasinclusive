@@ -26,3 +26,13 @@ export function seasonDates(first: string, last: string) {
   const opts = { day: 'numeric', month: 'long', timeZone: 'Europe/London' } as const;
   return `${f.toLocaleDateString('en-GB', f.getUTCMonth() === l.getUTCMonth() ? { day: 'numeric', timeZone: 'Europe/London' } : opts)} to ${l.toLocaleDateString('en-GB', { ...opts, year: 'numeric' })}`;
 }
+
+/** "10am to 4pm" from "10:00" and "16:00" */
+export function hoursText(opens: string, closes: string) {
+  const t = (hm: string) => {
+    const [h, m] = hm.split(':').map(Number);
+    const hour = h % 12 || 12;
+    return `${hour}${m ? `:${String(m).padStart(2, '0')}` : ''}${h < 12 ? 'am' : 'pm'}`;
+  };
+  return `${t(opens)} to ${t(closes)}`;
+}

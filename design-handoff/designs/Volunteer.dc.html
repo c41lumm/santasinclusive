@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Volunteer with us</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#067E3E}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #1B1B1B;outline-offset:3px}
+</style>
+</helmet>
+<div style="width: 100%; background: #FBF6EE; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 18px; line-height: 1.6;">
+
+<header style="position: sticky; top: 0; z-index: 20; background: rgba(251, 246, 238, 0.97); border-bottom: 1px solid #E7DCC8;">
+<div style="max-width: 1240px; margin: 0 auto; padding: 14px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px;">
+<a href="HomeV2.dc.html" style="display: block;"><img src="../assets/19b4135469dc64b63a2d35a55e398e09.png" alt="Santa's Inclusive Grotto, home" style="height: 54px; width: auto; display: block;"></a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px;">
+<a href="HomeV2.dc.html#expect" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">What to expect</a>
+<a href="HomeV2.dc.html#book" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">Booking</a>
+<a href="HomeV2.dc.html#visit" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">Finding us</a>
+<a href="GroupBookings.dc.html" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">Schools and groups</a>
+<a href="HomeV2.dc.html#help" aria-current="page" style="color: #067E3E; text-decoration: none; font-weight: 700; padding: 10px 0; border-bottom: 3px solid #067E3E;">Get involved</a>
+<a href="HomeV2.dc.html#book" style="background: #C8000B; color: #FFFFFF; text-decoration: none; font-weight: 700; padding: 12px 24px; border-radius: 999px;">Book a visit</a>
+</nav>
+</div>
+</header>
+
+<section style="max-width: 1240px; margin: 0 auto; padding: 24px 48px 48px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 40px; align-items: center;">
+<div style="flex: 1 1 440px; min-width: 0;">
+<p style="margin: 0 0 12px; font-weight: 700; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: #C8000B;">Volunteer</p>
+<h1 style="margin: 0 0 20px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 52px; line-height: 1.1; color: #067E3E;">Elf costume optional. Warm heart essential.</h1>
+<p style="margin: 0; font-size: 21px; max-width: 720px;">Every December we welcome children and adults with disabilities to meet Santa. We need warm, patient people to be Santa and his elves from 1 to 24 December.</p>
+</div>
+<div style="flex: 1 1 480px; min-width: 0;">
+<img src="../assets/f1055ea563a5b4981784c7882a799a8c.png" alt="Illustration of a smiling Santa and a cheerful elf waving, the elf holding a wrapped present." style="width: 100%; height: auto; display: block;">
+</div>
+</section>
+
+<section aria-label="Choose a role" style="max-width: 1240px; margin: 0 auto; padding: 0 48px 32px; box-sizing: border-box;">
+<h2 style="margin: 0 0 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 30px; color: #067E3E;">Choose a role</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+<sc-if value="{{ santa.selected }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ santa.pick }}" aria-pressed="true" style="flex: 1 1 260px; min-width: 0; text-align: left; font: inherit; color: #1E2B2A; cursor: pointer; border-radius: 24px; padding: 28px; box-sizing: border-box; background: #E6F2E8; border: 3px solid #067E3E;"><img src="../assets/d0210f8f5000e38f27b51034d85c109f.png" alt="" style="display: block; height: 170px; width: auto; margin: 0 auto 16px;"><span style="display: block; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 26px; color: #067E3E; margin-bottom: 8px;">Santa</span><span style="display: block; margin-bottom: 12px;">Meets each visitor with warmth and patience. You will read what each family has shared and adapt, whether that is sitting close, waving from a distance, or moving slowly. Santa suit provided.</span><span style="display: block; font-weight: 700; color: #C8000B;">Selected</span></button>
+</sc-if>
+<sc-if value="{{ santa.notSelected }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ santa.pick }}" aria-pressed="false" style="flex: 1 1 260px; min-width: 0; text-align: left; font: inherit; color: #1E2B2A; cursor: pointer; border-radius: 24px; padding: 28px; box-sizing: border-box; background: #FFFFFF; border: 3px solid #E7DCC8;"><img src="../assets/d0210f8f5000e38f27b51034d85c109f.png" alt="" style="display: block; height: 170px; width: auto; margin: 0 auto 16px;"><span style="display: block; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 26px; color: #067E3E; margin-bottom: 8px;">Santa</span><span style="display: block; margin-bottom: 12px;">Meets each visitor with warmth and patience. You will read what each family has shared and adapt, whether that is sitting close, waving from a distance, or moving slowly. Santa suit provided.</span><span style="display: block; font-weight: 700; color: #C8000B;">Choose Santa</span></button>
+</sc-if>
+<sc-if value="{{ elf.selected }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ elf.pick }}" aria-pressed="true" style="flex: 1 1 260px; min-width: 0; text-align: left; font: inherit; color: #1E2B2A; cursor: pointer; border-radius: 24px; padding: 28px; box-sizing: border-box; background: #E6F2E8; border: 3px solid #067E3E;"><img src="../assets/ae36cd8b3f6ccbd62ba3abfc69d7a6e1.png" alt="" style="display: block; height: 170px; width: auto; margin: 0 auto 16px;"><span style="display: block; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 26px; color: #067E3E; margin-bottom: 8px;">Elf (helper)</span><span style="display: block; margin-bottom: 12px;">Welcomes families, guides them through the grotto, hands over the gifts and helps keep the space calm. You will see each visitor's notes before they arrive.</span><span style="display: block; font-weight: 700; color: #C8000B;">Selected</span></button>
+</sc-if>
+<sc-if value="{{ elf.notSelected }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ elf.pick }}" aria-pressed="false" style="flex: 1 1 260px; min-width: 0; text-align: left; font: inherit; color: #1E2B2A; cursor: pointer; border-radius: 24px; padding: 28px; box-sizing: border-box; background: #FFFFFF; border: 3px solid #E7DCC8;"><img src="../assets/ae36cd8b3f6ccbd62ba3abfc69d7a6e1.png" alt="" style="display: block; height: 170px; width: auto; margin: 0 auto 16px;"><span style="display: block; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 26px; color: #067E3E; margin-bottom: 8px;">Elf (helper)</span><span style="display: block; margin-bottom: 12px;">Welcomes families, guides them through the grotto, hands over the gifts and helps keep the space calm. You will see each visitor's notes before they arrive.</span><span style="display: block; font-weight: 700; color: #C8000B;">Choose Elf</span></button>
+</sc-if>
+</div>
+</section>
+
+<section style="max-width: 1240px; margin: 0 auto; padding: 0 48px 72px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+
+<div style="flex: 1 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 40px; box-sizing: border-box;">
+<h2 style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 30px; color: #067E3E;">Apply to be {{ roleLabel }}</h2>
+<p style="margin: 0 0 28px;">It takes about five minutes. We will be in touch to arrange a chat.</p>
+
+<div style="margin-bottom: 20px;"><label for="v-name" style="display: block; font-weight: 700; margin-bottom: 4px;">Full name <span style="color: #C8000B;">(required)</span></label><input id="v-name" type="text" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF; color: #1E2B2A;"></div>
+<div style="margin-bottom: 20px;"><label for="v-email" style="display: block; font-weight: 700; margin-bottom: 4px;">Email address <span style="color: #C8000B;">(required)</span></label><input id="v-email" type="text" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF; color: #1E2B2A;"></div>
+<div style="margin-bottom: 20px;"><label for="v-phone" style="display: block; font-weight: 700; margin-bottom: 4px;">Mobile number <span style="color: #C8000B;">(required)</span></label><input id="v-phone" type="text" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF; color: #1E2B2A;"></div>
+<div style="margin-bottom: 20px;"><label for="v-town" style="display: block; font-weight: 700; margin-bottom: 4px;">Town or city <span style="font-weight: 400; color: #45524F;">(optional)</span></label><input id="v-town" type="text" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF; color: #1E2B2A;"></div>
+<fieldset style="border: 0; padding: 0; margin: 0 0 20px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 4px;">Are you 18 or over? <span style="color: #C8000B;">(required)</span></legend><div style="display: flex; flex-direction: column;"><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-age-0" name="v-age" type="radio" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-age-0">Yes</label></div><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-age-1" name="v-age" type="radio" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-age-1">No</label></div></div></fieldset>
+
+<fieldset style="border: 0; padding: 0; margin: 0 0 20px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 4px;">When could you help? <span style="color: #C8000B;">(required)</span></legend><p style="margin: 0 0 8px; font-size: 15px; color: #45524F;">Tick every week you could do at least one shift.</p><div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 16px;"><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-weeks-0" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-weeks-0">1 to 7 December</label></div><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-weeks-1" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-weeks-1">8 to 14 December</label></div><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-weeks-2" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-weeks-2">15 to 21 December</label></div><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-weeks-3" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-weeks-3">22 to 24 December</label></div></div></fieldset>
+<fieldset style="border: 0; padding: 0; margin: 0 0 20px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 4px;">Which days suit you? <span style="color: #C8000B;">(required)</span></legend><div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 16px;"><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-days-0" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-days-0">Weekdays</label></div><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-days-1" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-days-1">Weekends</label></div><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-days-2" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-days-2">Evenings</label></div></div></fieldset>
+
+<sc-if value="{{ isSanta }}" hint-placeholder-val="{{ true }}">
+<div style="margin-bottom: 20px;"><label for="v-santa-exp" style="display: block; font-weight: 700; margin-bottom: 4px;">Have you played Santa before? <span style="font-weight: 400; color: #45524F;">(optional)</span></label><p id="v-santa-exp-h" style="margin: 0 0 8px; font-size: 15px; color: #45524F;">Tell us about it. It does not have to be at a grotto.</p><textarea id="v-santa-exp" rows="3" aria-describedby="v-santa-exp-h" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF; color: #1E2B2A; min-height: 96px; resize: vertical;"></textarea></div>
+<fieldset style="border: 0; padding: 0; margin: 0 0 20px;"><legend style="font-weight: 700; padding: 0; margin-bottom: 4px;">We provide the Santa suit. Would you prefer to wear your own?</legend><div style="display: flex; flex-direction: column;"><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-suit-0" name="v-suit" type="radio" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-suit-0">Yes</label></div><div style="display: flex; align-items: center; gap: 10px; min-height: 44px;"><input id="v-suit-1" name="v-suit" type="radio" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none;"><label for="v-suit-1">No</label></div></div></fieldset>
+</sc-if>
+<sc-if value="{{ isElf }}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom: 20px;"><label for="v-elf-exp" style="display: block; font-weight: 700; margin-bottom: 4px;">Experience with children or adults with disabilities <span style="font-weight: 400; color: #45524F;">(optional)</span></label><p id="v-elf-exp-h" style="margin: 0 0 8px; font-size: 15px; color: #45524F;">Professional, family or voluntary experience all count. No experience is also fine.</p><textarea id="v-elf-exp" rows="3" aria-describedby="v-elf-exp-h" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF; color: #1E2B2A; min-height: 96px; resize: vertical;"></textarea></div>
+</sc-if>
+
+<div style="margin-bottom: 20px;"><label for="v-why" style="display: block; font-weight: 700; margin-bottom: 4px;">Why would you like to volunteer? <span style="color: #C8000B;">(required)</span></label><textarea id="v-why" rows="3" style="width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 2px solid #5B6B68; border-radius: 12px; min-height: 48px; background: #FFFFFF; color: #1E2B2A; min-height: 96px; resize: vertical;"></textarea></div>
+
+<div style="background: #F1E7D3; border-radius: 16px; padding: 20px 24px; margin: 8px 0 20px;">
+<p style="margin: 0 0 6px; font-weight: 700;">Keeping everyone safe</p>
+<p style="margin: 0; font-size: 16px;">[CONFIRM: all volunteers complete an enhanced DBS check, give references and attend a short briefing before their first shift.]</p>
+</div>
+
+<div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px;"><input id="v-safe" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none; margin-top: 3px;"><label for="v-safe">I understand the checks listed above, and agree to them if I am offered a role. <span style="color: #C8000B;">(required)</span></label></div>
+<div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px;"><input id="v-priv" type="checkbox" style="width: 22px; height: 22px; accent-color: #067E3E; flex: none; margin-top: 3px;"><label for="v-priv">I agree to Santa's Inclusive Grotto holding my details to manage volunteering. <span style="color: #C8000B;">(required)</span></label></div>
+
+<button type="button" style="margin-top: 20px; width: 100%; background: #C8000B; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 21px; padding: 16px 32px; border: 0; border-radius: 999px; cursor: pointer; min-height: 56px;">Send my application</button>
+</div>
+
+<aside style="flex: 1 1 360px; min-width: 0;">
+<figure style="margin: 0 0 24px; background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 28px; box-sizing: border-box;"><svg width="40" height="32" viewBox="0 0 40 32" aria-hidden="true"><path d="M0 32V19C0 8 6 1.5 16 0l2 5c-6 2-9 6-9 11h7v16H0zm22 0V19c0-11 6-17.5 16-19l2 5c-6 2-9 6-9 11h7v16H22z" fill="#DE000C" fill-opacity="0.85"/></svg><blockquote style="margin: 12px 0 12px; font-size: 18px; line-height: 1.55;">Everything was perfect from the set up to Santa and the very entertaining elf.</blockquote><figcaption style="font-weight: 700; color: #067E3E;">A parent</figcaption></figure>
+<div style="background: #067E3E; color: #FFFFFF; border-radius: 28px; padding: 36px; margin-bottom: 24px; box-sizing: border-box;">
+<h2 style="margin: 0 0 20px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 28px;">What happens next</h2>
+<ol style="margin: 0; padding-left: 24px;">
+<li style="margin-bottom: 12px;">We read your application and arrange a short chat.</li>
+<li style="margin-bottom: 12px;">We complete your checks and references.</li>
+<li style="margin-bottom: 12px;">You come to a briefing, so you feel confident before you meet any families.</li>
+<li>You pick your shifts and receive your login for the volunteer app.</li>
+</ol>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 32px; box-sizing: border-box; margin-bottom: 24px;">
+<h3 style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 22px; color: #067E3E;">What you will need</h3>
+<ul style="margin: 0; padding-left: 22px;">
+<li style="margin-bottom: 8px;">A patient, warm heart. The elf costume is optional, that part is essential.</li>
+<li style="margin-bottom: 8px;">A good sense of fun.</li>
+<li style="margin-bottom: 8px;">Time for at least one shift. [SHIFT LENGTH AND TIMES]</li>
+<li>A smartphone, so you can see who is coming next and what will help them.</li>
+</ul>
+</div>
+
+<div style="background: #F1E7D3; border-radius: 28px; padding: 32px; box-sizing: border-box;">
+<h3 style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 22px; color: #067E3E;">Questions?</h3>
+<p style="margin: 0;">Email us at [CONTACT EMAIL] and we will gladly help.</p>
+</div>
+</aside>
+
+</section>
+
+<footer style="background: #0B3B21; color: #FFFFFF;">
+<div style="max-width: 1240px; margin: 0 auto; padding: 48px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px;">
+<div style="display: flex; align-items: center; gap: 18px;">
+<img src="../assets/5bd6ecbb5b65c4cf14ce3c97d67c2d8a.png" alt="" style="height: 72px; width: auto; display: block; background: #FFFFFF; border-radius: 50%;">
+<div>
+<p style="margin: 0; font-weight: 700;">Santa's Inclusive Grotto</p>
+<p style="margin: 0; font-size: 16px;">20 Freeschool Lane, Leicester LE1 4FY</p>
+<p style="margin: 0; font-size: 15px;">Run by Liquid New Media Limited. [ADD COMPANY NUMBER]</p>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<p style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Stay in touch</p>
+<a href="https://www.instagram.com/santa_inclusive/" style="color: #FFFFFF; font-weight: 700; font-size: 18px; padding: 4px 0;">Follow us on Instagram @santa_inclusive</a>
+<p style="margin: 0; font-size: 16px;">[CONTACT EMAIL] <span aria-hidden="true">·</span> Privacy <span aria-hidden="true">·</span> Accessibility statement</p>
+</div>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":2700}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { role: 'santa' };
+}
+renderVals() {
+const role = this.state.role;
+return {
+santa: { selected: role === 'santa', notSelected: role !== 'santa', pick: () => this.setState({ role: 'santa' }) },
+elf: { selected: role === 'elf', notSelected: role !== 'elf', pick: () => this.setState({ role: 'elf' }) },
+isSanta: role === 'santa',
+isElf: role === 'elf',
+roleLabel: role === 'santa' ? 'Santa' : 'an elf',
+};
+}
+}
+</script>
+</body>
+</html>

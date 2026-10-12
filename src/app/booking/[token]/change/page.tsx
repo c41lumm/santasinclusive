@@ -21,11 +21,11 @@ export default async function Change({ params, searchParams }: {
   const season = await getSeason();
   if (b.started || !['confirmed', 'pending_review'].includes(b.status) || !season?.booking_open) {
     return (
-      <div className="content">
-        <h1>This visit cannot be changed online</h1>
+      <div className="narrow page"><div className="card card-lg">
+        <h1 className="green" style={{ fontSize: '2rem' }}>This visit cannot be changed online</h1>
         <p>Please contact us and we will help.</p>
         <Link href={back}>Back to your visit</Link>
-      </div>
+      </div></div>
     );
   }
 
@@ -36,34 +36,39 @@ export default async function Change({ params, searchParams }: {
 
   if (chosen && picked) {
     return (
-      <div className="content">
-        <Link className="back" href={`${back}/change?day=${chosen.day}#times`}>Back to times</Link>
-        <h1>Move your visit?</h1>
-        <dl className="summary-list panel">
-          <dt>From</dt><dd>{visitWhen(b.day, b.starts_at)}</dd>
-          <dt>To</dt><dd><strong>{visitWhen(chosen.day, picked.starts_at)}</strong></dd>
-        </dl>
-        <p>Your old time will be offered to a family on the waitlist.</p>
-        <ActionForm action={moveBooking.bind(null, token, picked.slot_id)} submitLabel="Move my visit"
-          secondary={<Link href={back}>Keep my current time</Link>}>
-          {null}
-        </ActionForm>
+      <div className="narrow page">
+        <Link href={`${back}/change?day=${chosen.day}#times`} style={{ fontWeight: 700, display: 'inline-block', padding: '10px 0', marginBottom: 8 }}>Back to times</Link>
+        <div className="card card-lg">
+          <h1 className="green" style={{ fontSize: '2rem' }}>Move your visit?</h1>
+          <dl className="summary-list panel">
+            <dt>From</dt><dd>{visitWhen(b.day, b.starts_at)}</dd>
+            <dt>To</dt><dd><strong>{visitWhen(chosen.day, picked.starts_at)}</strong></dd>
+          </dl>
+          <p>Your old time will be offered to a family on the waitlist.</p>
+          <ActionForm action={moveBooking.bind(null, token, picked.slot_id)} submitLabel="Move my visit"
+            secondary={<Link href={back} style={{ fontWeight: 700 }}>Keep my current time</Link>}>
+            {null}
+          </ActionForm>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <Link className="back" href={back}>Back to your visit</Link>
-      <h1>Choose a new time</h1>
-      <p className="lead content">Your visit is on {visitWhen(b.day, b.starts_at)}. It stays booked until you confirm the new time.</p>
-      <DayPicker days={days} selected={chosen?.day} href={(d) => `${back}/change?day=${d}#times`} />
-      {chosen ? (
-        <section id="times" aria-labelledby="times-heading" className="content">
-          <h2 id="times-heading">Times on {dayName(chosen.day)}</h2>
-          <TimeList slots={slots} href={(s) => `${back}/change?day=${chosen.day}&slot=${s.slot_id}`} />
-        </section>
-      ) : null}
-    </>
+    <div className="narrow page">
+      <Link href={back} style={{ fontWeight: 700, display: 'inline-block', padding: '10px 0', marginBottom: 8 }}>Back to your visit</Link>
+      <p className="eyebrow">Change time</p>
+      <h1 className="green" style={{ fontSize: 'clamp(2rem, 5vw, 2.75rem)' }}>Choose a new time</h1>
+      <p className="lead">Your visit is on {visitWhen(b.day, b.starts_at)}. It stays booked until you confirm the new time.</p>
+      <div className="card" style={{ background: 'var(--cream)', borderRadius: 32 }}>
+        <DayPicker days={days} selected={chosen?.day} href={(d) => `${back}/change?day=${d}#times`} />
+        {chosen ? (
+          <section id="times" aria-labelledby="times-heading" style={{ marginTop: 26 }}>
+            <h2 id="times-heading" style={{ fontSize: '1.5rem', fontWeight: 600 }}>Choose a time on {dayName(chosen.day)}</h2>
+            <TimeList slots={slots} href={(s) => `${back}/change?day=${chosen.day}&slot=${s.slot_id}`} />
+          </section>
+        ) : null}
+      </div>
+    </div>
   );
 }

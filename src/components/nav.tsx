@@ -3,11 +3,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/book', label: 'Book a visit' },
-  { href: '/waitlist', label: 'Waitlist' },
+  { href: '/#expect', label: 'What to expect' },
+  { href: '/#book', label: 'Booking' },
+  { href: '/#visit', label: 'Finding us' },
   { href: '/groups', label: 'Schools and groups' },
-  { href: '/volunteer', label: 'Volunteer' },
+  { href: '/#help', label: 'Get involved' },
 ];
 
 export function Nav() {
@@ -15,10 +15,12 @@ export function Nav() {
   return (
     <nav aria-label="Main">
       <ul>
-        {links.map((l) => {
-          const current = path === l.href || (l.href !== '/' && path.startsWith(`${l.href}/`));
-          return <li key={l.href}><Link href={l.href} aria-current={current ? 'page' : undefined}>{l.label}</Link></li>;
-        })}
+        {links.map((l) => (
+          <li key={l.href}>
+            <Link href={l.href} aria-current={!l.href.includes('#') && path.startsWith(l.href) ? 'page' : undefined}>{l.label}</Link>
+          </li>
+        ))}
+        <li><Link className="btn" href="/#book">Book a visit</Link></li>
       </ul>
     </nav>
   );

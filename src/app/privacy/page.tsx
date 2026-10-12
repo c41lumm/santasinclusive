@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
+import { site } from '@/lib/site';
 
 export const metadata: Metadata = { title: 'How we look after your details' };
 
 // Check this page with your adviser before booking opens (see README).
 export default function Privacy() {
-  const email = process.env.EMAIL_FROM;
+  const email = site.contactEmail;
   return (
-    <div className="content">
-      <h1>How we look after your details</h1>
+    <div className="wrap page"><div className="prose">
+      <p className="eyebrow">Privacy</p>
+      <h1 className="green" style={{ fontSize: 'clamp(2rem, 5vw, 2.75rem)' }}>How we look after your details</h1>
       <p className="lead">
         Santa&apos;s Inclusive Grotto is run by Liquid New Media Limited, which is responsible for your details (the data
         controller).
@@ -26,7 +28,7 @@ export default function Privacy() {
 
       <h2>Who can see it</h2>
       <ul>
-        <li>Our organiser and lead elf can see everything, to plan your visit.</li>
+        <li>Our organisers can see everything, to plan your visit.</li>
         <li>Our elves can see names and the needs you tell us about, but not health details or contact details.</li>
         <li>Santa sees only first names, ages, how to say hello, what each visitor loves and dislikes, and how they would like to meet.</li>
       </ul>
@@ -63,6 +65,6 @@ export default function Privacy() {
         If you are unhappy with how we have handled your details, you can complain to the Information Commissioner&apos;s
         Office at <a href="https://ico.org.uk/make-a-complaint/">ico.org.uk</a>.
       </p>
-    </div>
+    </div></div>
   );
 }

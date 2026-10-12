@@ -217,6 +217,48 @@ ok('cannot move to a time held for the waitlist', e === 'SLOT_FULL', e);
 e = await err(`select move_booking($1, $2)`, [pb.manage_token, p1240]);
 ok('cannot move to a break', e === 'SLOT_UNAVAILABLE', e);
 
+// Design updates: decline an offer but stay on the list, leave the list, opening hours
+await as('editor');
+const [d1000, d1020] = [await slot('2026-12-16', '10:00'), await slot('2026-12-16', '10:20')];
+await as('server');
+const declBooking = (await q(`select * from create_booking($1::jsonb)`, [booking(d1000, 'decl@example.com', null)]))[0];
+await as('editor');
+await db.exec(`insert into waitlist_entries (day,contact_name,phone,eligibility_confirmed,data_consent) values
+  ('2026-12-16','First Family','07700900101',true,true), ('2026-12-16','Second Family','07700900102',true,true)`);
+const wl = async (name) => (await q(`select * from waitlist_entries where contact_name = $1`, [name]))[0];
+await as('anon');
+await q(`select cancel_booking($1)`, [declBooking.manage_token]);
+await as('editor');
+const first = await wl('First Family');
+ok('first family is offered the time', first.status === 'offered');
+await as('anon');
+await q(`select decline_waitlist_offer($1)`, [first.offer_token]);
+await as('editor');
+ok('declining keeps them on the list', (await wl('First Family')).status === 'waiting');
+ok('declined time goes to the next family', (await wl('Second Family')).status === 'offered');
+await as('anon');
+e = await err(`select decline_waitlist_offer($1)`, [first.offer_token]);
+ok('an old offer link cannot be declined twice', e === 'OFFER_EXPIRED', e);
+// Another time opens: the first family is offered it, as they kept their place
+await as('server');
+const other = (await q(`select * from create_booking($1::jsonb)`, [booking(d1020, 'other@example.com', null)]))[0];
+await as('anon');
+await q(`select cancel_booking($1)`, [other.manage_token]);
+await as('editor');
+ok('they keep their place for other times', (await wl('First Family')).status === 'offered');
+// Leaving the list while holding an offer passes it on
+const firstNow = await wl('First Family');
+await as('anon');
+ok('leave page shows the day', (await q(`select day::text as day from get_waitlist_entry($1)`, [firstNow.manage_token]))[0]?.day === '2026-12-16');
+await q(`select leave_waitlist($1)`, [firstNow.manage_token]);
+await as('editor');
+ok('leaving removes them', (await wl('First Family')).status === 'removed');
+await as('anon');
+const hours = (await q(`select * from season_hours(2026)`))[0];
+ok('opening hours for the homepage', hours.opens_at === '10:00' && hours.closes_at === '16:00', JSON.stringify(hours));
+e = await err(`select offer_next_waitlist(gen_random_uuid())`);
+ok('the public still cannot make offers', e?.includes('permission denied'), e);
+
 // Messages exist before purge, so the purge has something to remove
 await as('editor');
 await db.query(`insert into messages (booking_id, channel, template, recipient, body) select id, 'email', 'confirmation', 'kate@example.com', 'Sam' from bookings limit 1`);
