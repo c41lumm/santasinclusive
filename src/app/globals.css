@@ -181,7 +181,6 @@ details.person > summary { cursor: pointer; font-weight: 700; font-size: 1.15rem
 details.person[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 1rem; }
 .private { background: var(--surface-soft); border-radius: var(--radius); padding: 1rem 1rem 0.1rem; margin-bottom: 1rem; }
 .private h4 { margin: 0 0 0.3rem; }
-.turnstile { margin: 1rem 0; min-height: 65px; }
 .steps { list-style: none; padding: 0; margin: 0 0 1.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; color: var(--muted); }
 .steps [aria-current='step'] { color: var(--text); font-weight: 700; }
 .back { display: inline-block; margin-bottom: 1rem; }

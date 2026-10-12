@@ -27,7 +27,7 @@ export async function bookAction(_prev: FormState, fd: FormData): Promise<FormSt
     visitors,
   });
   if (!parsed.success) return zodErrors(parsed.error);
-  const blocked = await checkPublicForm(fd, 'book', 10);
+  const blocked = await checkPublicForm('book', 10);
   if (blocked) return blocked;
 
   const code = await createBooking(parsed.data);

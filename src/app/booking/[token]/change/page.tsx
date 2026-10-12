@@ -44,7 +44,7 @@ export default async function Change({ params, searchParams }: {
           <dt>To</dt><dd><strong>{visitWhen(chosen.day, picked.starts_at)}</strong></dd>
         </dl>
         <p>Your old time will be offered to a family on the waitlist.</p>
-        <ActionForm action={moveBooking.bind(null, token, picked.slot_id)} submitLabel="Move my visit" turnstile={false}
+        <ActionForm action={moveBooking.bind(null, token, picked.slot_id)} submitLabel="Move my visit"
           secondary={<Link href={back}>Keep my current time</Link>}>
           {null}
         </ActionForm>

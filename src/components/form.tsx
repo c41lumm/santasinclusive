@@ -1,7 +1,6 @@
 'use client';
-import Script from 'next/script';
 import {
-  createContext, startTransition, useActionState, useContext, useEffect, useId, useRef, useState,
+  createContext, startTransition, useActionState, useContext, useEffect, useId, useRef,
   type InputHTMLAttributes, type ReactNode,
 } from 'react';
 import type { FormState } from '@/lib/forms';
@@ -15,19 +14,17 @@ type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
  * A form that sends to a server action. Problems are listed at the top (focused, so screen readers announce
  * them) and next to each field. The form is not cleared after a problem, so nothing typed is lost.
  */
-export function ActionForm({ action, submitLabel, children, turnstile = true, secondary, success }: {
-  action: Action; submitLabel: string; children: ReactNode; turnstile?: boolean; secondary?: ReactNode;
+export function ActionForm({ action, submitLabel, children, secondary, success }: {
+  action: Action; submitLabel: string; children: ReactNode; secondary?: ReactNode;
   /** Shown in place of the form once the action reports it is done */
   success?: (done: string) => ReactNode;
 }) {
   const [state, dispatch, pending] = useActionState(action, {});
   const done = useRef<HTMLDivElement>(null);
-  const [attempt, setAttempt] = useState(0);
   const summary = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!state.errors?.length) return;
     summary.current?.focus();
-    setAttempt((a) => a + 1); // a Turnstile token works once, so get a fresh one
   }, [state]);
   useEffect(() => { if (state.done) done.current?.focus(); }, [state.done]);
 
@@ -53,7 +50,6 @@ export function ActionForm({ action, submitLabel, children, turnstile = true, se
           </div>
         ) : null}
         {children}
-        {turnstile ? <Turnstile resetKey={attempt} /> : null}
         <div className="actions">
           <button type="submit" className="button" disabled={pending} aria-disabled={pending}>
             {pending ? 'Sending…' : submitLabel}
@@ -155,30 +151,6 @@ export function Tick({ name, label, hint }: { name: string; label: ReactNode; hi
         <label htmlFor={name}>{label}{hint ? <span id={`${name}-hint`} className="hint">{hint}</span> : null}</label>
       </div>
     </div>
-  );
-}
-
-declare global {
-  interface Window { turnstile?: { render: (el: HTMLElement, o: Record<string, unknown>) => string; remove: (id: string) => void } }
-}
-
-/** Cloudflare's check that the form is sent by a person. It adds a hidden cf-turnstile-response field. */
-function Turnstile({ resetKey }: { resetKey: number }) {
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const box = useRef<HTMLDivElement>(null);
-  const [ready, setReady] = useState(false);
-  useEffect(() => { if (window.turnstile) setReady(true); }, []);
-  useEffect(() => {
-    if (!ready || !siteKey || !box.current || !window.turnstile) return;
-    const id = window.turnstile.render(box.current, { sitekey: siteKey, theme: 'light' });
-    return () => window.turnstile?.remove(id);
-  }, [ready, siteKey, resetKey]);
-  if (!siteKey) return null;
-  return (
-    <>
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" onReady={() => setReady(true)} />
-      <div ref={box} className="turnstile" />
-    </>
   );
 }
 

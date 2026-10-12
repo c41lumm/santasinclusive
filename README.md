@@ -24,7 +24,7 @@ region), SendGrid for email, Twilio for text and WhatsApp, hosted on Vercel.
 - Volunteers, shifts and rota assignments. Messages log. Photos with the family's consent recorded.
   Sponsorships.
 - Row level security: the public can only see the time picker, use the cancel, claim and confirm links,
-  and add form entries. Booking goes through the server, after a Cloudflare Turnstile check and a rate
+  and add form entries. Booking goes through the server, after a Vercel BotID check and a rate
   limit. Signed-in users can only run the functions their role needs. Elves see visitors but not health
   details, contact details or the private booking links. Health details are in a separate table only the
   admin and lead elf can read. Santa only sees `santa_cards` (name, age, how to say hello, loves,
@@ -41,7 +41,7 @@ region), SendGrid for email, Twilio for text and WhatsApp, hosted on Vercel.
   level security and function permissions in the migration apply.
 - `lib/auth/server.ts` and `app/api/auth/[...path]`: staff sign-in with Neon Auth (email and password).
   Families never sign in. Sign-up is turned off.
-- `app/book/actions.ts`: validates the booking form, checks Turnstile and the rate limit, calls the
+- `app/book/actions.ts`: validates the booking form, checks BotID and the rate limit, calls the
   database, and sends the confirmation (or a "we have your request" message if it is held for review).
   If the family already has a visit, it sends the existing link to their own email or phone only. The
   form gets the same answer in every one of these cases ("we have sent the details to you"), so it never
@@ -72,8 +72,9 @@ phone width. Copy is in plain English; check it with your adviser before booking
 - `/claim/[token]`: claim a waitlist offer. Confirming and claiming are buttons, never just opening a link, as email
   scanners open links by themselves.
 - `/waitlist`, `/alerts`, `/groups`, `/volunteer`, `/support` (sponsorship requests; payment is phase 3), `/privacy`.
-- Every public form has the Turnstile check and a rate limit. Without `TURNSTILE_SECRET_KEY` the live site refuses
-  every form, so add the Turnstile keys to Vercel before deploying.
+- Every public form has a Vercel BotID check and a rate limit. BotID is invisible: visitors never see a challenge,
+  which matters for people using screen readers or switch access. A page with a form must be listed in
+  `src/instrumentation-client.ts`, or the check fails. Locally, BotID always says "not a bot".
 - Database functions for these pages are in `db/migrations/20261013000000_public_pages.sql`.
 
 ## Setting up
@@ -99,9 +100,10 @@ phone width. Copy is in plain English; check it with your adviser before booking
    so personal data stays in the EU. That address is a trusted domain in Neon Auth; add any new domain
    with `neon neon-auth domain add`. The waitlist job runs every 5 minutes, which needs a Vercel Pro plan (the
    free plan only runs scheduled jobs once a day). Alternatively call the route from Neon's `pg_cron`.
-4. **Cloudflare Turnstile** (free): add a widget for your domain and put the site key and secret key in
-   the environment variables. The booking form must show the widget and pass its token to
-   `createBooking`. Without the secret key, the check is skipped in development and refused on the live site.
+4. **Vercel BotID** (bot check on the public forms): nothing to set up for the free basic check. For the stronger
+   check, turn on Vercel BotID Deep Analysis in the project's Firewall → Rules (Pro plan, $1 per 1,000 checks;
+   one check per form sent). To test on the live site, send a form from a real browser: tools like `curl` are
+   refused, as they should be.
 5. **SendGrid**: authenticate your sending domain (SPF and DKIM) so emails do not land in spam.
 6. **Twilio**: buy a UK number for texts. In Messaging > Settings > Geo permissions, allow the United
    Kingdom only. **Start WhatsApp now**: it needs Meta business

@@ -21,7 +21,7 @@ export default async function Confirm({ params }: { params: Promise<{ token: str
     <div className="content">
       <h1>Are you still coming?</h1>
       <p className="lead">{visitWhen(b.day, b.starts_at)}</p>
-      <ActionForm action={confirmVisit.bind(null, token)} submitLabel="Yes, we are coming" turnstile={false}
+      <ActionForm action={confirmVisit.bind(null, token)} submitLabel="Yes, we are coming"
         secondary={<Link href={`${back}/change`}>We need a different time</Link>}>
         {null}
       </ActionForm>

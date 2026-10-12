@@ -38,6 +38,11 @@ export default function Privacy() {
         which runs this website. Messages are sent through SendGrid (email) and Twilio (texts and WhatsApp), which are
         based in the United States and handle your email address or phone number to deliver them.
       </p>
+      <p>
+        When you send a form, Vercel checks it was sent by a person rather than an automated program (Vercel BotID,
+        with its partner Kasada). This looks at technical details of your browser, not at what you type, and nothing
+        is shown to you.
+      </p>
 
       <h2>How long we keep it</h2>
       <p>

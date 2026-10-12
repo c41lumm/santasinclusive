@@ -36,7 +36,7 @@ export default async function Claim({ params }: { params: Promise<{ token: strin
         <span className="when">{visitWhen(offer.day, offer.starts_at)}</span>
         <span>Held for you until {offer.until} today.</span>
       </div>
-      <ActionForm action={claimOffer.bind(null, token)} submitLabel="Claim this visit" turnstile={false}>
+      <ActionForm action={claimOffer.bind(null, token)} submitLabel="Claim this visit">
         {null}
       </ActionForm>
       <p style={{ marginTop: '1.5rem' }}>Cannot make this time? Do nothing, and we will offer it to the next family.</p>

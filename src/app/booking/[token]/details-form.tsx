@@ -36,7 +36,7 @@ export function DetailsForm({ action, visitors, photoConsent }: {
   const details = { photo_consent: photo, visitors: people.map(toPayload) };
 
   return (
-    <ActionForm action={action} submitLabel="Save" turnstile={false}>
+    <ActionForm action={action} submitLabel="Save">
       <input type="hidden" name="details" value={JSON.stringify(details)} />
       <div id="visitors" tabIndex={-1}>
         {people.map((p, i) => {

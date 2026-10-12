@@ -24,7 +24,7 @@ export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<Form
   if (!season?.booking_open || !(await getDays(season.year)).some((d) => d.day === w.day)) {
     return problem('Please choose a day from the list', 'day');
   }
-  const blocked = await checkPublicForm(fd, 'waitlist');
+  const blocked = await checkPublicForm('waitlist');
   if (blocked) return blocked;
 
   const [row] = await db()`
@@ -41,7 +41,7 @@ export async function signUpForAlert(_prev: FormState, fd: FormData): Promise<Fo
     name: text(fd, 'name'), contact: text(fd, 'contact'), is_group: ticked(fd, 'is_group'), data_consent: ticked(fd, 'data_consent'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
-  const blocked = await checkPublicForm(fd, 'alert');
+  const blocked = await checkPublicForm('alert');
   if (blocked) return blocked;
   const a = parsed.data;
   await asPublic((sql) => [sql`
@@ -57,7 +57,7 @@ export async function sendGroupEnquiry(_prev: FormState, fd: FormData): Promise<
     data_consent: ticked(fd, 'data_consent'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
-  const blocked = await checkPublicForm(fd, 'group');
+  const blocked = await checkPublicForm('group');
   if (blocked) return blocked;
   const g = parsed.data;
   await asPublic((sql) => [sql`
@@ -75,7 +75,7 @@ export async function applyToVolunteer(_prev: FormState, fd: FormData): Promise<
     data_consent: ticked(fd, 'data_consent'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
-  const blocked = await checkPublicForm(fd, 'volunteer');
+  const blocked = await checkPublicForm('volunteer');
   if (blocked) return blocked;
   const v = parsed.data;
   await asPublic((sql) => [sql`
@@ -92,7 +92,7 @@ export async function offerSponsorship(_prev: FormState, fd: FormData): Promise<
     logo_requested: ticked(fd, 'logo_requested'), data_consent: ticked(fd, 'data_consent'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
-  const blocked = await checkPublicForm(fd, 'sponsor');
+  const blocked = await checkPublicForm('sponsor');
   if (blocked) return blocked;
   const s = parsed.data;
   await asPublic((sql) => [sql`

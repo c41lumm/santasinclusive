@@ -30,7 +30,7 @@ export default async function Cancel({ params }: { params: Promise<{ token: stri
         We will offer the time to a family on the waitlist straight away, so you will not be able to get it back. If a
         different day or time would suit you better, you can <Link href={`${back}/change`}>change your time</Link> instead.
       </p>
-      <ActionForm action={cancelBooking.bind(null, token)} submitLabel="Yes, cancel our visit" turnstile={false}
+      <ActionForm action={cancelBooking.bind(null, token)} submitLabel="Yes, cancel our visit"
         secondary={<Link href={back}>No, keep our visit</Link>}>
         {null}
       </ActionForm>
