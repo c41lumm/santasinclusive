@@ -177,7 +177,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
             <div style={{ flex: '1 1 520px', minWidth: 0 }}>
               <h2 id="alerts-h" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)' }}>Be first to know when booking opens</h2>
               <p className="lead" style={{ marginBottom: 22 }}>
-                Times for this year are not out yet. Leave your details and we will message you as soon as the schedule is
+                Times for this year are not out yet. Leave your details and we will email you as soon as the schedule is
                 released, before we announce it anywhere else.
               </p>
               <AlertForm />
