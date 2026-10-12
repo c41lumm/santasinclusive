@@ -60,10 +60,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           </div>
         </div>
         <div className="card stack" style={{ flex: '1 1 380px', borderRadius: 32, padding: 34, gap: 22 }}>
-          <div className="fact"><span className="icon-circle"><Calendar /></span><div>
-            <p className="title">{hours?.every_day ? 'Every day, ' : ''}{dates || 'December'}</p>
-            {times ? <p className="sub">{times}</p> : null}
-          </div></div>
+          {site.showOpeningTimes ? (
+            <div className="fact"><span className="icon-circle"><Calendar /></span><div>
+              <p className="title">{hours?.every_day ? 'Every day, ' : ''}{dates || 'December'}</p>
+              {times ? <p className="sub">{times}</p> : null}
+            </div></div>
+          ) : null}
           <div className="fact"><span className="icon-circle"><Pin /></span><div>
             <p className="title">{site.shortAddress}</p><p className="sub">Leicester LE1 4FY, city centre</p>
           </div></div>
@@ -243,7 +245,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           <Image src="/images/illustration-finding-us.png" alt="" width={126} height={200} className="float-art" style={{ maxHeight: 200 }} />
           <h2>Finding us</h2>
           <p style={{ fontWeight: 700, fontSize: '1.17rem', margin: '0 0 4px' }}>{site.address}</p>
-          <p className="muted" style={{ marginBottom: 24 }}>In Leicester city centre.{times ? ` Open ${times}.` : ''}</p>
+          <p className="muted" style={{ marginBottom: 24 }}>In Leicester city centre.{times && site.showOpeningTimes ? ` Open ${times}.` : ''}</p>
           {site.access.length ? <ul style={{ marginBottom: 28 }}>{site.access.map((a) => <li key={a}>{a}</li>)}</ul> : null}
           <a className="btn" href={site.directions}>Get directions<span className="visually-hidden"> (opens Google Maps)</span></a>
         </div>

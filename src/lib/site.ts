@@ -7,6 +7,8 @@ export const site = {
   name: "Santa's Inclusive Grotto",
   address: '20 Freeschool Lane, Leicester LE1 4FY',
   shortAddress: '20 Freeschool Lane',
+  /** The days and opening hours on the homepage. Off while the times are being decided: set to true to show them again. */
+  showOpeningTimes: false,
   directions: 'https://www.google.com/maps/dir/?api=1&destination=20+Freeschool+Ln+Leicester+LE1+4FY',
   /** Freeschool Lane, Leicester (52.6361, -1.1383) */
   map: {
