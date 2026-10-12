@@ -8,13 +8,15 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:db": "node supabase/tests/booking-engine.mjs"
+    "test:db": "node db/tests/booking-engine.mjs"
   },
   "dependencies": {
+    "@neon/config": "^1.8.6",
+    "@neon/env": "^1.5.3",
+    "@neondatabase/auth": "0.5.0-beta",
+    "@neondatabase/serverless": "1.2.0",
     "@sendgrid/mail": "8.1.6",
-    "@supabase/ssr": "0.12.7",
-    "@supabase/supabase-js": "2.117.3",
-    "next": "15.5.27",
+    "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "0.0.1",

@@ -1,6 +1,6 @@
 'use server';
 import { bookingSchema } from '@/lib/booking-schema';
-import { serviceClient } from '@/lib/supabase/server';
+import { db } from '@/lib/db';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
 import { visitWhen } from '@/lib/dates';
@@ -37,24 +37,29 @@ export async function createBooking(input: unknown, turnstileToken: string): Pro
   if (!(await isHuman(turnstileToken, ip))) return fail('NOT_VERIFIED');
   if (!(await withinLimit(`book:ip:${ip ?? 'unknown'}`, 10, 60 * 60))) return fail('TOO_MANY');
 
-  const db = serviceClient();
-  const { data, error } = await db.rpc('create_booking', { p: b }).single<{ reference: string; manage_token: string; status: string }>();
-  if (error) {
-    if (error.message === 'ALREADY_BOOKED') {
+  const sql = db();
+  let made: { reference: string; manage_token: string; status: string };
+  try {
+    [made] = await sql`select * from create_booking(${JSON.stringify(b)}::jsonb)` as (typeof made)[];
+  } catch (e) {
+    const code = e instanceof Error ? e.message : '';
+    if (code === 'ALREADY_BOOKED') {
       await resendExisting(b.email, b.phone);
       return { ok: true };
     }
-    return fail(error.message in friendly ? error.message : 'ERROR');
+    return fail(code in friendly ? code : 'ERROR');
   }
 
-  const { data: slot } = await db.from('slots').select('day, starts_at').eq('id', b.slot_id).single();
+  // A separate query: the booking is not visible to the statement that created it
+  const [booking] = await sql`
+    select b.id, sl.day::text as day, sl.starts_at::text as starts_at
+    from bookings b join slots sl on sl.id = b.slot_id where b.reference = ${made.reference}` as { id: string; day: string; starts_at: string }[];
   const name = b.visitors.find((v) => v.kind === 'visitor')!.first_name;
-  const { data: booking } = await db.from('bookings').select('id').eq('reference', data.reference).single();
-  const visit = { name, when: visitWhen(slot!.day, slot!.starts_at), token: data.manage_token, reference: data.reference };
+  const visit = { name, when: visitWhen(booking.day, booking.starts_at), token: made.manage_token, reference: made.reference };
   // A booking held for review is not confirmed yet; the admin confirms it after checking
-  const template = data.status === 'pending_review' ? 'pendingReview' : 'confirmation';
+  const template = made.status === 'pending_review' ? 'pendingReview' : 'confirmation';
   await send({ email: b.email, phone: b.phone, channels: b.channels }, templates[template](visit),
-    { booking_id: booking?.id, template });
+    { booking_id: booking.id, template });
 
   return { ok: true };
 }
@@ -63,11 +68,13 @@ export async function createBooking(input: unknown, turnstileToken: string): Pro
 async function resendExisting(email?: string, phone?: string) {
   // At most 3 a day for the same details, so the form cannot be used to send someone repeated messages
   if (!(await withinLimit(`resend:${email ?? ''}:${phone ?? ''}`, 3, 24 * 60 * 60))) return;
-  const db = serviceClient();
-  const { data } = await db.rpc('find_existing_booking', { p_email: email ?? null, p_phone: phone ?? null }).maybeSingle<{
+  const [data] = await db()`
+    select booking_id, manage_token, reference, day::text as day, starts_at::text as starts_at, first_name,
+           email::text as email, phone, channels::text[] as channels
+    from find_existing_booking(${email ?? null}, ${phone ?? null})` as {
     booking_id: string; manage_token: string; reference: string; day: string; starts_at: string; first_name: string;
     email: string | null; phone: string | null; channels: ('email' | 'sms' | 'whatsapp')[];
-  }>();
+  }[];
   if (!data) return;
   await send({ email: data.email, phone: data.phone, channels: data.channels },
     templates.alreadyBooked({ name: data.first_name, when: visitWhen(data.day, data.starts_at), token: data.manage_token, reference: data.reference }),

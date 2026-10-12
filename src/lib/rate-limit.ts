@@ -1,7 +1,7 @@
 import 'server-only';
 import { createHash } from 'node:crypto';
 import { headers } from 'next/headers';
-import { serviceClient } from '@/lib/supabase/server';
+import { db } from '@/lib/db';
 
 /** The visitor's IP address, as Vercel passes it on */
 export async function callerIp() {
@@ -14,7 +14,10 @@ const hashed = (key: string) => createHash('sha256').update(key).digest('hex');
 
 /** Counts one request. True if it is within the limit; false if over it or the check could not run. */
 export async function withinLimit(key: string, max: number, windowSeconds: number) {
-  const { data, error } = await serviceClient()
-    .rpc('rate_limit_ok', { p_key: hashed(key), p_max: max, p_window_seconds: windowSeconds });
-  return !error && data === true;
+  try {
+    const [row] = await db()`select rate_limit_ok(${hashed(key)}, ${max}, ${windowSeconds}) as ok`;
+    return row?.ok === true;
+  } catch {
+    return false;
+  }
 }

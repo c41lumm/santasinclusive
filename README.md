@@ -1,12 +1,12 @@
 # Santa's Inclusive Grotto
 
 Website, booking system, admin and elf app for Santa's Inclusive Grotto, Leicester.
-Stack: Next.js (App Router, TypeScript), Supabase (Postgres, auth, storage), SendGrid for email,
-Twilio for text and WhatsApp, hosted on Vercel.
+Stack: Next.js 16 (App Router, TypeScript), Neon (Postgres and Neon Auth for staff sign-in, Frankfurt
+region), SendGrid for email, Twilio for text and WhatsApp, hosted on Vercel.
 
 ## What is built so far (phase 1: foundations)
 
-**Database and booking engine** (`supabase/migrations/20261012000000_init.sql`)
+**Database and booking engine** (`db/migrations/20261012000000_init.sql`)
 
 - Season settings, opening hours per day, breaks, and bookable times generated from them.
   `regenerate_slots(day)` refuses to remove or block a time a family is booked into.
@@ -35,6 +35,12 @@ Twilio for text and WhatsApp, hosted on Vercel.
 
 **Server code** (`src/`)
 
+- `lib/db.ts`: how the app talks to the database. `db()` is the server's own connection (scheduled jobs,
+  the booking form, messages). `asPublic()` and `asStaff()` run queries in a transaction as the `anon` or
+  `authenticated` role, with the staff member's Neon Auth user id in `request.jwt.claims`, so the row
+  level security and function permissions in the migration apply.
+- `lib/auth/server.ts` and `app/api/auth/[...path]`: staff sign-in with Neon Auth (email and password).
+  Families never sign in. Sign-up is turned off.
 - `app/book/actions.ts`: validates the booking form, checks Turnstile and the rate limit, calls the
   database, and sends the confirmation (or a "we have your request" message if it is held for review).
   If the family already has a visit, it sends the existing link to their own email or phone only. The
@@ -47,22 +53,29 @@ Twilio for text and WhatsApp, hosted on Vercel.
 - `app/api/cron/reminders`: daily, a reminder 5 to 7 days before, a tap-to-confirm 1 to 2 days before,
   and a nudge if the visitor details are missing. A missed run or failed message is caught up next day.
 
-Tested: `npm run test:db` runs the migration on PGlite with Supabase's roles and default grants, and
-checks bookings, the waitlist (including that a held time cannot be booked twice), permissions for the
+Tested: `npm run test:db` runs the migration on PGlite (Postgres in WebAssembly), switching roles the
+way `lib/db.ts` does, and checks bookings, the waitlist (including that a held time cannot be booked twice), permissions for the
 public, signed-in users, elves and Santa, rate limits, stock and the season purge. `npm test` runs the
 slot rule and phone number tests, and `npm run typecheck` is clean.
 
 ## Setting up
 
-1. **Supabase**: create a project in the London region. In the SQL editor run the migration, then
-   `supabase/seed.sql` (or use the Supabase CLI: `supabase db push`). Then run
-   `select regenerate_season(2026);` and set `booking_open` to true in `seasons` when you are ready.
-2. **First admin**: in Authentication > Sign In / Providers, turn off "Allow new users to sign up".
-   Add yourself under Authentication > Users (Add user), then insert yourself into `staff` with role
-   `admin`. Add other staff the same way (or invite them).
-3. **Vercel**: import the repo, add the variables from `.env.example`. The waitlist job runs every
-   5 minutes, which needs a Vercel Pro plan (the free plan only runs scheduled jobs once a day).
-   Alternatively call the route from Supabase `pg_cron`.
+1. **Neon**: the project is "Santas Inclusive Frankfurt" (`orange-surf-93156790`, AWS Frankfurt), linked in
+   `.neon`, with services declared in `neon.ts`. The migration, `db/seed.sql` and
+   `regenerate_season(2026)` have been run on the `main` branch. Set `booking_open` to true in `seasons`
+   when you are ready. Locally, `neon env pull` writes the connection details to `.env.local`; add
+   `NEON_AUTH_COOKIE_SECRET` there yourself (`openssl rand -base64 32`).
+   To try changes safely, `neon checkout <branch-name>` makes an isolated copy of the database.
+2. **Staff sign-in**: sign-up and Google sign-in are turned off in Neon Auth. Create each staff account
+   with `neon neon-auth user create --email <email> --name "<name>"`, then add them to `staff` with
+   their role (`admin`, `lead_elf`, `elf` or `santa`):
+   `insert into staff (user_id, name, role) select id, name, 'admin' from neon_auth."user" where email = '<email>';`
+   Before going live: add your domain (`neon neon-auth domain add https://<your-domain>`), turn off
+   localhost (`neon neon-auth domain allow-localhost disable`), and set a custom email provider for
+   password resets (`neon neon-auth config email-provider update ...`).
+3. **Vercel**: import the repo, add the variables from `.env.example` (Vercel's Neon integration can
+   add the database ones). The waitlist job runs every 5 minutes, which needs a Vercel Pro plan (the
+   free plan only runs scheduled jobs once a day). Alternatively call the route from Neon's `pg_cron`.
 4. **Cloudflare Turnstile** (free): add a widget for your domain and put the site key and secret key in
    the environment variables. The booking form must show the widget and pass its token to
    `createBooking`. Without the secret key, the check is skipped in development and refused on the live site.
@@ -78,8 +91,12 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
   Liquid New Media Limited as the data controller.
 - Complete a short data protection impact assessment, since the system holds health information
   about children and adults.
-- Agree retention: run `purge_season(2026)` in January, and delete family-only photos from Storage
+- Agree retention: run `purge_season(2026)` in January, and delete family-only photo files
   (the purge removes their rows but not the files).
+- Data is hosted in the EU (Frankfurt), which UK GDPR allows without extra safeguards: say "stored in the
+  EU" in the privacy notice and the data protection impact assessment.
+- Photos (phase 4) are planned for Neon file storage (`neon buckets`), in the same Frankfurt project. It
+  is an early-access service, so check it is available to the account before building on it.
 - Check the eligibility, consent and photo wording with your adviser.
 
 ## Next phases

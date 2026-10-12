@@ -1,7 +1,7 @@
 import 'server-only';
 import sgMail from '@sendgrid/mail';
 import twilio from 'twilio';
-import { serviceClient } from '@/lib/supabase/server';
+import { db } from '@/lib/db';
 
 type Channel = 'email' | 'sms' | 'whatsapp';
 type Recipient = { email?: string | null; phone?: string | null; channels: Channel[] };
@@ -18,13 +18,15 @@ export function toE164(phone: string) {
 
 /** Sends on every channel the family chose, and logs each attempt in the messages table. */
 export async function send(to: Recipient, msg: Message, link: Link) {
-  const db = serviceClient();
+  const sql = db();
   const results: { channel: Channel; ok: boolean }[] = [];
   for (const channel of to.channels) {
     const recipient = channel === 'email' ? to.email : to.phone;
     if (!recipient) continue;
-    const { data: row } = await db.from('messages')
-      .insert({ ...link, channel, recipient, body: msg.text, status: 'queued' }).select('id').single();
+    const [row] = await sql`
+      insert into messages (booking_id, waitlist_id, template, channel, recipient, body, status)
+      values (${link.booking_id ?? null}, ${link.waitlist_id ?? null}, ${link.template}, ${channel}, ${recipient}, ${msg.text}, 'queued')
+      returning id`;
     try {
       let providerId: string | undefined;
       if (channel === 'email') {
@@ -39,10 +41,10 @@ export async function send(to: Recipient, msg: Message, link: Link) {
           : { from: process.env.TWILIO_WHATSAPP_FROM!, to: `whatsapp:${toE164(recipient)}`, body: msg.text });
         providerId = res.sid;
       }
-      await db.from('messages').update({ status: 'sent', sent_at: new Date().toISOString(), provider_id: providerId }).eq('id', row?.id);
+      await sql`update messages set status = 'sent', sent_at = now(), provider_id = ${providerId ?? null} where id = ${row.id}`;
       results.push({ channel, ok: true });
     } catch (e) {
-      await db.from('messages').update({ status: 'failed', error: String(e) }).eq('id', row?.id);
+      await sql`update messages set status = 'failed', error = ${String(e)} where id = ${row.id}`;
       results.push({ channel, ok: false });
     }
   }
