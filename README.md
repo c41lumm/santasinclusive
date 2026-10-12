@@ -2,7 +2,7 @@
 
 Website, booking system, admin and elf app for Santa's Inclusive Grotto, Leicester.
 Stack: Next.js 16 (App Router, TypeScript), Neon (Postgres and Neon Auth for staff sign-in, Frankfurt
-region), SendGrid for email, Twilio for texts, hosted on Vercel.
+region), Resend for email, Twilio for texts, hosted on Vercel.
 
 ## What is built so far (phase 1: foundations)
 
@@ -118,7 +118,11 @@ animation, and every page works at phone width.
    check, turn on Vercel BotID Deep Analysis in the project's Firewall → Rules (Pro plan, $1 per 1,000 checks;
    one check per form sent). To test on the live site, send a form from a real browser: tools like `curl` are
    refused, as they should be.
-5. **SendGrid**: authenticate your sending domain (SPF and DKIM) so emails do not land in spam.
+5. **Resend** (email): connect Resend in Vercel (it adds `RESEND_API_KEY`), add and verify your domain in Resend
+   (choose the EU region, then add the DNS records it gives you), and set `EMAIL_FROM` in Vercel to an address on
+   that domain, for example `Santa's Inclusive Grotto <hello@yourdomain.co.uk>`. Replies go to
+   `NEXT_PUBLIC_CONTACT_EMAIL` if set. The free plan covers 3,000 emails a month and 100 a day.
+   Check it locally with `npm run test:email -- you@example.com` (needs the same two values in `.env.local`).
 6. **Twilio** (texts): in Vercel set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` and `TWILIO_SMS_FROM`. The simplest
    sender in the UK is a name such as `SantaGrotto` (up to 11 characters; families cannot reply, and do not need to).
    In Messaging > Settings > Geo permissions, allow the United Kingdom only.
