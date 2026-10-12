@@ -28,6 +28,13 @@ export async function send(to: Recipient, msg: Message, link: Link) {
       insert into messages (booking_id, waitlist_id, template, channel, recipient, body, status)
       values (${link.booking_id ?? null}, ${link.waitlist_id ?? null}, ${link.template}, ${channel}, ${recipient}, ${msg.text}, 'queued')
       returning id`;
+    // While developing locally, messages are logged but not sent, so test bookings never text or email anyone.
+    // Set SEND_IN_DEV=1 in .env.local to send for real.
+    if (process.env.NODE_ENV !== 'production' && process.env.SEND_IN_DEV !== '1') {
+      await sql`update messages set status = 'failed', error = 'Not sent: development (set SEND_IN_DEV=1 to send)' where id = ${row.id}`;
+      results.push({ channel, ok: false });
+      continue;
+    }
     try {
       let providerId: string | undefined;
       if (channel === 'email') {
