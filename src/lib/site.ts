@@ -11,8 +11,8 @@ export const site = {
   instagram: { handle: '@santa_inclusive', url: 'https://www.instagram.com/santa_inclusive/' },
   company: 'Liquid New Media Limited',
 
-  /** Public contact email, also used for group and volunteer questions */
-  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '',
+  /** Public contact email, shown on the site and used for replies to our emails */
+  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'elf@santasinclusivegrotto.co.uk',
   /** For example "Company number 12345678" */
   companyNumber: '',
 

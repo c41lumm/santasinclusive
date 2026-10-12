@@ -87,7 +87,7 @@ animation, and every page works at phone width.
   `src/instrumentation-client.ts`, or the check fails. Locally, BotID always says "not a bot".
 - **Placeholders in the designs** (contact email, company number, access details, group sessions, shift times,
   volunteer checks, price per gift) are set in `src/lib/site.ts`. Anything left empty is not shown. Opening times come
-  from the database. The contact email is `NEXT_PUBLIC_CONTACT_EMAIL`.
+  from the database. The contact email is elf@santasinclusivegrotto.co.uk.
 - Database: `db/migrations/20261013000000_public_pages.sql` and `20261014000000_design_updates.sql` (decline an
   offer and stay on the list, leave the list, volunteer questions, opening hours, calendar times).
 
@@ -120,8 +120,8 @@ animation, and every page works at phone width.
    refused, as they should be.
 5. **Resend** (email): connect Resend in Vercel (it adds `RESEND_API_KEY`), add and verify your domain in Resend
    (choose the EU region, then add the DNS records it gives you), and set `EMAIL_FROM` in Vercel to an address on
-   that domain, for example `Santa's Inclusive Grotto <hello@yourdomain.co.uk>`. Replies go to
-   `NEXT_PUBLIC_CONTACT_EMAIL` if set. The free plan covers 3,000 emails a month and 100 a day.
+   that domain, for example `Santa's Inclusive Grotto <hello@yourdomain.co.uk>`. Replies go to the contact
+   email, elf@santasinclusivegrotto.co.uk (`src/lib/site.ts`). The free plan covers 3,000 emails a month and 100 a day.
    Check it locally with `npm run test:email -- you@example.com` (needs the same two values in `.env.local`).
 6. **Twilio** (texts): in Vercel set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` and `TWILIO_SMS_FROM`. The simplest
    sender in the UK is a name such as `SantaGrotto` (up to 11 characters; families cannot reply, and do not need to).

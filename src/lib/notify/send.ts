@@ -2,6 +2,7 @@ import 'server-only';
 import { Resend } from 'resend';
 import twilio from 'twilio';
 import { db } from '@/lib/db';
+import { site } from '@/lib/site';
 
 type Channel = 'email' | 'sms' | 'whatsapp';
 type Recipient = { email?: string | null; phone?: string | null; channels: Channel[] };
@@ -33,7 +34,7 @@ export async function send(to: Recipient, msg: Message, link: Link) {
         // Resend. The message's own id makes a retry of the same message safe: Resend will not send it twice.
         const { data, error } = await new Resend(process.env.RESEND_API_KEY).emails.send({
           from: process.env.EMAIL_FROM!, to: recipient, subject: msg.subject, text: msg.text,
-          replyTo: process.env.NEXT_PUBLIC_CONTACT_EMAIL || undefined,
+          replyTo: site.contactEmail || undefined,
         }, { idempotencyKey: `message-${row.id}` });
         if (error) throw new Error(`${error.name}: ${error.message}`);
         providerId = data?.id;
