@@ -35,5 +35,5 @@ export const photoChoices = [
 export const channelChoices = [
   { value: 'email', label: 'Email' },
   { value: 'sms', label: 'Text message' },
-  { value: 'whatsapp', label: 'WhatsApp' },
+  // WhatsApp is switched off for now: it needs Meta-approved message templates (see README)
 ] as const;

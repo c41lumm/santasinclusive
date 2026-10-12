@@ -196,7 +196,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
                 ['Choose a day', `Pick any day${dates ? ` from ${dates}` : ''}.`],
                 ['Pick a time', 'See the slots left on that day.'],
                 ['Tell us about your visitor', 'What they love, what to avoid, and how they communicate.'],
-                ['Get reminders your way', 'By email, text or WhatsApp, with directions and a one-tap link to change plans.'],
+                ['Get reminders your way', 'By email or text, with directions and a one-tap link to change plans.'],
               ].map(([t, s], i) => (
                 <li className="fact" key={t}><span className="step-num" aria-hidden="true">{i + 1}</span>
                   <div><p className="title">{t}</p><p className="sub">{s}</p></div></li>

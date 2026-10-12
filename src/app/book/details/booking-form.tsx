@@ -69,7 +69,7 @@ export function BookingForm({ slotId }: { slotId: string }) {
           hint="Choose as many as you like." choices={channelChoices.map((c) => ({ ...c, label: c.value === 'sms' ? 'Text' : c.label }))}
           values={channels} onChange={setChannels} mark={false} />
         <TextField name="email" type="email" label="Email address" autoComplete="email" optional={!channels.includes('email')} />
-        <TextField name="phone" type="tel" label="UK mobile number" hint="For texts and WhatsApp." autoComplete="tel"
+        <TextField name="phone" type="tel" label="UK mobile number" hint="For texts." autoComplete="tel"
           width="medium" optional={channels.every((c) => c === 'email')} />
         <div className="grid-2">
           <TextField name="postcode" label="Postcode" autoComplete="postal-code" optional hint="Only used to make sure every family gets a turn." />

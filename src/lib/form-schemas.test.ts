@@ -8,7 +8,7 @@ describe('alertSchema', () => {
     expect(alertSchema.parse({ ...base, contact: 'Sam@Example.com', channels: ['email'] })).toMatchObject({ contact: 'sam@example.com', channels: ['email'] });
   });
   it('sends a text to a UK mobile, stored as +447', () => {
-    expect(alertSchema.parse({ ...base, contact: '07700 900123', channels: ['sms', 'whatsapp'] })).toMatchObject({ contact: '+447700900123', channels: ['sms', 'whatsapp'] });
+    expect(alertSchema.parse({ ...base, contact: '07700 900123', channels: ['sms'] })).toMatchObject({ contact: '+447700900123', channels: ['sms'] });
   });
   it('refuses anything else, pointing at the contact box', () => {
     const r = alertSchema.safeParse({ ...base, contact: '0116 496 0000', channels: ['sms'] });

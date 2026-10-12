@@ -37,7 +37,7 @@ export default function Privacy() {
       <h2>Where it is kept</h2>
       <p>
         Your details are stored in the European Union (Frankfurt, Germany), with Neon, our database provider, and Vercel,
-        which runs this website. Messages are sent through SendGrid (email) and Twilio (texts and WhatsApp), which are
+        which runs this website. Messages are sent through SendGrid (email) and Twilio (texts), which are
         based in the United States and handle your email address or phone number to deliver them.
       </p>
       <p>

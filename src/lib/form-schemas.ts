@@ -19,7 +19,7 @@ export const waitlistSchema = z.object({
   data_consent: mustTick('Please agree to us holding your details'),
 }).refine((w) => w.email || w.phone, { message: 'Please give an email address or a UK mobile number', path: ['email'] })
   .refine((w) => !w.channels.includes('email') || w.email, { message: 'Please give an email address, or choose text instead', path: ['email'] })
-  .refine((w) => w.channels.every((c) => c === 'email') || w.phone, { message: 'Please give a mobile number for texts or WhatsApp', path: ['phone'] });
+  .refine((w) => w.channels.every((c) => c === 'email') || w.phone, { message: 'Please give a mobile number for texts', path: ['phone'] });
 
 /** One box for "email or mobile", as in the design, then how to send the alert */
 export const alertSchema = z.object({
@@ -36,11 +36,11 @@ export const alertSchema = z.object({
     return z.NEVER;
   }
   if (isEmail && a.channels.some((c) => c !== 'email')) {
-    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave an email address, so we can only email you. Untick Text and WhatsApp, or give a mobile number instead.' });
+    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave an email address, so we can only email you. Untick Text, or give a mobile number instead.' });
     return z.NEVER;
   }
   if (!isEmail && a.channels.includes('email')) {
-    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave a mobile number, so we can text or WhatsApp you. Untick Email, or give an email address instead.' });
+    ctx.addIssue({ code: 'custom', path: ['channels'], message: 'You gave a mobile number, so we can text you. Untick Email, or give an email address instead.' });
     return z.NEVER;
   }
   return { ...a, contact: isEmail ? a.contact.toLowerCase() : phone!.data! };

@@ -15,7 +15,8 @@ export const optionalMobile = z.preprocess(blank, ukMobile.optional());
 export const optionalEmail = z.preprocess(blank, z.string().trim().email('Please check the email address').max(200).optional());
 export const requiredEmail = z.string().trim().min(1, 'Please give an email address').email('Please check the email address').max(200);
 export const mustTick = (message: string) => z.literal(true, { errorMap: () => ({ message }) });
-export const channels = z.array(z.enum(['email', 'sms', 'whatsapp'])).min(1, 'Please choose how we should contact you');
+// Email and text for now. WhatsApp can be added back here once Meta has approved the message templates (see README).
+export const channels = z.array(z.enum(['email', 'sms'])).min(1, 'Please choose how we should contact you');
 
 export const visitorSchema = z.object({
   id: z.string().uuid().optional(),
@@ -56,7 +57,7 @@ export const bookingSchema = z.object({
   visitors,
 }).refine((b) => b.email || b.phone, { message: 'Please give an email address or a UK mobile number', path: ['email'] })
   .refine((b) => !b.channels.includes('email') || b.email, { message: 'Please give an email address, or choose text instead', path: ['email'] })
-  .refine((b) => b.channels.every((c) => c === 'email') || b.phone, { message: 'Please give a mobile number for texts or WhatsApp', path: ['phone'] });
+  .refine((b) => b.channels.every((c) => c === 'email') || b.phone, { message: 'Please give a mobile number for texts', path: ['phone'] });
 
 export type BookingInput = z.infer<typeof bookingSchema>;
 

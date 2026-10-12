@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { ActionForm, Choices, Select, TextField, Tick } from '@/components/form';
 import { joinWaitlist } from '../form-actions';
 
-const tellBy = [{ value: 'sms', label: 'Text' }, { value: 'whatsapp', label: 'WhatsApp' }, { value: 'email', label: 'Email' }];
+const tellBy = [{ value: 'sms', label: 'Text' }, { value: 'email', label: 'Email' }];
 
 export function WaitlistForm({ days, day }: { days: { value: string; label: string }[]; day?: string }) {
-  const [channels, setChannels] = useState<string[]>(['sms', 'whatsapp', 'email']);
+  const [channels, setChannels] = useState<string[]>(['sms', 'email']);
   const [times, setTimes] = useState<string[]>(['any']);
   return (
     <ActionForm action={joinWaitlist} submitLabel="Join the waitlist" block

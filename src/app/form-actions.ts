@@ -51,7 +51,7 @@ export async function signUpForAlert(_prev: FormState, fd: FormData): Promise<Fo
   const a = parsed.data;
   await asPublic((sql) => [sql`
     insert into early_alerts (name, contact, channels, is_group) values (${a.name}, ${a.contact}, ${a.channels}::channel[], ${a.is_group})`]);
-  return { done: a.channels.includes('email') ? 'an email' : a.channels.includes('sms') ? 'a text' : 'a WhatsApp message' };
+  return { done: a.channels.includes('email') ? 'an email' : 'a text' };
 }
 
 export async function sendGroupEnquiry(_prev: FormState, fd: FormData): Promise<FormState> {
