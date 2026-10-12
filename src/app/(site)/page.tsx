@@ -50,7 +50,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
             Every visit is shaped around the person at its heart, and every child leaves with a gift.
           </p>
           <div className="btn-row">
-            <Link className="btn" href="/#book">Book your visit</Link>
+            {open ? <Link className="btn" href="/#book">Book your visit</Link> : <Link className="btn" href="/#alerts">Get an alert when booking opens</Link>}
             <Link className="btn btn-outline" href="/#expect">See what to expect</Link>
           </div>
           <div className="featured">
@@ -186,38 +186,39 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
         </section>
       ) : null}
 
-      <section id="book" className="band-white">
-        <div className="wrap section" style={{ display: 'flex', flexWrap: 'wrap', gap: 56 }}>
-          <div style={{ flex: '1 1 360px', minWidth: 0 }}>
-            <h2>Book your visit</h2>
-            <p className="lead" style={{ marginBottom: 32 }}>It takes about five minutes, and it is free.</p>
-            <ol className="stack" style={{ listStyle: 'none', padding: 0 }}>
-              {[
-                ['Choose a day', `Pick any day${dates ? ` from ${dates}` : ''}.`],
-                ['Pick a time', 'See the slots left on that day.'],
-                ['Tell us about your visitor', 'What they love, what to avoid, and how they communicate.'],
-                ['Get reminders your way', 'By email or text, with directions and a one-tap link to change plans.'],
-              ].map(([t, s], i) => (
-                <li className="fact" key={t}><span className="step-num" aria-hidden="true">{i + 1}</span>
-                  <div><p className="title">{t}</p><p className="sub">{s}</p></div></li>
-              ))}
-            </ol>
-            <Image src="/images/illustration-booking.png" alt="" width={186} height={230} style={{ marginTop: 36, height: 230, width: 'auto' }} />
-          </div>
-          <div className="card" style={{ flex: '1 1 520px', background: 'var(--cream)', borderRadius: 32 }}>
-            {open ? (
-              <>
-                <h3 style={{ fontSize: '1.6rem' }}>December {season!.year}</h3>
-                <p className="muted" style={{ marginBottom: 20 }}>Choose a day to see the times.</p>
-                <DayPicker days={days} selected={chosen?.day} href={(d) => `/?day=${d}#book`} label="Choose a day in December" />
-                {chosen ? (
-                  <div style={{ marginTop: 26 }} id="times">
-                    <h3>Choose a time on {dayName(chosen.day)}</h3>
-                    {chosen.spaces_left ? (
-                      <>
-                        <p className="muted" style={{ marginBottom: 16 }}>Each visit is 15 minutes. Times marked “Break” are not available.</p>
-                        <TimeList slots={slots} href={(s) => `/book/details?slot=${s.slot_id}&day=${chosen.day}`} />
-                      </>
+      {open ? (
+        <section id="book" className="band-white">
+          <div className="wrap section" style={{ display: 'flex', flexWrap: 'wrap', gap: 56 }}>
+            <div style={{ flex: '1 1 360px', minWidth: 0 }}>
+              <h2>Book your visit</h2>
+              <p className="lead" style={{ marginBottom: 32 }}>It takes about five minutes, and it is free.</p>
+              <ol className="stack" style={{ listStyle: 'none', padding: 0 }}>
+                {[
+                  ['Choose a day', `Pick any day${dates ? ` from ${dates}` : ''}.`],
+                  ['Pick a time', 'See the slots left on that day.'],
+                  ['Tell us about your visitor', 'What they love, what to avoid, and how they communicate.'],
+                  ['Get reminders your way', 'By email or text, with directions and a one-tap link to change plans.'],
+                ].map(([t, s], i) => (
+                  <li className="fact" key={t}><span className="step-num" aria-hidden="true">{i + 1}</span>
+                    <div><p className="title">{t}</p><p className="sub">{s}</p></div></li>
+                ))}
+              </ol>
+              <Image src="/images/illustration-booking.png" alt="" width={186} height={230} style={{ marginTop: 36, height: 230, width: 'auto' }} />
+            </div>
+            <div className="card" style={{ flex: '1 1 520px', background: 'var(--cream)', borderRadius: 32 }}>
+              {open ? (
+                <>
+                  <h3 style={{ fontSize: '1.6rem' }}>December {season!.year}</h3>
+                  <p className="muted" style={{ marginBottom: 20 }}>Choose a day to see the times.</p>
+                  <DayPicker days={days} selected={chosen?.day} href={(d) => `/?day=${d}#book`} label="Choose a day in December" />
+                  {chosen ? (
+                    <div style={{ marginTop: 26 }} id="times">
+                      <h3>Choose a time on {dayName(chosen.day)}</h3>
+                      {chosen.spaces_left ? (
+                        <>
+                          <p className="muted" style={{ marginBottom: 16 }}>Each visit is 15 minutes. Times marked “Break” are not available.</p>
+                          <TimeList slots={slots} href={(s) => `/book/details?slot=${s.slot_id}&day=${chosen.day}`} />
+                        </>
                     ) : null}
                   </div>
                 ) : null}
@@ -231,18 +232,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
                   {chosen && !chosen.spaces_left ? <Link className="btn" href={`/waitlist?day=${chosen.day}`}>Join the waitlist</Link> : null}
                 </div>
               </>
-            ) : (
-              <div className="stack" style={{ gap: 16 }}>
-                <h3 style={{ fontSize: '1.6rem' }}>Booking opens soon</h3>
-                <p style={{ margin: 0 }}>
-                  Times for {season?.year ?? 'this year'} are not out yet. Get an alert and we will message you the moment you can book.
-                </p>
-                <div><Link className="btn" href="/#alerts">Get an alert</Link></div>
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       </section>
+      ) : null}
 
       <section id="visit" className="wrap section hero">
         <div style={{ flex: '1 1 400px', minWidth: 0 }}>

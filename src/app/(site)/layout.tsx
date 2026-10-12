@@ -2,9 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
 import { site } from '@/lib/site';
+import { getSeason } from '@/lib/public-data';
 
 /** The public site: header with the logo and menu, and the green footer */
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const bookingOpen = !!(await getSeason())?.booking_open;
   return (
     <>
       <a className="skip-link" href="#main">Skip to main content</a>
@@ -13,7 +15,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           <Link href="/" className="logo">
             <Image src="/images/logo.png" alt="Santa's Inclusive Grotto, home" width={168} height={54} priority />
           </Link>
-          <Nav />
+          <Nav bookingOpen={bookingOpen} />
         </div>
       </header>
       <main id="main" tabIndex={-1}>{children}</main>

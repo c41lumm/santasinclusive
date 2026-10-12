@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getBooking } from '@/lib/public-data';
+import { getBooking, getSeason } from '@/lib/public-data';
 import { visitWhen } from '@/lib/dates';
 import { site } from '@/lib/site';
 import { Bell, Calendar, Check, Clock, Family, Map, Pin } from '@/components/icons';
@@ -123,7 +123,7 @@ export default async function Visit({ params, searchParams }: {
                 <Link href={`${base}/cancel`} style={{ fontWeight: 700, padding: '10px 4px' }}>Cancel my booking</Link>
               </div>
             </section>
-          ) : b.status === 'cancelled' ? (
+          ) : b.status === 'cancelled' && (await getSeason())?.booking_open ? (
             <section className="card"><p>Would another day suit you?</p><Link className="btn" href="/#book">Book a visit</Link></section>
           ) : null}
         </aside>
