@@ -74,6 +74,12 @@ export const templates = {
     text: `Hi ${name}, thank you for helping. Your shifts for ${week}:\n${lines.join('\n')}\n` +
       `If you cannot make one, please let us know as soon as you can.`,
   }),
+  /** To everyone who asked for an early alert, when booking opens */
+  bookingOpen: (name: string) => ({
+    subject: "Booking is open for Santa's Inclusive Grotto",
+    text: `Hi ${name}, booking for Santa's Inclusive Grotto is now open. Choose your day and time here: ${site()}/#book ` +
+      `Visits are free and go quickly.`,
+  }),
   runningLate: () => ({
     subject: 'Santa is running a little late',
     text: 'Santa is running about 10 minutes behind today. There is no need to rush, we will be ready for you.',

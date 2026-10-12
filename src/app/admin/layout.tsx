@@ -6,7 +6,8 @@ import { AdminNav, type NavItem } from './admin-nav';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: { default: 'Grotto admin', template: '%s | Grotto admin' }, robots: { index: false } };
 
-const adminOnly = new Set(['/admin/checks', '/admin/times', '/admin/sponsorship']);
+// Lead elves run the day (bookings, toys, rota); the rest is admin-only, and the database enforces the same
+const adminOnly = new Set(['/admin/checks', '/admin/times', '/admin/waitlist', '/admin/alerts', '/admin/messages', '/admin/volunteers', '/admin/sponsorship']);
 const items: NavItem[] = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/bookings', label: 'Bookings' },
