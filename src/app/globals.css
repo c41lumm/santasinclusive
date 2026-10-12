@@ -90,6 +90,9 @@ main { display: block; }
 .footer-id img { height: 72px; width: 72px; background: #fff; border-radius: 50%; display: block; }
 .footer-links { display: flex; flex-direction: column; gap: 10px; }
 .footer-links .title { font-family: var(--heading); font-weight: 600; font-size: 1.35rem; }
+.site-footer a.footer-staff { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; margin-top: 4px; border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px; text-decoration: none; font-size: 0.95rem; }
+.site-footer a.footer-staff:hover { background: rgba(255, 255, 255, 0.12); border-color: #fff; }
 .footer-links .row { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 1rem; }
 
 /* Buttons: real buttons and links, fully rounded, at least 48px tall */
