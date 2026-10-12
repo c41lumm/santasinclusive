@@ -24,7 +24,9 @@ export async function GET(req: Request) {
            w.offer_expires_at, sl.day::text as day, sl.starts_at::text as starts_at
     from waitlist_entries w
     join slots sl on sl.id = w.offer_slot_id
-    left join messages m on m.waitlist_id = w.id
+    -- Only messages about this offer: an entry also has its "you're on the list" message, and may have had
+    -- earlier offers it declined
+    left join messages m on m.waitlist_id = w.id and m.template = 'waitlistOffer' and m.created_at >= w.offer_starts_at
     where w.status = 'offered' and w.offer_starts_at <= now() and w.offer_expires_at > now()
     group by w.id, sl.id
     having count(m.id) filter (where m.status = 'sent') = 0 and count(m.id) < ${MAX_ATTEMPTS}` as Offer[];

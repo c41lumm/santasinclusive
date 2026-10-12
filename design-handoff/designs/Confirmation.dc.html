@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Booking confirmed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#067E3E}
+a:focus-visible,button:focus-visible{outline:3px solid #1B1B1B;outline-offset:3px}
+</style>
+</helmet>
+<div style="width: 100%; background: #FBF6EE; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 18px; line-height: 1.6;">
+
+<header style="position: sticky; top: 0; z-index: 20; background: rgba(251, 246, 238, 0.97); border-bottom: 1px solid #E7DCC8;">
+<div style="max-width: 1240px; margin: 0 auto; padding: 14px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px;">
+<a href="HomeV2.dc.html" style="display: block;"><img src="../assets/19b4135469dc64b63a2d35a55e398e09.png" alt="Santa's Inclusive Grotto, home" style="height: 54px; width: auto; display: block;"></a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px;">
+<a href="HomeV2.dc.html#expect" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">What to expect</a>
+<a href="HomeV2.dc.html#book" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">Booking</a>
+<a href="HomeV2.dc.html#visit" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">Finding us</a>
+<a href="GroupBookings.dc.html" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">Schools and groups</a>
+<a href="HomeV2.dc.html#help" style="color: #1E2B2A; text-decoration: none; font-weight: 700; padding: 10px 0;">Get involved</a>
+<a href="HomeV2.dc.html#book" style="background: #C8000B; color: #FFFFFF; text-decoration: none; font-weight: 700; padding: 12px 24px; border-radius: 999px;">Book a visit</a>
+</nav>
+</div>
+</header>
+
+<main style="max-width: 1140px; margin: 0 auto; padding: 24px 40px 88px; box-sizing: border-box;">
+
+<section aria-labelledby="done-h" style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px 48px; margin-bottom: 40px;">
+<img src="../assets/d0210f8f5000e38f27b51034d85c109f.png" alt="Santa smiling and waving" style="height: 300px; width: auto; display: block; flex: none;">
+<div style="flex: 1 1 460px; min-width: 0;">
+<p style="margin: 0 0 14px; display: inline-flex; align-items: center; gap: 10px; background: #E6F2E8; color: #067E3E; border-radius: 999px; padding: 8px 18px; font-weight: 700;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#067E3E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> Booking confirmed</p>
+<h1 id="done-h" style="margin: 0 0 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 58px; line-height: 1.05;">You're booked in!</h1>
+<p style="margin: 0 0 8px; font-size: 22px; color: #2E3B39;">Santa can't wait to meet {{ name }}.</p>
+<p style="margin: 0; color: #45524F;">We have sent these details to your email and phone. Your booking reference is <strong style="color: #1E2B2A;">{{ ref }}</strong>.</p>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start;">
+
+<section aria-labelledby="visit-h" style="flex: 1 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 32px; box-sizing: border-box;">
+<h2 id="visit-h" style="margin: 0 0 4px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 28px;">Your visit</h2>
+<div style="display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid #E7DCC8;"><div style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: #E6F2E8; display: flex; align-items: center; justify-content: center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#067E3E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div><div><p style="margin: 0; font-size: 15px; color: #45524F;">Date and time</p><p style="margin: 0; font-weight: 700; font-size: 19px;">{{ when }}</p></div></div>
+<div style="display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid #E7DCC8;"><div style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: #E6F2E8; display: flex; align-items: center; justify-content: center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#067E3E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><p style="margin: 0; font-size: 15px; color: #45524F;">Visit length</p><p style="margin: 0; font-weight: 700; font-size: 19px;">15 minutes with Santa, with no rush</p></div></div>
+<div style="display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid #E7DCC8;"><div style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: #E6F2E8; display: flex; align-items: center; justify-content: center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#067E3E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 1.5 6 5"/></svg></div><div><p style="margin: 0; font-size: 15px; color: #45524F;">Who is coming</p><p style="margin: 0; font-weight: 700; font-size: 19px;">{{ who }}</p></div></div>
+<div style="display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid #E7DCC8;"><div style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: #E6F2E8; display: flex; align-items: center; justify-content: center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#067E3E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></div><div><p style="margin: 0; font-size: 15px; color: #45524F;">Where</p><p style="margin: 0; font-weight: 700; font-size: 19px;">20 Freeschool Lane, Leicester LE1 4FY</p></div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px;">
+<a href="#" style="background: #C8000B; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 18px; padding: 14px 26px; border-radius: 999px; display: inline-flex; align-items: center; gap: 10px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg> Add to calendar</a>
+<a href="https://www.google.com/maps/dir/?api=1&amp;destination=20+Freeschool+Ln+Leicester+LE1+4FY" style="background: #FFFFFF; color: #067E3E; text-decoration: none; font-weight: 700; font-size: 18px; padding: 12px 24px; border-radius: 999px; border: 2px solid #067E3E; display: inline-flex; align-items: center; gap: 10px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#067E3E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg> Get directions</a>
+</div>
+</section>
+
+<aside style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 24px;">
+
+<sc-if value="{{ needsDetails }}" hint-placeholder-val="{{ true }}">
+<section aria-labelledby="todo-h" style="background: #FFF7E6; border: 2px solid #E8B44C; border-radius: 28px; padding: 28px; box-sizing: border-box;">
+<h2 id="todo-h" style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 24px;">One last thing</h2>
+<p style="margin: 0 0 18px;">Tell us about {{ name }} so Santa and the elves can get ready. It takes about five minutes, and you can do it later from the link in your confirmation.</p>
+<a href="ChildForm.dc.html" style="background: #C8000B; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 18px; padding: 14px 26px; border-radius: 999px; display: inline-flex; align-items: center; gap: 10px;">Tell us about {{ name }}</a>
+</section>
+</sc-if>
+<sc-if value="{{ detailsDone }}" hint-placeholder-val="{{ false }}">
+<section aria-labelledby="ready-h" style="background: #E6F2E8; border-radius: 28px; padding: 28px; box-sizing: border-box;">
+<h2 id="ready-h" style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 24px; color: #067E3E;">Santa has your notes</h2>
+<p style="margin: 0;">Thank you for telling us about {{ name }}. You can change anything before your visit using the link in your confirmation.</p>
+</section>
+</sc-if>
+
+<section aria-labelledby="rem-h" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 28px; box-sizing: border-box;">
+<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#067E3E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><h2 id="rem-h" style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 24px;">Your reminders</h2></div>
+<p style="margin: 0;">We will message you a week before and two days before your visit, with directions and a link to change plans.</p>
+</section>
+
+<section aria-labelledby="cant-h" style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 28px; padding: 28px; box-sizing: border-box;">
+<h2 id="cant-h" style="margin: 0 0 8px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 24px;">Plans changed?</h2>
+<p style="margin: 0 0 18px;">That is fine, it happens. Moving or cancelling early lets a family on the waitlist have your time.</p>
+<a href="#" style="background: #FFFFFF; color: #067E3E; text-decoration: none; font-weight: 700; font-size: 18px; padding: 12px 24px; border-radius: 999px; border: 2px solid #067E3E; display: inline-flex; align-items: center; gap: 10px;">Change or cancel my booking</a>
+</section>
+
+</aside>
+</div>
+
+<section aria-labelledby="day-h" style="margin-top: 40px; background: #067E3E; color: #FFFFFF; border-radius: 32px; padding: 40px; box-sizing: border-box;">
+<h2 id="day-h" style="margin: 0 0 20px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 30px;">On the day</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+<div><p style="margin: 0 0 4px; font-weight: 700; font-size: 19px;">Arrive when you can</p><p style="margin: 0;">There is no queue behind you, so a few minutes late is fine.</p></div>
+<div><p style="margin: 0 0 4px; font-weight: 700; font-size: 19px;">Take breaks</p><p style="margin: 0;">Step out at any point and come back when you are ready.</p></div>
+<div><p style="margin: 0 0 4px; font-weight: 700; font-size: 19px;">Bring what helps</p><p style="margin: 0;">Ear defenders, a favourite toy or a snack are all welcome.</p></div>
+</div>
+</section>
+
+</main>
+<footer style="background: #0B3B21; color: #FFFFFF;"><div style="max-width: 1240px; margin: 0 auto; padding: 48px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px;"><div style="display: flex; align-items: center; gap: 18px;"><img src="../assets/5bd6ecbb5b65c4cf14ce3c97d67c2d8a.png" alt="" style="height: 72px; width: auto; display: block; background: #FFFFFF; border-radius: 50%;"><div><p style="margin: 0; font-weight: 700;">Santa's Inclusive Grotto</p><p style="margin: 0; font-size: 16px;">20 Freeschool Lane, Leicester LE1 4FY</p><p style="margin: 0; font-size: 15px;">Run by Liquid New Media Limited. [ADD COMPANY NUMBER]</p></div></div><div style="display: flex; flex-direction: column; gap: 10px;">
+<p style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Stay in touch</p>
+<a href="https://www.instagram.com/santa_inclusive/" style="color: #FFFFFF; font-weight: 700; font-size: 18px; padding: 4px 0;">Follow us on Instagram @santa_inclusive</a>
+<p style="margin: 0; font-size: 16px;">[CONTACT EMAIL] <span aria-hidden="true">·</span> Privacy <span aria-hidden="true">·</span> Accessibility statement</p>
+</div></div></footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"detailsDone":{"editor":"boolean","default":false,"label":"Visitor details completed","section":"Preview"},"$preview":{"width":1360,"height":2000}}'>
+class Component extends DCLogic {
+renderVals() {
+const done = !!this.props.detailsDone;
+return {
+name: 'Sam',
+ref: 'SIG-4821',
+when: 'Saturday 12 December at 10:20',
+who: 'Sam, with 2 family members',
+needsDetails: !done,
+detailsDone: done,
+};
+}
+}
+</script>
+</body>
+</html>

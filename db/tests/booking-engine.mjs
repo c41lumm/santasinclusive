@@ -2,14 +2,16 @@ import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { citext } from '@electric-sql/pglite/contrib/citext';
 import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 
 // Runs the migration on PGlite (Postgres in WebAssembly), then checks
 // bookings, the waitlist, permissions and the season purge. Requests switch role the way src/lib/db.ts does. Usage: npm run test:db
 const root = process.argv[2] ?? new URL('../..', import.meta.url).pathname;
 const db = new PGlite({ extensions: { pgcrypto, citext, pg_trgm } });
 
-await db.exec(readFileSync(`${root}/db/migrations/20261012000000_init.sql`, 'utf8'));
+for (const f of readdirSync(`${root}/db/migrations`).filter((f) => f.endsWith('.sql')).sort()) {
+  await db.exec(readFileSync(`${root}/db/migrations/${f}`, 'utf8'));
+}
 await db.exec(readFileSync(`${root}/db/seed.sql`, 'utf8'));
 
 let pass = 0, failN = 0;
@@ -161,6 +163,101 @@ await q(`select check_in_delivery((select id from stock_orders), 1)`);
 await q(`select give_gift((select id from gifts), null)`);
 e = await err(`select give_gift((select id from gifts), null)`);
 ok('stock cannot go below zero', e === 'OUT_OF_STOCK', e);
+
+// Phase 2: public pages
+await as('editor');
+const [p1000, p1100, p1240] = [await slot('2026-12-15', '10:00'), await slot('2026-12-15', '11:00'), await slot('2026-12-15', '12:40')];
+await as('anon');
+const season = (await q(`select * from current_season()`))[0];
+ok('current season is 2026', season?.year === 2026 && season.booking_open === true);
+const days = await q(`select * from available_days(2026)`);
+const december = days.filter((d) => new Date(d.day).getUTCMonth() === 11);
+ok('24 December days in the date picker', december.length === 24, String(december.length));
+ok('a day shows its free places', days.find((d) => new Date(d.day).toISOString().startsWith('2026-12-14'))?.spaces_left === 16);
+await as('server');
+const pb = (await q(`select * from create_booking($1::jsonb)`, [JSON.stringify({ slot_id: p1000,
+  eligibility_confirmed: true, data_consent: true, contact_name: 'Pat', email: 'pat@example.com', channels: ['email'],
+  photo_consent: 'share', visitors: [{ kind: 'visitor', first_name: 'Ada', medical: 'Epilepsy' }, { kind: 'sibling', first_name: 'Bo' }] })]))[0];
+await as('anon');
+let page = (await q(`select get_booking($1) as b`, [pb.manage_token]))[0].b;
+ok('booking page shows the booking', page?.reference === pb.reference && page.visitors.length === 2 && page.starts_at === '10:00');
+ok('booking page shows the health details the family gave', page.visitors.find((v) => v.first_name === 'Ada')?.medical === 'Epilepsy');
+ok('booking page has no contact details', !JSON.stringify(page).includes('pat@example.com'));
+ok('a wrong link shows nothing', (await q(`select get_booking(gen_random_uuid()) as b`))[0].b === null);
+const ada = page.visitors.find((v) => v.first_name === 'Ada');
+await as('editor');
+await db.query(`update visitors set santa_hello = 'Hello Ada, I hear you love trains' where id = $1`, [ada.id]);
+await as('anon');
+await q(`select update_booking_details($1, $2::jsonb)`, [pb.manage_token, JSON.stringify({ photo_consent: 'none', visitors: [
+  { id: ada.id, kind: 'visitor', first_name: 'Ada', loves: 'Trains', dislikes: 'Loud bangs', sensory: ['Sensitive to noise'] },
+  { kind: 'sibling', first_name: 'Cy', age: 4 }] })]);
+page = (await q(`select get_booking($1) as b`, [pb.manage_token]))[0].b;
+ok('details saved, sibling swapped', page.visitors.map((v) => v.first_name).sort().join() === 'Ada,Cy' && page.details_complete === true);
+ok('clearing health details removes them', page.visitors.find((v) => v.first_name === 'Ada').medical === null);
+await as('editor');
+ok('the lead elf\'s hello is kept', (await q(`select santa_hello from visitors where id = $1`, [ada.id]))[0].santa_hello?.startsWith('Hello Ada'));
+ok('photo consent updated', (await q(`select distinct photo_consent from visitors v join bookings b on b.id = v.booking_id where b.reference = $1`, [pb.reference]))[0].photo_consent === 'none');
+await as('anon');
+e = await err(`select update_booking_details($1, $2::jsonb)`, [pb.manage_token, JSON.stringify({ visitors: [{ id: ada.id, kind: 'sibling', first_name: 'Ada' }] })]);
+ok('a booking must keep someone visiting Santa', e === 'VISITOR_REQUIRED', e);
+e = await err(`select update_booking_details($1, $2::jsonb)`, [pb.manage_token, JSON.stringify({ visitors: [{ id: crypto.randomUUID(), kind: 'visitor', first_name: 'X' }] })]);
+ok('cannot edit someone else\'s visitor', e === 'NOT_FOUND', e);
+// Move: the old time goes to the waitlist
+await as('editor');
+await db.exec(`insert into waitlist_entries (day,contact_name,phone,eligibility_confirmed,data_consent) values ('2026-12-15','Next Family','07700900888',true,true)`);
+await as('anon');
+await q(`select move_booking($1, $2)`, [pb.manage_token, p1100]);
+page = (await q(`select get_booking($1) as b`, [pb.manage_token]))[0].b;
+ok('booking moved to the new time', page.starts_at === '11:00');
+await as('editor');
+ok('old time offered to the waitlist', (await q(`select status from waitlist_entries where contact_name = 'Next Family'`))[0].status === 'offered');
+await as('anon');
+e = await err(`select move_booking($1, $2)`, [pb.manage_token, p1000]);
+ok('cannot move to a time held for the waitlist', e === 'SLOT_FULL', e);
+e = await err(`select move_booking($1, $2)`, [pb.manage_token, p1240]);
+ok('cannot move to a break', e === 'SLOT_UNAVAILABLE', e);
+
+// Design updates: decline an offer but stay on the list, leave the list, opening hours
+await as('editor');
+const [d1000, d1020] = [await slot('2026-12-16', '10:00'), await slot('2026-12-16', '10:20')];
+await as('server');
+const declBooking = (await q(`select * from create_booking($1::jsonb)`, [booking(d1000, 'decl@example.com', null)]))[0];
+await as('editor');
+await db.exec(`insert into waitlist_entries (day,contact_name,phone,eligibility_confirmed,data_consent) values
+  ('2026-12-16','First Family','07700900101',true,true), ('2026-12-16','Second Family','07700900102',true,true)`);
+const wl = async (name) => (await q(`select * from waitlist_entries where contact_name = $1`, [name]))[0];
+await as('anon');
+await q(`select cancel_booking($1)`, [declBooking.manage_token]);
+await as('editor');
+const first = await wl('First Family');
+ok('first family is offered the time', first.status === 'offered');
+await as('anon');
+await q(`select decline_waitlist_offer($1)`, [first.offer_token]);
+await as('editor');
+ok('declining keeps them on the list', (await wl('First Family')).status === 'waiting');
+ok('declined time goes to the next family', (await wl('Second Family')).status === 'offered');
+await as('anon');
+e = await err(`select decline_waitlist_offer($1)`, [first.offer_token]);
+ok('an old offer link cannot be declined twice', e === 'OFFER_EXPIRED', e);
+// Another time opens: the first family is offered it, as they kept their place
+await as('server');
+const other = (await q(`select * from create_booking($1::jsonb)`, [booking(d1020, 'other@example.com', null)]))[0];
+await as('anon');
+await q(`select cancel_booking($1)`, [other.manage_token]);
+await as('editor');
+ok('they keep their place for other times', (await wl('First Family')).status === 'offered');
+// Leaving the list while holding an offer passes it on
+const firstNow = await wl('First Family');
+await as('anon');
+ok('leave page shows the day', (await q(`select day::text as day from get_waitlist_entry($1)`, [firstNow.manage_token]))[0]?.day === '2026-12-16');
+await q(`select leave_waitlist($1)`, [firstNow.manage_token]);
+await as('editor');
+ok('leaving removes them', (await wl('First Family')).status === 'removed');
+await as('anon');
+const hours = (await q(`select * from season_hours(2026)`))[0];
+ok('opening hours for the homepage', hours.opens_at === '10:00' && hours.closes_at === '16:00', JSON.stringify(hours));
+e = await err(`select offer_next_waitlist(gen_random_uuid())`);
+ok('the public still cannot make offers', e?.includes('permission denied'), e);
 
 // Messages exist before purge, so the purge has something to remove
 await as('editor');

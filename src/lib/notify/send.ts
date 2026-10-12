@@ -1,7 +1,8 @@
 import 'server-only';
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 import twilio from 'twilio';
 import { db } from '@/lib/db';
+import { site } from '@/lib/site';
 
 type Channel = 'email' | 'sms' | 'whatsapp';
 type Recipient = { email?: string | null; phone?: string | null; channels: Channel[] };
@@ -30,9 +31,13 @@ export async function send(to: Recipient, msg: Message, link: Link) {
     try {
       let providerId: string | undefined;
       if (channel === 'email') {
-        sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
-        const [res] = await sgMail.send({ to: recipient, from: process.env.EMAIL_FROM!, subject: msg.subject, text: msg.text });
-        providerId = res.headers['x-message-id'] as string | undefined;
+        // Resend. The message's own id makes a retry of the same message safe: Resend will not send it twice.
+        const { data, error } = await new Resend(process.env.RESEND_API_KEY).emails.send({
+          from: process.env.EMAIL_FROM!, to: recipient, subject: msg.subject, text: msg.text,
+          replyTo: site.contactEmail || undefined,
+        }, { idempotencyKey: `message-${row.id}` });
+        if (error) throw new Error(`${error.name}: ${error.message}`);
+        providerId = data?.id;
       } else {
         const client = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
         // WhatsApp messages that start a conversation must use a template approved by Meta (see README)

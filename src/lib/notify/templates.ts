@@ -9,7 +9,7 @@ export const templates = {
   confirmation: (v: Visit) => ({
     subject: `You're booked in to see Santa, ${v.when}`,
     text: `You're booked in! Santa can't wait to meet ${v.name} on ${v.when}. Your reference is ${v.reference}. ` +
-      `Change or cancel any time: ${manage(v.token)}`,
+      `Tell Santa about ${v.name}, or change or cancel, here: ${manage(v.token)}`,
   }),
   // Held for an admin to check (flagged contact). Worded so it does not say why.
   pendingReview: (v: Visit) => ({
@@ -35,6 +35,27 @@ export const templates = {
     subject: 'Your existing visit to Santa',
     text: `You already have a visit booked for ${v.when}. We offer one visit per family so everyone gets a turn, ` +
       `and brothers and sisters can all come to the same visit. Change it here: ${manage(v.token)}`,
+  }),
+  moved: (v: Visit) => ({
+    subject: `Your visit has moved to ${v.when}`,
+    text: `Your visit to Santa is now on ${v.when}. Your reference is still ${v.reference}. ` +
+      `Change or cancel: ${manage(v.token)}`,
+  }),
+  cancelled: (v: Visit) => ({
+    subject: 'Your visit to Santa is cancelled',
+    text: `We have cancelled your visit on ${v.when} (reference ${v.reference}) and offered the time to another family. ` +
+      `Thank you for letting us know.`,
+  }),
+  // A family that claimed a waitlist offer has not told us who is coming yet
+  claimed: (v: Visit) => ({
+    subject: `You're booked in to see Santa, ${v.when}`,
+    text: `You're booked in to see Santa on ${v.when}. Your reference is ${v.reference}. ` +
+      `Please tell us who is coming and a little about them: ${manage(v.token)}`,
+  }),
+  waitlistJoined: (day: string, leaveToken: string) => ({
+    subject: `You're on the waitlist for ${day}`,
+    text: `You're on the waitlist for ${day}. If a visit opens up, we will message you straight away and hold it ` +
+      `for you for a while, so you have time to claim it. To leave the list: ${site()}/waitlist/leave/${leaveToken}`,
   }),
   waitlistOffer: (when: string, claimToken: string, until: string) => ({
     subject: 'A visit to Santa has opened up',

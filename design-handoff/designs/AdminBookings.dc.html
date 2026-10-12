@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin: bookings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a:focus-visible,button:focus-visible{outline:3px solid #1B1B1B;outline-offset:2px}
+.rowbtn:hover{background:#F7F3EA}
+</style>
+</helmet>
+<div style="width: 1360px; height: 1500px; box-sizing: border-box; background: #F4F1EA; color: #1E2B2A; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 16px; line-height: 1.45; display: flex;">
+
+<aside style="flex: none; width: 230px; background: #0B3B21; color: #FFFFFF; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px;">
+<p style="margin: 0 0 4px 16px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Grotto admin</p>
+<p style="margin: 0 0 20px 16px; font-size: 14px; color: #BFD6C7;">Santa's Inclusive Grotto</p>
+<nav aria-label="Admin" style="display: flex; flex-direction: column; gap: 2px;"><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Dashboard</a><a href="#" aria-current="page" style="display: block; padding: 11px 16px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-weight: 700; text-decoration: none;">Bookings</a><a href="AdminChecks.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Checks</a><a href="AdminSlots.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Visit times</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Waitlist</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Early alerts</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Messages</a><a href="AdminToys.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Toy stock</a><a href="AdminRota.dc.html" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Staff rota</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Volunteers</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Sponsorship</a><a href="#" style="display: block; padding: 11px 16px; border-radius: 12px; color: #DDEBE1; text-decoration: none;">Press releases</a></nav>
+</aside>
+
+<main style="flex: 1; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 34px;">Bookings</h1>
+<p style="margin: 0; color: #45524F;">{{ dayLong }}</p>
+</div>
+<div style="display: flex; gap: 10px;">
+<button type="button" onClick="{{ openBulk }}" style="min-height: 46px; padding: 0 20px; border-radius: 999px; border: 2px solid #067E3E; background: #FFFFFF; color: #067E3E; font: inherit; font-weight: 700; cursor: pointer;">Message everyone this day</button>
+<button type="button" style="min-height: 46px; padding: 0 20px; border-radius: 999px; border: 0; background: #C8000B; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">Add booking</button>
+</div>
+</div>
+
+<div role="group" aria-label="Choose a day" style="display: flex; gap: 6px; flex-wrap: wrap;">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="24">
+<button type="button" onClick="{{ d.pick }}" aria-pressed="{{ d.pressed }}" aria-label="{{ d.aria }}" style="{{ d.style }}"><span style="display: block; font-size: 11px; font-weight: 700;">{{ d.wd }}</span><span style="display: block; font-weight: 700; font-size: 17px;">{{ d.n }}</span></button>
+</sc-for>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 14px;">
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+<div style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 18px; padding: 16px 18px;"><p style="margin: 0; font-size: 14px; color: #45524F;">{{ s.label }}</p><p style="margin: 0; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 30px; color: {{ s.color }};">{{ s.value }}</p></div>
+</sc-for>
+</div>
+
+<div style="display: flex; gap: 20px; align-items: flex-start; flex: 1; min-height: 0;">
+
+<section aria-label="Bookings for the day" style="flex: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; overflow: hidden;">
+<div style="display: flex; gap: 8px; padding: 14px 18px; border-bottom: 1px solid #E7DCC8;" role="group" aria-label="Filter">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+<button type="button" onClick="{{ f.pick }}" aria-pressed="{{ f.pressed }}" style="{{ f.style }}">{{ f.label }}</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 70px minmax(0,1.4fr) 84px minmax(0,1.1fr) minmax(0,1.6fr) 104px 128px; gap: 12px; align-items: center; padding: 10px 18px; font-size: 13px; font-weight: 700; color: #45524F; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #E7DCC8;">
+<span>Time</span><span>Visitor</span><span>Type</span><span>Party</span><span>Needs</span><span>Details</span><span>Status</span>
+</div>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="18">
+<sc-if value="{{ r.isBooking }}" hint-placeholder-val="{{ true }}">
+<button type="button" class="rowbtn" onClick="{{ r.pick }}" aria-pressed="{{ r.pressed }}" style="display: grid; grid-template-columns: 70px minmax(0,1.4fr) 84px minmax(0,1.1fr) minmax(0,1.6fr) 104px 128px; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 10px 18px; border: 0; border-bottom: 1px solid #F0EADF; font: inherit; color: #1E2B2A; cursor: pointer; {{ r.bg }}">
+<span style="font-weight: 700;">{{ r.t }}</span>
+<span style="font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.name }}</span>
+<span style="font-size: 14px;">{{ r.type }}</span>
+<span style="font-size: 14px; color: #45524F;">{{ r.party }}</span>
+<span style="font-size: 14px; color: #45524F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.needsText }}</span>
+<span style="font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; justify-self: start; {{ r.detStyle }}">{{ r.detText }}</span>
+<span style="font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; justify-self: start; {{ r.confStyle }}">{{ r.conf }}</span>
+</button>
+</sc-if>
+<sc-if value="{{ r.isOther }}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: 70px minmax(0,1.4fr) 84px minmax(0,1.1fr) minmax(0,1.6fr) 104px 128px; gap: 12px; align-items: center; padding: 12px 18px; border-bottom: 1px solid #F0EADF; color: #45524F; {{ r.bg }}"><span style="font-weight: 700;">{{ r.t }}</span><span style="font-style: italic;">{{ r.name }}</span></div>
+</sc-if>
+</sc-for>
+</section>
+
+<aside aria-label="Booking details" style="flex: none; width: 380px; display: flex; flex-direction: column; gap: 16px;">
+<sc-if value="{{ noSel }}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border: 1px dashed #C9BFAE; border-radius: 20px; padding: 28px; text-align: center; color: #45524F;">Select a booking to see the visitor's details and send a message.</div>
+</sc-if>
+<sc-if value="{{ hasSel }}" hint-placeholder-val="{{ true }}">
+<section style="background: #FFFFFF; border: 1px solid #E7DCC8; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<p style="margin: 0; font-size: 14px; color: #45524F;">{{ sel.t }} · {{ sel.type }}</p>
+<h2 style="margin: 0 0 4px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 700; font-size: 26px;">{{ sel.name }}</h2>
+<p style="margin: 0 0 14px; color: #45524F;">{{ sel.party }}</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;">
+<sc-for list="{{ sel.needs }}" as="n" hint-placeholder-count="2"><span style="background: #E6F2E8; color: #067E3E; font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 999px;">{{ n.label }}</span></sc-for>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: 96px 1fr; gap: 8px 12px; font-size: 15px;">
+<dt style="color: #45524F;">Loves</dt><dd style="margin: 0;">{{ sel.loves }}</dd>
+<dt style="color: #45524F;">Avoid</dt><dd style="margin: 0;">{{ sel.avoid }}</dd>
+<dt style="color: #45524F;">Talks by</dt><dd style="margin: 0;">{{ sel.comm }}</dd>
+<dt style="color: #45524F;">Meets Santa</dt><dd style="margin: 0;">{{ sel.meet }}</dd>
+<dt style="color: #45524F;">Gift</dt><dd style="margin: 0;">{{ sel.gift }}</dd>
+<dt style="color: #45524F;">Contact</dt><dd style="margin: 0;">{{ sel.phone }}<br>{{ sel.email }}<br><span style="color: #45524F;">Prefers {{ sel.prefers }}</span></dd>
+</dl>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px;">
+<button type="button" onClick="{{ openOne }}" style="grid-column: 1 / -1; min-height: 44px; border-radius: 999px; border: 0; background: #067E3E; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">Send a message</button>
+<button type="button" style="min-height: 44px; border-radius: 999px; border: 2px solid #E7DCC8; background: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">Move</button>
+<button type="button" style="min-height: 44px; border-radius: 999px; border: 2px solid #E7DCC8; background: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">Mark arrived</button>
+<button type="button" style="grid-column: 1 / -1; min-height: 44px; border-radius: 999px; border: 2px solid #F2C7C9; background: #FFFFFF; color: #C8000B; font: inherit; font-weight: 700; cursor: pointer;">Cancel and offer to waitlist</button>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ composer }}" hint-placeholder-val="{{ false }}">
+<section aria-label="Send a message" style="background: #FFFFFF; border: 2px solid #067E3E; border-radius: 20px; padding: 22px; box-sizing: border-box;">
+<h2 style="margin: 0 0 4px; font-family: 'Fredoka', 'Atkinson Hyperlegible', system-ui, sans-serif; font-weight: 600; font-size: 22px;">Message</h2>
+<p style="margin: 0 0 14px; color: #45524F; font-size: 15px;">To: {{ toText }}</p>
+<p style="margin: 0 0 6px; font-weight: 700; font-size: 15px;">Send by</p>
+<div style="display: flex; gap: 8px; margin-bottom: 14px;">
+<sc-for list="{{ channels }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.toggle }}" aria-pressed="{{ c.pressed }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+</div>
+<p style="margin: 0 0 6px; font-weight: 700; font-size: 15px;">Template</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;">
+<sc-for list="{{ templates }}" as="tp" hint-placeholder-count="4"><button type="button" onClick="{{ tp.pick }}" aria-pressed="{{ tp.pressed }}" style="{{ tp.style }}">{{ tp.label }}</button></sc-for>
+</div>
+<div style="background: #F7F3EA; border-radius: 14px; padding: 14px 16px; font-size: 15px; margin-bottom: 14px;">{{ preview }}</div>
+<sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ send }}" style="width: 100%; min-height: 46px; border-radius: 999px; border: 0; background: #C8000B; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">{{ sendLabel }}</button></sc-if>
+<sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}"><p role="status" style="margin: 0; padding: 12px 14px; border-radius: 14px; background: #E6F2E8; color: #067E3E; font-weight: 700;">{{ sentText }}</p></sc-if>
+</section>
+</sc-if>
+</aside>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1500}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { day: 12, sel: '10:00', filter: 'all', composer: false, bulk: false, ch: { email: true, text: true, whatsapp: false }, tpl: 'reminder', sent: false };
+}
+renderVals() {
+const st = this.state;
+const G = '#067E3E', R = '#C8000B', LINE = '#E7DCC8', INK = '#1E2B2A';
+const long = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const short = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const B = [
+['10:00','Sam K.','Family','Sam + 2 family',['Noise sensitive','Prefers no touch'],'Trains and Bluey','Sudden loud noises','A few words','Beside Santa','Wooden train set',true,'Confirmed','07700 900123','k.family@example.com','text'],
+['10:20','Ava R.','Family','Ava + 3 family',['Wheelchair user'],'Unicorns and singing','Bright flashing lights','Speaks in sentences','On Santa\'s lap','Unicorn plush',true,'Awaiting reply','07700 900456','r.family@example.com','WhatsApp'],
+['10:40','Riverside School','Group','8 pupils, 4 staff',['Mixed needs','Very quiet visit'],'Forms for 6 of 8 pupils received','Crowds and queues','Varies, see pupil forms','Varies','8 gifts, see pupil forms',false,'Confirmed','0116 496 0001','office@riverside.example.org','email'],
+['11:00','Oliver P.','Family','Oliver + 1 family',['Uses a communication device'],'Not given yet','Not given yet','Communication device','Not given yet','Not chosen yet',false,'No reply','07700 900789','p.family@example.com','text'],
+['11:20',null],
+['11:40','Grace W.','Family','Grace (adult visitor) + 2',['Sensory sensitive'],'Christmas films, knitting','Being rushed','Speaks in sentences','Beside Santa','Knitting kit',true,'Confirmed','07700 900234','w.family@example.com','email'],
+['12:00','Noah T.','Family','Noah + 2 family',['Ear defenders'],'Dinosaurs','Hand dryers, alarms','A few words','Wave from a distance','Dinosaur book',true,'Confirmed','07700 900345','t.family@example.com','WhatsApp'],
+['12:20','Mia L.','Family','Mia + 4 family',['Needs to move around'],'Bubbles and dancing','Waiting','Signs (Makaton)','See how she feels','Bubble machine',true,'Awaiting reply','07700 900567','l.family@example.com','text'],
+['12:40','break'],['13:00','break'],
+['13:20','Leo H.','Family','Leo + 2 family',['Prefers no touch'],'Space and rockets','Strangers touching him','Speaks in sentences','Beside Santa','Rocket kit',true,'Confirmed','07700 900678','h.family@example.com','email'],
+['13:40',null],
+['14:00','Brookfield Day Centre','Group','6 adults, 4 carers',['Wheelchair users','Mixed needs'],'Forms for 6 of 6 received','Loud music','Varies, see forms','Varies','6 gifts chosen',true,'Confirmed','0116 496 0002','team@brookfield.example.org','email'],
+['14:20','Isla M.','Family','Isla + 1 family',['Visual impairment'],'Music boxes','Sudden noises','Speaks in sentences','On Santa\'s lap','Music box',true,'Confirmed','07700 900890','m.family@example.com','text'],
+['14:40','Ethan S.','Family','Ethan + 3 family',['Noise sensitive'],'Lego','Crowded rooms','A few words','Beside Santa','Lego set',false,'No reply','07700 900901','s.family@example.com','WhatsApp'],
+['15:00','Freya D.','Family','Freya + 2 family',['Tube fed, no food treats'],'Peppa Pig','Food smells','Sounds and gestures','See how she feels','Peppa Pig playset',true,'Confirmed','07700 900912','d.family@example.com','text'],
+['15:20',null],
+['15:40','Jack B.','Family','Jack + 2 family',['Autistic, needs routine'],'Trains timetables','Changes to plans','Speaks in sentences','Beside Santa','Train book',true,'Awaiting reply','07700 900934','b.family@example.com','email'],
+];
+const day = st.day;
+const wd = new Date(2026, 11, day).getDay();
+const dayLong = long[wd] + ' ' + day + ' December 2026';
+const pill = (bg, fg) => 'background: ' + bg + '; color: ' + fg + ';';
+const rows = [];
+let booked = 0, free = 0, brk = 0, missing = 0, unconf = 0;
+B.forEach((b) => {
+if (b[1] === null) { free++; if (st.filter === 'all') rows.push({ t: b[0], name: 'Available', isBooking: false, isOther: true, bg: '' }); return; }
+if (b[1] === 'break') { brk++; if (st.filter === 'all') rows.push({ t: b[0], name: 'Break', isBooking: false, isOther: true, bg: 'background: #FBF3F3;' }); return; }
+booked++; if (!b[10]) missing++; if (b[11] !== 'Confirmed') unconf++;
+if (st.filter === 'family' && b[2] !== 'Family') return;
+if (st.filter === 'group' && b[2] !== 'Group') return;
+const isSel = st.sel === b[0];
+rows.push({
+t: b[0], name: b[1], type: b[2], party: b[3], needsText: b[4].join(', '),
+detText: b[10] ? 'Complete' : 'Missing', detStyle: b[10] ? pill('#E6F2E8', G) : pill('#FFF1D6', '#8A5A00'),
+conf: b[11], confStyle: b[11] === 'Confirmed' ? pill('#E6F2E8', G) : (b[11] === 'No reply' ? pill('#FDECEC', R) : pill('#EEF0F3', '#3D4A5C')),
+isBooking: true, isOther: false, pressed: isSel ? 'true' : 'false', bg: isSel ? 'background: #EEF7F1;' : 'background: #FFFFFF;',
+pick: () => this.setState({ sel: b[0], composer: false, bulk: false, sent: false }),
+});
+});
+const sb = B.find((b) => b[0] === st.sel && b[1] && b[1] !== 'break');
+const sel = sb ? { t: sb[0], name: sb[1], type: sb[2], party: sb[3], needs: sb[4].map((l) => ({ label: l })), loves: sb[5], avoid: sb[6], comm: sb[7], meet: sb[8], gift: sb[9], phone: sb[12], email: sb[13], prefers: sb[14] } : null;
+const days = [];
+for (let n = 1; n <= 24; n++) {
+const s = n === day;
+days.push({ n: String(n), wd: short[new Date(2026, 11, n).getDay()], aria: long[new Date(2026, 11, n).getDay()] + ' ' + n + ' December', pressed: s ? 'true' : 'false',
+style: 'min-width: 44px; min-height: 48px; border-radius: 12px; font: inherit; cursor: pointer; line-height: 1.1; padding: 4px 6px; ' + (s ? 'background: ' + G + '; color: #FFFFFF; border: 2px solid ' + G + ';' : 'background: #FFFFFF; color: ' + INK + '; border: 2px solid ' + LINE + ';'),
+pick: () => this.setState({ day: n, composer: false, sent: false }) });
+}
+const chip = (on) => 'min-height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; ' + (on ? 'background: ' + G + '; color: #FFFFFF; border: 2px solid ' + G + ';' : 'background: #FFFFFF; color: ' + INK + '; border: 2px solid ' + LINE + ';');
+const filters = [['all','Everyone'],['family','Families'],['group','Groups']].map(([k, l]) => ({ label: l, pressed: st.filter === k ? 'true' : 'false', style: chip(st.filter === k), pick: () => this.setState({ filter: k }) }));
+const chNames = [['email','Email'],['text','Text'],['whatsapp','WhatsApp']];
+const channels = chNames.map(([k, l]) => ({ label: l, pressed: st.ch[k] ? 'true' : 'false', style: chip(st.ch[k]), toggle: () => this.setState({ ch: Object.assign({}, st.ch, { [k]: !st.ch[k] }), sent: false }) }));
+const who = st.bulk ? 'your visitor' : (sel ? sel.name.replace(/\.$/, '') : '');
+const when = dayLong.replace(' 2026', '') + (st.bulk ? '' : ' at ' + (sel ? sel.t : ''));
+const T = {
+reminder: ['Reminder', 'Hi, a reminder that ' + who + '\'s visit to Santa is on ' + when + '. Directions and parking: [link]. Can\'t make it? Tap to change: [link]'],
+confirm: ['Please confirm', 'Hi, can you confirm ' + who + '\'s visit on ' + when + '? Reply YES to confirm, or tap to change your booking: [link]'],
+details: ['Missing details', 'Santa would love to know more about ' + who + ' before your visit. It takes about five minutes: [link]'],
+late: ['Running late', 'Santa is running about 10 minutes behind today. There is no need to rush, we will be ready for you.'],
+};
+const templates = Object.keys(T).map((k) => ({ label: T[k][0], pressed: st.tpl === k ? 'true' : 'false', style: chip(st.tpl === k), pick: () => this.setState({ tpl: k, sent: false }) }));
+const via = chNames.filter(([k]) => st.ch[k]).map(([, l]) => l);
+const viaText = via.length ? via.join(' and ') : 'no channel chosen';
+return {
+dayLong, days, rows, filters, channels, templates,
+stats: [
+{ label: 'Visits booked', value: String(booked), color: INK },
+{ label: 'Times free', value: String(free), color: G },
+{ label: 'Breaks', value: String(brk), color: INK },
+{ label: 'Details missing', value: String(missing), color: '#8A5A00' },
+{ label: 'Not yet confirmed', value: String(unconf), color: R },
+],
+sel: sel || { t: '', name: '', type: '', party: '', needs: [], loves: '', avoid: '', comm: '', meet: '', gift: '', phone: '', email: '', prefers: '' },
+hasSel: !!sel, noSel: !sel,
+composer: st.composer,
+toText: st.bulk ? 'Every family booked on ' + dayLong.replace(' 2026', '') + ' (' + booked + ')' : (sel ? sel.name + ', ' + sel.phone : ''),
+preview: T[st.tpl][1],
+sendLabel: 'Send by ' + viaText,
+notSent: !st.sent, sent: st.sent,
+sentText: 'Sent by ' + viaText + '.',
+openOne: () => this.setState({ composer: true, bulk: false, sent: false }),
+openBulk: () => this.setState({ composer: true, bulk: true, sent: false }),
+send: () => { if (via.length) this.setState({ sent: true }); },
+};
+}
+}
+</script>
+</body>
+</html>
