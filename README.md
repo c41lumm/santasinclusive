@@ -73,8 +73,10 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
    Before going live: add your domain (`neon neon-auth domain add https://<your-domain>`), turn off
    localhost (`neon neon-auth domain allow-localhost disable`), and set a custom email provider for
    password resets (`neon neon-auth config email-provider update ...`).
-3. **Vercel**: import the repo, add the variables from `.env.example` (Vercel's Neon integration can
-   add the database ones). The waitlist job runs every 5 minutes, which needs a Vercel Pro plan (the
+3. **Vercel** (Pro plan, live at https://santasinclusive.vercel.app): import the repo, add the variables
+   from `.env.example`. Server code runs in Frankfurt (`regions` in `vercel.json`), next to the database,
+   so personal data stays in the EU. That address is a trusted domain in Neon Auth; add any new domain
+   with `neon neon-auth domain add`. The waitlist job runs every 5 minutes, which needs a Vercel Pro plan (the
    free plan only runs scheduled jobs once a day). Alternatively call the route from Neon's `pg_cron`.
 4. **Cloudflare Turnstile** (free): add a widget for your domain and put the site key and secret key in
    the environment variables. The booking form must show the widget and pass its token to
