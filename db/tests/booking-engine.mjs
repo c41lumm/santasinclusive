@@ -259,6 +259,41 @@ ok('opening hours for the homepage', hours.opens_at === '10:00' && hours.closes_
 e = await err(`select offer_next_waitlist(gen_random_uuid())`);
 ok('the public still cannot make offers', e?.includes('permission denied'), e);
 
+// Phase 3: admin
+await as('editor');
+const adminId = crypto.randomUUID(), leadId = crypto.randomUUID();
+await db.query(`insert into staff (user_id, name, role) values ($1, 'Ada Admin', 'admin'), ($2, 'Lee Lead', 'lead_elf')`, [adminId, leadId]);
+const [a1000, a1020] = [await slot('2026-12-17', '10:00'), await slot('2026-12-17', '10:20')];
+await as('server');
+const ab = (await q(`select * from create_booking($1::jsonb)`, [booking(a1000, 'admin.test@example.com', null)]))[0];
+await as('editor');
+const abId = (await q(`select id from bookings where reference = $1`, [ab.reference]))[0].id;
+await as('authenticated', elf);
+e = await err(`select admin_cancel_booking($1)`, [abId]);
+ok('an elf cannot cancel bookings', e?.includes('NOT_ALLOWED'), e);
+await as('authenticated', leadId);
+await q(`select admin_move_booking($1, $2)`, [abId, a1020]);
+await as('editor');
+ok('lead elf moves a booking', (await q(`select sl.starts_at::text t from bookings b join slots sl on sl.id = b.slot_id where b.id = $1`, [abId]))[0].t === '10:20:00');
+await as('authenticated', adminId);
+await q(`select admin_cancel_booking($1)`, [abId]);
+await as('editor');
+ok('admin cancels a booking', (await q(`select status from bookings where id = $1`, [abId]))[0].status === 'cancelled');
+await as('authenticated', adminId);
+e = await err(`select admin_cancel_booking($1)`, [abId]);
+ok('cannot cancel twice', e === 'NOT_FOUND', e);
+const made = (await q(`select ensure_shifts(2026) as n`))[0].n;
+ok('shifts made for every open day', made >= 48, String(made));
+ok('running it again adds none', (await q(`select ensure_shifts(2026) as n`))[0].n === 0);
+const sh = (await q(`select starts_at::text s, ends_at::text e from shifts where day = '2026-12-17' order by starts_at`));
+ok('morning and afternoon shift times', sh[0]?.s === '09:30:00' && sh[1]?.e === '16:30:00', JSON.stringify(sh));
+await as('authenticated', leadId);
+ok('lead elf can read volunteers', Array.isArray(await q(`select id from volunteers`)));
+await as('authenticated', elf);
+ok('an elf cannot read volunteers', (await q(`select id from volunteers`)).length === 0);
+e = await err(`select ensure_shifts(2026)`);
+ok('an elf cannot make shifts', e?.includes('NOT_ALLOWED'), e);
+
 // Messages exist before purge, so the purge has something to remove
 await as('editor');
 await db.query(`insert into messages (booking_id, channel, template, recipient, body) select id, 'email', 'confirmation', 'kate@example.com', 'Sam' from bookings limit 1`);

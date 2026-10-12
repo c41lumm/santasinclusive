@@ -1,6 +1,6 @@
 import 'server-only';
 import { neon, type NeonQueryFunctionInTransaction, type NeonQueryPromise } from '@neondatabase/serverless';
-import { auth } from '@/lib/auth/server';
+import { currentUserId } from '@/lib/auth/staff';
 
 /**
  * The server's own connection: scheduled jobs, the booking form, sending messages. It runs as the database
@@ -35,7 +35,7 @@ export function asPublic(queries: Queries) {
 
 /** Admin, elf app and Santa's view: the signed-in staff member, limited by their role in the staff table */
 export async function asStaff(queries: Queries) {
-  const { data: session } = await auth.getSession();
-  if (!session?.user) throw new Error('NOT_SIGNED_IN');
-  return asRole({ role: 'authenticated', userId: session.user.id }, queries);
+  const userId = await currentUserId();
+  if (!userId) throw new Error('NOT_SIGNED_IN');
+  return asRole({ role: 'authenticated', userId }, queries);
 }

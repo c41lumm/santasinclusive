@@ -7,25 +7,12 @@ import { templates } from '@/lib/notify/templates';
 import { visitWhen } from '@/lib/dates';
 import { withinLimit } from '@/lib/rate-limit';
 import { checkPublicForm } from '@/lib/public-form';
-import { all, dbCode, messages, problem, text, ticked, zodErrors, type FormState } from '@/lib/forms';
+import { dbCode, messages, problem, zodErrors, type FormState } from '@/lib/forms';
+import { bookingInputFromForm } from '@/lib/booking-form-data';
 
 /** The booking form. On success it goes to "check your messages", whatever happened (see createBooking). */
 export async function bookAction(_prev: FormState, fd: FormData): Promise<FormState> {
-  let visitors: unknown = [];
-  try { visitors = JSON.parse(text(fd, 'visitors') ?? '[]'); } catch { /* the schema reports it */ }
-  const parsed = bookingSchema.safeParse({
-    slot_id: text(fd, 'slot_id'),
-    contact_name: text(fd, 'contact_name'),
-    email: text(fd, 'email'),
-    phone: text(fd, 'phone'),
-    postcode: text(fd, 'postcode'),
-    address_line: text(fd, 'address_line'),
-    channels: all(fd, 'channels'),
-    photo_consent: text(fd, 'photo_consent'),
-    eligibility_confirmed: ticked(fd, 'eligibility_confirmed'),
-    data_consent: ticked(fd, 'data_consent'),
-    visitors,
-  });
+  const parsed = bookingSchema.safeParse(bookingInputFromForm(fd));
   if (!parsed.success) return zodErrors(parsed.error);
   const blocked = await checkPublicForm('book', 10);
   if (blocked) return blocked;

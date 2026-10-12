@@ -3,12 +3,16 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ActionForm, Choices, TextField, Tick } from '@/components/form';
 import { channelChoices } from '@/lib/options';
+import type { FormState } from '@/lib/forms';
 import { bookAction } from '../actions';
 
 type Person = { key: number; kind: 'visitor' | 'sibling'; first_name: string; age: string };
 
 /** The booking itself: who is coming and how to reach you. Everything about the visitors comes after. */
-export function BookingForm({ slotId }: { slotId: string }) {
+/** `action` lets the admin "Add booking" page reuse this form with its own action */
+export function BookingForm({ slotId, action = bookAction, submitLabel = 'Book this visit' }: {
+  slotId: string; action?: (prev: FormState, fd: FormData) => Promise<FormState>; submitLabel?: string;
+}) {
   const [people, setPeople] = useState<Person[]>([{ key: 0, kind: 'visitor', first_name: '', age: '' }]);
   const [channels, setChannels] = useState<string[]>(['email']);
   const update = (key: number, change: Partial<Person>) => setPeople((ps) => ps.map((p) => (p.key === key ? { ...p, ...change } : p)));
@@ -35,7 +39,7 @@ export function BookingForm({ slotId }: { slotId: string }) {
   );
 
   return (
-    <ActionForm action={bookAction} submitLabel="Book this visit">
+    <ActionForm action={action} submitLabel={submitLabel}>
       <input type="hidden" name="slot_id" value={slotId} />
       <input type="hidden" name="visitors" value={JSON.stringify(visitors)} />
 
