@@ -58,6 +58,24 @@ way `lib/db.ts` does, and checks bookings, the waitlist (including that a held t
 public, signed-in users, elves and Santa, rate limits, stock and the season purge. `npm test` runs the
 slot rule and phone number tests, and `npm run typecheck` is clean.
 
+## Phase 2: public pages
+
+All pages are built for accessibility: Atkinson Hyperlegible type, large text and targets, strong focus outlines,
+labelled fields with an error summary that links to each problem, no animation, a dark version, and they work at
+phone width. Copy is in plain English; check it with your adviser before booking opens.
+
+- `/`: homepage. Shows "Book a visit" when booking is open, otherwise "Get an alert".
+- `/book` → `/book/details` → `/book/sent`: choose a day and time, say who is coming, then "check your messages".
+  The same answer is shown whether or not the family had already booked.
+- `/booking/[token]`: the family's own page from the link in their messages: see the visit, tell Santa about each
+  visitor (all optional; health details are kept separately), change time, cancel, and confirm they are coming.
+- `/claim/[token]`: claim a waitlist offer. Confirming and claiming are buttons, never just opening a link, as email
+  scanners open links by themselves.
+- `/waitlist`, `/alerts`, `/groups`, `/volunteer`, `/support` (sponsorship requests; payment is phase 3), `/privacy`.
+- Every public form has the Turnstile check and a rate limit. Without `TURNSTILE_SECRET_KEY` the live site refuses
+  every form, so add the Turnstile keys to Vercel before deploying.
+- Database functions for these pages are in `db/migrations/20261013000000_public_pages.sql`.
+
 ## Setting up
 
 1. **Neon**: the project is "Santas Inclusive Frankfurt" (`orange-surf-93156790`, AWS Frankfurt), linked in
@@ -66,6 +84,9 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
    when you are ready. Locally, `neon env pull` writes the connection details to `.env.local`; add
    `NEON_AUTH_COOKIE_SECRET` there yourself (`openssl rand -base64 32`).
    To try changes safely, `neon checkout <branch-name>` makes an isolated copy of the database.
+   **Migrations**: new files go in `db/migrations`. `npm run db:migrate` applies any not yet applied to the
+   branch in `.env.local`, recording them in `schema_migrations`. Apply them to `main` before merging code that
+   needs them.
 2. **Staff sign-in**: sign-up and Google sign-in are turned off in Neon Auth. Create each staff account
    with `neon neon-auth user create --email <email> --name "<name>"`, then add them to `staff` with
    their role (`admin`, `lead_elf`, `elf` or `santa`):
@@ -73,8 +94,10 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
    Before going live: add your domain (`neon neon-auth domain add https://<your-domain>`), turn off
    localhost (`neon neon-auth domain allow-localhost disable`), and set a custom email provider for
    password resets (`neon neon-auth config email-provider update ...`).
-3. **Vercel**: import the repo, add the variables from `.env.example` (Vercel's Neon integration can
-   add the database ones). The waitlist job runs every 5 minutes, which needs a Vercel Pro plan (the
+3. **Vercel** (Pro plan, live at https://santasinclusive.vercel.app): import the repo, add the variables
+   from `.env.example`. Server code runs in Frankfurt (`regions` in `vercel.json`), next to the database,
+   so personal data stays in the EU. That address is a trusted domain in Neon Auth; add any new domain
+   with `neon neon-auth domain add`. The waitlist job runs every 5 minutes, which needs a Vercel Pro plan (the
    free plan only runs scheduled jobs once a day). Alternatively call the route from Neon's `pg_cron`.
 4. **Cloudflare Turnstile** (free): add a widget for your domain and put the site key and secret key in
    the environment variables. The booking form must show the widget and pass its token to
@@ -93,6 +116,8 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
   about children and adults.
 - Agree retention: run `purge_season(2026)` in January, and delete family-only photo files
   (the purge removes their rows but not the files).
+- Check the copy on every public page, especially the homepage, `/privacy` and the answer lists in
+  `src/lib/options.ts`.
 - Data is hosted in the EU (Frankfurt), which UK GDPR allows without extra safeguards: say "stored in the
   EU" in the privacy notice and the data protection impact assessment.
 - Photos (phase 4) are planned for Neon file storage (`neon buckets`), in the same Frankfurt project. It
@@ -101,9 +126,6 @@ slot rule and phone number tests, and `npm run typecheck` is clean.
 
 ## Next phases
 
-2. Public pages from the designs (including `/booking/[token]/confirm`, which calls `confirm_attendance`,
-   and Turnstile on the booking form): homepage, booking flow with time picker, visitor form, confirmation,
-   manage booking, waitlist claim, early alerts, schools and groups, support, volunteer.
 3. Admin: bookings (approving a booking held for review sends the confirmation; booking links are read
    through the server), checks, visit times, toy stock, rota, then dashboard, waitlist, volunteers,
    sponsorship (Stripe Checkout), press releases.
