@@ -60,6 +60,22 @@ p, ul, ol { margin: 0 0 1em; }
 .site-header nav a:hover { color: var(--green); }
 .site-header nav a.btn { padding: 12px 24px; min-height: 0; font-size: 1rem; color: #fff; }
 @media (max-width: 52rem) { .site-header { position: static; } }
+/* The menu: in a row on wide screens; on phones behind a "Menu" button, with the main button beside the logo */
+.site-header .nav-bar, .site-header .menu-toggle { display: none; }
+@media (max-width: 52rem) {
+  .site-header .wrap { flex-wrap: wrap; padding-block: 10px; gap: 10px 8px; }
+  .site-header .logo img { height: 40px; }
+  .site-header nav { display: contents; }
+  .site-header .nav-bar { display: flex; align-items: center; gap: 8px; }
+  .site-header .nav-bar .btn { padding: 10px 14px; min-height: 44px; font-size: 0.95rem; color: #fff; }
+  .site-header .menu-toggle { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 2px solid var(--line);
+    border-radius: 999px; background: #fff; font: inherit; font-weight: 700; color: var(--text); cursor: pointer; }
+  .site-header nav ul { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 0; border-top: 1px solid var(--line); }
+  .site-header nav ul.open { display: flex; }
+  .site-header nav ul a { display: block; padding: 14px 4px; border-bottom: 1px solid var(--line); }
+  .site-header nav .nav-cta { display: none; }
+}
+@media (max-width: 22rem) { .site-header .logo img { height: 34px; } .site-header .nav-bar .btn { padding: 10px 10px; font-size: 0.9rem; } }
 main { display: block; }
 .page { padding-block: 40px 88px; }
 .section { padding-block: 88px; }
@@ -133,6 +149,8 @@ main { display: block; }
 .step-num { flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--heading); font-weight: 600; font-size: 1.35rem; }
 .step-num.sm { width: 36px; height: 36px; font-size: 1rem; background: #fff; color: var(--green); font-family: inherit; font-weight: 700; }
 .badge-pill { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 0.9rem; color: var(--green); margin: 0 0 18px; }
+.badge-pill > span { white-space: nowrap; }
+@media (max-width: 40rem) { .badge-pill { border-radius: 18px; padding: 8px 14px; gap: 4px 12px; } .badge-pill > span[aria-hidden] { display: none; } }
 .status-pill { display: inline-flex; align-items: center; gap: 10px; background: var(--pale-green); color: var(--green); border-radius: 999px; padding: 8px 18px; font-weight: 700; margin: 0 0 14px; }
 .detail-row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .detail-row p { margin: 0; }

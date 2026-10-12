@@ -43,7 +43,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
     <>
       <section id="top" className="wrap hero" style={{ paddingBlock: '40px 72px' }}>
         <div className="text">
-          <p className="badge-pill">{dates ? <>{dates} <span aria-hidden="true">·</span> </> : null}Leicester city centre <span aria-hidden="true">·</span> Free</p>
+          <p className="badge-pill">{dates ? <><span>{dates}</span> <span aria-hidden="true">·</span> </> : null}<span>Leicester city centre</span> <span aria-hidden="true">·</span> <span>Free</span></p>
           <h1>Meet Santa your way, <span className="red">at your pace.</span></h1>
           <p className="lead" style={{ fontSize: '1.17rem', maxWidth: 580, marginBottom: 30 }}>
             A calm Christmas grotto made only for children and adults with disabilities, and the families who love them.
