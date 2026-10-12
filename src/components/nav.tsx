@@ -10,17 +10,18 @@ const links = [
   { href: '/#help', label: 'Get involved' },
 ];
 
-export function Nav() {
+/** When booking is closed, "Booking" and "Book a visit" are swapped for "Get an alert" */
+export function Nav({ bookingOpen }: { bookingOpen: boolean }) {
   const path = usePathname();
   return (
     <nav aria-label="Main">
       <ul>
-        {links.map((l) => (
+        {links.filter((l) => bookingOpen || l.href !== '/#book').map((l) => (
           <li key={l.href}>
             <Link href={l.href} aria-current={!l.href.includes('#') && path.startsWith(l.href) ? 'page' : undefined}>{l.label}</Link>
           </li>
         ))}
-        <li><Link className="btn" href="/#book">Book a visit</Link></li>
+        <li>{bookingOpen ? <Link className="btn" href="/#book">Book a visit</Link> : <Link className="btn" href="/#alerts">Get an alert</Link>}</li>
       </ul>
     </nav>
   );
