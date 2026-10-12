@@ -7,7 +7,7 @@ import { site } from '@/lib/site';
 type Channel = 'email' | 'sms' | 'whatsapp';
 type Recipient = { email?: string | null; phone?: string | null; channels: Channel[] };
 type Message = { subject: string; text: string };
-type Link = { booking_id?: string; waitlist_id?: string; template: string };
+type Link = { booking_id?: string; waitlist_id?: string; volunteer_id?: string; template: string };
 
 /** UK mobiles to +44 format for Twilio. Anything else is refused, so texts are never sent abroad. */
 export function toE164(phone: string) {
@@ -25,8 +25,8 @@ export async function send(to: Recipient, msg: Message, link: Link) {
     const recipient = channel === 'email' ? to.email : to.phone;
     if (!recipient) continue;
     const [row] = await sql`
-      insert into messages (booking_id, waitlist_id, template, channel, recipient, body, status)
-      values (${link.booking_id ?? null}, ${link.waitlist_id ?? null}, ${link.template}, ${channel}, ${recipient}, ${msg.text}, 'queued')
+      insert into messages (booking_id, waitlist_id, volunteer_id, template, channel, recipient, body, status)
+      values (${link.booking_id ?? null}, ${link.waitlist_id ?? null}, ${link.volunteer_id ?? null}, ${link.template}, ${channel}, ${recipient}, ${msg.text}, 'queued')
       returning id`;
     // While developing locally, messages are logged but not sent, so test bookings never text or email anyone.
     // Set SEND_IN_DEV=1 in .env.local to send for real.

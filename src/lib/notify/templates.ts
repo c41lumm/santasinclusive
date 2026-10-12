@@ -68,6 +68,12 @@ export const templates = {
     text: `Good news from Santa's Inclusive Grotto. A visit has opened on ${when}. It is held for you until ${until}. ` +
       `Tap to claim it: ${site()}/claim/${claimToken}`,
   }),
+  /** A volunteer's shifts for the week, one per line */
+  rota: (name: string, week: string, lines: string[]) => ({
+    subject: `Your shifts at Santa's Inclusive Grotto, ${week}`,
+    text: `Hi ${name}, thank you for helping. Your shifts for ${week}:\n${lines.join('\n')}\n` +
+      `If you cannot make one, please let us know as soon as you can.`,
+  }),
   runningLate: () => ({
     subject: 'Santa is running a little late',
     text: 'Santa is running about 10 minutes behind today. There is no need to rush, we will be ready for you.',
