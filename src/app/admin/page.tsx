@@ -5,9 +5,9 @@ import { asStaff } from '@/lib/db';
 import { adminSeason, openingDays } from '@/lib/admin/data';
 import { dayName, seasonDates } from '@/lib/dates';
 
-export const metadata: Metadata = { title: 'Dashboard' };
+export const metadata: Metadata = { title: { absolute: 'Dashboard | Grotto admin' } };
 
-type Todo = { held: number; dups: number; failed: number; volunteers: number; alerts: number; waiting: number; gaps: number };
+type Todo = { held: number; dups: number; groups: number; failed: number; volunteers: number; alerts: number; waiting: number; gaps: number };
 
 export default async function Dashboard() {
   const me = await requireStaff(['admin', 'lead_elf']);
@@ -20,6 +20,7 @@ export default async function Dashboard() {
            (select count(*) from duplicate_candidates where status in ('open', 'contacting'))::int as dups,
            (select count(*) from messages where status = 'failed' and created_at > now() - interval '7 days')::int as failed,
            (select count(*) from volunteers where status not in ('approved', 'declined'))::int as volunteers,
+           (select count(*) from group_enquiries where status = 'new')::int as groups,
            (select count(*) from early_alerts where notified_at is null)::int as alerts,
            (select count(*) from waitlist_entries where status = 'waiting' and day >= (now() at time zone 'Europe/London')::date)::int as waiting,
            (select coalesce(sum(greatest(0, s.santas_needed - (select count(*) from shift_assignments a where a.shift_id = s.id and a.role = 'santa'))
@@ -35,6 +36,7 @@ export default async function Dashboard() {
     [admin, todo.held, 'booking held for review', 'bookings held for review', '/admin/bookings'],
     [admin, todo.dups, 'possible duplicate to check', 'possible duplicates to check', '/admin/checks'],
     [admin, todo.failed, 'message not sent this week', 'messages not sent this week', '/admin/messages?show=failed'],
+    [admin, todo.groups, 'new group enquiry to reply to', 'new group enquiries to reply to', '/admin/groups'],
     [admin, todo.volunteers, 'volunteer application to review', 'volunteer applications to review', '/admin/volunteers'],
     [admin && season.booking_open, todo.alerts, 'early alert still to send', 'early alerts still to send', '/admin/alerts'],
     [true, todo.gaps, 'gap on the rota', 'gaps on the rota', '/admin/rota'],

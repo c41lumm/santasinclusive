@@ -104,6 +104,8 @@ have no design and follow the same style.
 - **Checks** (admin): possible duplicates and flags, with notes.
 - **Visit times** (admin): visit length, gap, families per time, each day's hours and breaks, and opening or
   closing booking. Saving is refused if it would remove a time families are booked into.
+- **Group enquiries** (admin): schools and groups from the `/groups` form, with their numbers, weeks, times and needs.
+  Reply by email or phone, add the visit on Bookings, then mark it offered, booked or declined.
 - **Waitlist**, **Early alerts** (send "booking is open" once to everyone who asked), **Messages** (every email and
   text, with the reason any failed), **Volunteers** (approve or decline; approved people appear on the rota) and
   **Sponsorship** (mark invoiced or paid): admin only.

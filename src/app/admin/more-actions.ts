@@ -54,3 +54,12 @@ export async function removeFromWaitlist(id: string) {
   await asStaff((sql) => [sql`update waitlist_entries set status = 'removed' where id = ${id}::uuid and status = 'waiting'`]);
   revalidatePath('/admin/waitlist');
 }
+
+const groupStatuses = ['new', 'offered', 'booked', 'declined'] as const;
+export async function setGroupStatus(id: string, status: (typeof groupStatuses)[number]) {
+  await requireStaff(['admin']);
+  if (!isUuid(id) || !groupStatuses.includes(status)) return;
+  await asStaff((sql) => [sql`update group_enquiries set status = ${status} where id = ${id}::uuid`]);
+  revalidatePath('/admin/groups');
+  revalidatePath('/admin');
+}
