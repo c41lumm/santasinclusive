@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { getDays, getHours, getSeason, getSlots } from '@/lib/public-data';
 import { dayName, hoursText, seasonDates } from '@/lib/dates';
 import { site } from '@/lib/site';
@@ -195,12 +196,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
               <h2>Book your visit</h2>
               <p className="lead" style={{ marginBottom: 32 }}>It takes about five minutes, and it is free.</p>
               <ol className="stack" style={{ listStyle: 'none', padding: 0 }}>
-                {[
-                  ['Choose a day', `Pick any day${dates ? ` from ${dates}` : ''}.`],
+                {([
+                  ['Choose a day', <>Pick any day from December 1st - 22nd. We may add extra dates and times, so keep an eye on
+                    our <a href={site.instagram.url}>Instagram<span className="visually-hidden"> ({site.instagram.handle})</span></a> to hear first.</>],
                   ['Pick a time', 'See the slots left on that day.'],
                   ['Tell us about your visitor', 'What they love, what to avoid, and how they communicate.'],
                   ['Get reminders your way', 'By email or text, with directions and a one-tap link to change plans.'],
-                ].map(([t, s], i) => (
+                ] as [string, ReactNode][]).map(([t, s], i) => (
                   <li className="fact" key={t}><span className="step-num" aria-hidden="true">{i + 1}</span>
                     <div><p className="title">{t}</p><p className="sub">{s}</p></div></li>
                 ))}
@@ -218,7 +220,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
                       <h3>Choose a time on {dayName(chosen.day)}</h3>
                       {chosen.spaces_left ? (
                         <>
-                          <p className="muted" style={{ marginBottom: 16 }}>Each visit is 15 minutes. Times marked “Break” are not available.</p>
+                          <p className="muted" style={{ marginBottom: 16 }}>Each visit is 15 minutes.</p>
                           <TimeList slots={slots} href={(s) => `/book/details?slot=${s.slot_id}&day=${chosen.day}`} />
                         </>
                     ) : null}
@@ -229,7 +231,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
                     <p style={{ fontWeight: 700, fontSize: '1.05rem' }}>
                       {!chosen ? 'No day chosen yet' : chosen.spaces_left ? `${dayName(chosen.day)}, now choose a time` : `${dayName(chosen.day)} is fully booked`}
                     </p>
-                    <p className="muted" style={{ fontSize: '0.9rem' }}>Day full? You can join the waitlist and hear first if a slot opens.</p>
+                    {chosen && !chosen.spaces_left ? (
+                      <p className="muted" style={{ fontSize: '0.9rem' }}>
+                        Day full? You can <Link href={`/waitlist?day=${chosen.day}`}>join the waitlist</Link> and hear first if a slot opens.
+                      </p>
+                    ) : null}
                   </div>
                   {chosen && !chosen.spaces_left ? <Link className="btn" href={`/waitlist?day=${chosen.day}`}>Join the waitlist</Link> : null}
                 </div>
