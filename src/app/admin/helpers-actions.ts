@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { auth } from '@/lib/auth/server';
 import { requireStaff, type StaffRole } from '@/lib/auth/staff';
 import { asStaff, db } from '@/lib/db';
-import { isUuid } from '@/lib/admin/data';
+import { adminSeason, isUuid } from '@/lib/admin/data';
+import { optionalMobile } from '@/lib/booking-schema';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
 import { problem, text, type FormState } from '@/lib/forms';
@@ -39,14 +40,35 @@ const addSchema = z.object({
   name: z.string().trim().min(1, 'Please give their name').max(100),
   email: z.string().trim().toLowerCase().email('Please check the email address').max(200),
   role: z.enum(roles, { errorMap: () => ({ message: 'Please choose what they do' }) }),
+  phone: optionalMobile,
 });
+
+/**
+ * Helpers who work on the day (Santas, elves and lead elves) are also approved volunteers, so they can be put on
+ * the rota straight away. They are marked as able to help on any day of the season. Someone who already applied as
+ * a volunteer with the same email is approved and linked to their account instead of being added twice.
+ */
+async function makeVolunteer(userId: string, name: string, email: string, role: StaffRole, phone: string | undefined) {
+  if (role === 'admin') return;
+  const season = await adminSeason();
+  const anyDay = season ? [`${Number(season.first_day.slice(8, 10))} to ${Number(season.last_day.slice(8, 10))} December`] : [];
+  await asStaff((sql) => [sql`
+    with linked as (
+      update volunteers set user_id = ${userId}::uuid, role = ${role}::staff_role, status = 'approved',
+             phone = coalesce(nullif(${phone ?? ''}, ''), phone)
+      where user_id = ${userId}::uuid or (user_id is null and lower(email::text) = lower(${email}))
+      returning id)
+    insert into volunteers (user_id, name, email, phone, role, over_18, status, available_weeks)
+    select ${userId}::uuid, ${name}, ${email}, ${phone ?? ''}, ${role}::staff_role, true, 'approved', ${anyDay}::text[]
+    where not exists (select 1 from linked)`]);
+}
 
 /** Add a helper: a sign-in account (or their existing one), their role here, and a welcome email to set a password */
 export async function addHelper(_prev: FormState, fd: FormData): Promise<FormState> {
   const me = await requireStaff(['admin']);
-  const parsed = addSchema.safeParse({ name: text(fd, 'name') ?? '', email: text(fd, 'email') ?? '', role: text(fd, 'role') ?? '' });
+  const parsed = addSchema.safeParse({ name: text(fd, 'name') ?? '', email: text(fd, 'email') ?? '', role: text(fd, 'role') ?? '', phone: text(fd, 'phone') });
   if (!parsed.success) return { errors: parsed.error.issues.map((i) => ({ field: String(i.path[0]), message: i.message })) };
-  const { name, email, role } = parsed.data;
+  const { name, email, role, phone } = parsed.data;
 
   // Someone who had access before keeps their sign-in account, so look for it first
   const [existing] = await db()`select id::text as id from neon_auth."user" where lower(email) = ${email}` as { id: string }[];
@@ -65,11 +87,14 @@ export async function addHelper(_prev: FormState, fd: FormData): Promise<FormSta
     userId = data.user.id;
   }
 
-  await asStaff((sql) => [sql`insert into staff (user_id, name, role) values (${userId}::uuid, ${name}, ${role}::staff_role)`]);
+  await asStaff((sql) => [sql`insert into staff (user_id, name, role, phone) values (${userId}::uuid, ${name}, ${role}::staff_role, ${phone ?? null})`]);
+  await makeVolunteer(userId, name, email, role, phone);
   await auth.requestPasswordReset({ email, redirectTo: `${await origin()}/staff/new-password` });
   await send({ email, channels: ['email'] }, templates.staffWelcome(name.split(' ')[0]), { template: 'staffWelcome' });
   revalidatePath('/admin');
-  return { done: `${name} has been added. We have emailed ${email} a link to set their password.` };
+  revalidatePath('/admin/rota');
+  const rota = role === 'admin' ? '' : ' They are now an approved volunteer, so you can put them on the Staff rota.';
+  return { done: `${name} has been added. We have emailed ${email} a link to set their password.${rota}` };
 }
 
 export async function setHelperRole(userId: string, fd: FormData) {
@@ -80,7 +105,14 @@ export async function setHelperRole(userId: string, fd: FormData) {
   const { error } = await auth.admin.setRole({ userId, role: authRole(role) });
   if (error) return;
   await asStaff((sql) => [sql`update staff set role = ${role}::staff_role where user_id = ${userId}::uuid`]);
+  // Becoming a Santa, elf or lead elf puts them on the rota too (an admin keeps any volunteer record they had)
+  if (role !== 'admin') {
+    const [h] = await db()`select s.name, u.email, s.phone from staff s join neon_auth."user" u on u.id = s.user_id
+      where s.user_id = ${userId}::uuid` as { name: string; email: string; phone: string | null }[];
+    if (h) await makeVolunteer(userId, h.name, h.email, role, h.phone ?? undefined);
+  }
   revalidatePath('/admin');
+  revalidatePath('/admin/rota');
 }
 
 /** Removes their access here and signs them out everywhere. Their sign-in account stays, so they can be added back. */

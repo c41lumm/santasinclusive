@@ -338,6 +338,31 @@ await q(`delete from staff where user_id = $1`, [helperId]);
 await as('authenticated', helperId);
 ok('a removed helper has no role', (await q(`select my_role() as r`))[0].r === null);
 
+// Helpers become approved volunteers (the same statement as makeVolunteer in src/app/admin/helpers-actions.ts)
+const makeVol = (uid, name, email, role, phone) => q(`
+  with linked as (
+    update volunteers set user_id = $1::uuid, role = $4::staff_role, status = 'approved', phone = coalesce(nullif($5, ''), phone)
+    where user_id = $1::uuid or (user_id is null and lower(email::text) = lower($3)) returning id)
+  insert into volunteers (user_id, name, email, phone, role, over_18, status, available_weeks)
+  select $1::uuid, $2, $3, $5, $4::staff_role, true, 'approved', array['1 to 24 December'] where not exists (select 1 from linked)`,
+  [uid, name, email, role, phone]);
+await as('authenticated', adminId);
+const newHelper = crypto.randomUUID();
+await makeVol(newHelper, 'Robin', 'robin@example.com', 'elf', '07700900111');
+let rv = await q(`select status, role, available_weeks from volunteers where user_id = $1`, [newHelper]);
+ok('a new helper is an approved volunteer for the whole season', rv.length === 1 && rv[0].status === 'approved' && rv[0].role === 'elf'
+  && rv[0].available_weeks[0] === '1 to 24 December', JSON.stringify(rv));
+await as('editor');
+await q(`insert into volunteers (name, email, phone, role, over_18, status) values ('Ivy', 'ivy@example.com', '07700900222', 'elf', true, 'applied')`);
+await as('authenticated', adminId);
+const ivyId = crypto.randomUUID();
+await makeVol(ivyId, 'Ivy', 'IVY@example.com', 'santa', '');
+rv = await q(`select status, role, phone, user_id from volunteers where lower(email::text) = 'ivy@example.com'`);
+ok('someone who applied is approved and linked, not added twice', rv.length === 1 && rv[0].status === 'approved' && rv[0].role === 'santa'
+  && rv[0].phone === '07700900222' && rv[0].user_id === ivyId, JSON.stringify(rv));
+await makeVol(ivyId, 'Ivy', 'ivy@example.com', 'lead_elf', '');
+ok('changing what they do updates their volunteer role', (await q(`select role from volunteers where user_id = $1`, [ivyId]))[0].role === 'lead_elf');
+
 // Messages exist before purge, so the purge has something to remove
 await as('editor');
 await db.query(`insert into messages (booking_id, channel, template, recipient, body) select id, 'email', 'confirmation', 'kate@example.com', 'Sam' from bookings limit 1`);
