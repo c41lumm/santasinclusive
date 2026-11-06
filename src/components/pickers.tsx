@@ -28,18 +28,18 @@ export function DayPicker({ days, selected, href, label = 'Choose a day' }: {
   );
 }
 
-/** The times on one day. Open times are links; breaks and booked times show but cannot be chosen. */
+/** The times on one day. Open times are links; booked times show but cannot be chosen. Breaks are not shown to families. */
 export function TimeList({ slots, href }: { slots: Slot[]; href: (slot: Slot) => string }) {
   if (!slots.some((s) => s.state === 'open')) return <p>There are no times left on this day.</p>;
   return (
     <ul className="times" aria-label="Choose a time">
-      {slots.map((s) => (
+      {slots.filter((s) => s.state !== 'break').map((s) => (
         <li key={s.slot_id}>
           {s.state === 'open' ? (
             <Link className="time" href={href(s)} aria-label={`${s.starts_at} to ${s.ends_at}`}>{s.starts_at}</Link>
           ) : (
-            <span className="time blocked" aria-label={`${s.starts_at}, ${s.state === 'break' ? 'break' : 'booked'}, not available`}>
-              <span>{s.starts_at}</span><small>{s.state === 'break' ? 'Break' : 'Booked'}</small>
+            <span className="time blocked" aria-label={`${s.starts_at}, booked, not available`}>
+              <span>{s.starts_at}</span><small>Booked</small>
             </span>
           )}
         </li>
