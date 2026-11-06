@@ -47,6 +47,8 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
               <TextField name="email" type="email" label="Their email address" autoComplete="off" autoCapitalize="none" spellCheck={false} />
             </div>
             <Select name="role" label="What do they do?" placeholder="Choose one" options={roleChoices.map((c) => ({ value: c.value, label: `${c.label}: ${c.hint}` }))} />
+            <TextField name="phone" type="tel" label="Mobile number" optional inputMode="tel" autoComplete="off" width="medium"
+              hint="So the rota can text them their shifts. Santas, elves and lead elves go straight onto the rota as approved volunteers." />
           </ActionForm>
         </div>
       ) : null}
