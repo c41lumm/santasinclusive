@@ -303,6 +303,21 @@ ok('a day with its own breaks ignores the every-day ones', JSON.stringify(br) ==
 const br2 = (await q(`select to_char(starts_at, 'HH24:MI') t from slots where day = '2026-12-21' and blocked order by starts_at`)).map((r) => r.t);
 ok('other days keep the every-day breaks', JSON.stringify(br2) === '["12:40","13:00"]', JSON.stringify(br2));
 
+// Message wording: only admins can read or change it; sending (the server) reads it
+await as('authenticated', adminId);
+ok('an admin can save message wording', (await err(`insert into message_wording (name, subject, body, updated_by) values ('runningLate', 'Late', 'Running late', 'Ada')`)) === null);
+await as('authenticated', leadId);
+ok('a lead elf cannot see message wording', (await q(`select * from message_wording`)).length === 0);
+e = await err(`update message_wording set body = 'x' where name = 'runningLate' returning name`);
+ok('nor change it', e === null && (await (async () => { await as('server'); return q(`select body from message_wording where name = 'runningLate'`); })())[0].body === 'Running late', e);
+await as('anon');
+e = await err(`select * from message_wording`);
+ok('the public cannot read message wording', e?.includes('permission denied'), e);
+await as('server');
+ok('the server reads saved wording', (await q(`select subject from message_wording where name = 'runningLate'`))[0]?.subject === 'Late');
+e = await err(`insert into message_wording (name, subject, body) values ('bad name', 'x', 'y')`);
+ok('message names are checked', e?.includes('check'), e);
+
 // Messages exist before purge, so the purge has something to remove
 await as('editor');
 await db.query(`insert into messages (booking_id, channel, template, recipient, body) select id, 'email', 'confirmation', 'kate@example.com', 'Sam' from bookings limit 1`);
