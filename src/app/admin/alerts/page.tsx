@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { requireStaff } from '@/lib/auth/staff';
 import { asStaff } from '@/lib/db';
 import { adminSeason } from '@/lib/admin/data';
-import { sendEarlyAlerts } from '../more-actions';
+import { sendEarlyAlerts, sendEarlyAlertTo, sendTestEarlyAlert } from '../more-actions';
 import { OneButton } from '../admin-action';
+import { SendOne, TestSend } from './alert-forms';
 
 export const metadata: Metadata = { title: 'Early alerts' };
 
@@ -31,7 +32,7 @@ export default async function Alerts() {
       <section className="a-panel" aria-labelledby="send-h">
         <h2 id="send-h">Tell them booking is open</h2>
         {!season?.booking_open ? (
-          <p>Booking is closed at the moment. Open it on the <a href="/admin/times">Visit times</a> page first, so the link in the message works.</p>
+          <p>Booking is closed at the moment. Open it on the <a href="/admin/times">Visit times</a> page first, so the link in the message works. Once it is open, you can also send to one person at a time from the list below.</p>
         ) : waiting.length ? (
           <>
             <p>Sends one email or text to {waiting.length === 1 ? 'the 1 person' : `each of the ${waiting.length} people`} not yet told. Each person is only ever sent it once.</p>
@@ -39,12 +40,19 @@ export default async function Alerts() {
           </>
         ) : <p>Everyone on the list has been told.</p>}
       </section>
+      <section className="a-panel" aria-labelledby="test-h">
+        <h2 id="test-h">Send a test</h2>
+        <p>Sends the same message to an email or mobile you choose, with “[Test]” at the start of the email subject.
+          Nobody on the list is marked as told. You can send a test while booking is still closed, but the link in it
+          only works once booking is open.</p>
+        <div style={{ maxWidth: 420 }}><TestSend action={sendTestEarlyAlert} /></div>
+      </section>
       <section className="a-panel" aria-labelledby="list-h">
         <h2 id="list-h">Everyone on the list</h2>
         {alerts.length ? (
           <div style={{ overflowX: 'auto' }}>
             <table className="simple-table">
-              <thead><tr><th scope="col">Name</th><th scope="col">Email or mobile</th><th scope="col">Signed up</th><th scope="col">Told</th></tr></thead>
+              <thead><tr><th scope="col">Name</th><th scope="col">Email or mobile</th><th scope="col">Signed up</th><th scope="col">Told</th>{season?.booking_open ? <th scope="col"><span className="visually-hidden">Send</span></th> : null}</tr></thead>
               <tbody>
                 {alerts.map((a) => (
                   <tr key={a.id}>
@@ -52,6 +60,7 @@ export default async function Alerts() {
                     <td>{a.contact}</td>
                     <td>{when(a.created_at)}</td>
                     <td>{a.notified_at ? <span className="tag tag-green">{when(a.notified_at)}</span> : <span className="tag tag-amber">Not yet</span>}</td>
+                    {season?.booking_open ? <td><SendOne action={sendEarlyAlertTo.bind(null, a.id)} name={a.name} told={!!a.notified_at} /></td> : null}
                   </tr>
                 ))}
               </tbody>
