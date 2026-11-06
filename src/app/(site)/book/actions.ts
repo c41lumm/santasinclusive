@@ -1,6 +1,6 @@
 'use server';
 import { redirect } from 'next/navigation';
-import { bookingSchema, type BookingInput } from '@/lib/booking-schema';
+import { checkBooking, type BookingInput } from '@/lib/booking-schema';
 import { db } from '@/lib/db';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
@@ -12,7 +12,7 @@ import { bookingInputFromForm } from '@/lib/booking-form-data';
 
 /** The booking form. On success it goes to "check your messages", whatever happened (see createBooking). */
 export async function bookAction(_prev: FormState, fd: FormData): Promise<FormState> {
-  const parsed = bookingSchema.safeParse(bookingInputFromForm(fd));
+  const parsed = checkBooking(bookingInputFromForm(fd));
   if (!parsed.success) return zodErrors(parsed.error);
   const blocked = await checkPublicForm('book', 10);
   if (blocked) return blocked;

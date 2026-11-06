@@ -55,11 +55,32 @@ export const bookingSchema = z.object({
   eligibility_confirmed: mustTick('Please confirm your group includes a child or adult with a disability'),
   data_consent: mustTick('Please agree to us holding your details so we can prepare for your visit'),
   visitors,
-}).refine((b) => b.email || b.phone, { message: 'Please give an email address or a UK mobile number', path: ['email'] })
-  .refine((b) => !b.channels.includes('email') || b.email, { message: 'Please give an email address, or choose text instead', path: ['email'] })
-  .refine((b) => b.channels.every((c) => c === 'email') || b.phone, { message: 'Please give a mobile number for texts', path: ['phone'] });
+}).superRefine(contactRules);
+
+/** An email address for email and a mobile for texts. Channels needs at least one, so there is always a way to reach them. */
+function contactRules(b: { channels: string[]; email?: string; phone?: string }, ctx: z.RefinementCtx) {
+  if (b.channels.includes('email') && !b.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Please give an email address, or choose text instead' });
+  if (b.channels.includes('sms') && !b.phone) ctx.addIssue({ code: 'custom', path: ['phone'], message: 'Please give a mobile number for texts' });
+}
+
+// The same checks on their own. Zod skips a form's own checks while any field has a problem, so without this
+// a family would only be told about a missing email or mobile after fixing everything else.
+const contactSchema = z.object({ channels, email: optionalEmail, phone: optionalMobile }).superRefine(contactRules);
 
 export type BookingInput = z.infer<typeof bookingSchema>;
+
+/** Checks the booking form, reporting every problem at once */
+export function checkBooking(input: unknown): z.SafeParseReturnType<unknown, BookingInput> {
+  const result = bookingSchema.safeParse(input);
+  if (result.success) return result;
+  const seen = new Set(result.error.issues.map((i) => `${i.path.join('.')}:${i.message}`));
+  const contact = contactSchema.safeParse(input);
+  const extra = contact.success ? [] : contact.error.issues.filter((i) => !seen.has(`${i.path.join('.')}:${i.message}`));
+  // In the order the form asks, so the list of problems reads top to bottom
+  const order = ['slot_id', 'visitors', 'contact_name', 'channels', 'email', 'phone', 'postcode', 'address_line', 'eligibility_confirmed', 'data_consent'];
+  const rank = (i: z.ZodIssue) => { const n = order.indexOf(String(i.path[0])); return n < 0 ? order.length : n; };
+  return { success: false, error: new z.ZodError([...result.error.issues, ...extra].sort((a, b) => rank(a) - rank(b))) };
+}
 
 /** The "About your child" form on a family's booking page. Checks run together, so every problem shows at once. */
 const detailsBase = z.object({ photo_consent: photoConsent, visitors, consent: z.boolean() });
