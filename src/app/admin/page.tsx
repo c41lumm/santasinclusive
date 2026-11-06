@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireStaff } from '@/lib/auth/staff';
-import { asStaff } from '@/lib/db';
+import { asStaff, db } from '@/lib/db';
 import { adminSeason, openingDays } from '@/lib/admin/data';
 import { dayName, seasonDates } from '@/lib/dates';
+import { addHelper, removeHelper, setHelperRole } from './helpers-actions';
+import { HelpersPanel, type Helper } from './helpers-panel';
 
 export const metadata: Metadata = { title: { absolute: 'Dashboard | Grotto admin' } };
 
@@ -43,6 +45,17 @@ export default async function Dashboard() {
   ];
   const todos = items.filter(([show, n]) => show && n > 0);
 
+  // Admins manage helpers here. Emails come from the sign-in accounts, which only the server can read.
+  let helpers: Helper[] = [];
+  if (admin) {
+    const rows = await db()`
+      select s.user_id::text as user_id, s.name, u.email, s.role::text as role, s.created_at::text as created_at
+      from staff s left join neon_auth."user" u on u.id = s.user_id order by s.created_at` as Omit<Helper, 'locked'>[];
+    const admins = rows.filter((r) => r.role === 'admin').length;
+    // Nobody can change their own access, or the only admin's
+    helpers = rows.map((r) => ({ ...r, locked: r.user_id === me.userId || (r.role === 'admin' && admins <= 1) }));
+  }
+
   return (
     <>
       <div className="admin-head">
@@ -80,6 +93,7 @@ export default async function Dashboard() {
           ) : <p className="muted">No more open days this season.</p>}
         </section>
       </div>
+      {admin ? <HelpersPanel helpers={helpers} add={addHelper} setRole={setHelperRole} remove={removeHelper} /> : null}
     </>
   );
 }
