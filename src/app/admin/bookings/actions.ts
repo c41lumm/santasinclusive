@@ -6,7 +6,7 @@ import { asStaff, db } from '@/lib/db';
 import { contactForBooking, isUuid } from '@/lib/admin/data';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
-import { bookingSchema } from '@/lib/booking-schema';
+import { checkBooking } from '@/lib/booking-schema';
 import { bookingInputFromForm } from '@/lib/booking-form-data';
 import { visitWhen } from '@/lib/dates';
 import { all, dbCode, messages, problem, text, zodErrors, type FormState } from '@/lib/forms';
@@ -86,7 +86,7 @@ export async function moveBooking(id: string, slotId: string, day: string, _prev
 /** "Add booking", for example for a family who phones. Unlike the public form, staff see why it failed. */
 export async function addBooking(_prev: FormState, fd: FormData): Promise<FormState> {
   await requireStaff(['admin', 'lead_elf']);
-  const parsed = bookingSchema.safeParse(bookingInputFromForm(fd));
+  const parsed = checkBooking(bookingInputFromForm(fd));
   if (!parsed.success) return zodErrors(parsed.error);
   const b = parsed.data;
   const sql = db();

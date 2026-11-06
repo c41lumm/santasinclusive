@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { alertSchema } from './form-schemas';
-import { bookingSchema } from './booking-schema';
+import { bookingSchema, checkBooking } from './booking-schema';
 
 describe('alertSchema', () => {
   const base = { name: 'Sam', is_group: false };
@@ -32,5 +32,17 @@ describe('bookingSchema', () => {
   it('explains an unticked agreement in words', () => {
     const r = bookingSchema.safeParse({ ...base, phone: '07700900123', eligibility_confirmed: false });
     expect(r.error?.issues[0].message).toMatch(/disability/);
+  });
+  it('reports a missing mobile or email together with every other problem', () => {
+    const r = checkBooking({ ...base, channels: ['email', 'sms'], contact_name: '', data_consent: false, visitors: [{ kind: 'visitor', first_name: '' }] });
+    const fields = r.error?.issues.map((i) => i.path.join('.'));
+    expect(fields).toEqual(expect.arrayContaining(['contact_name', 'data_consent', 'visitors.0.first_name', 'email', 'phone']));
+  });
+  it('does not repeat a problem', () => {
+    const r = checkBooking({ ...base, contact_name: '' });
+    expect(r.error?.issues.filter((i) => i.path.join('.') === 'phone')).toHaveLength(1);
+  });
+  it('still accepts a good booking', () => {
+    expect(checkBooking({ ...base, phone: '07700900123' }).success).toBe(true);
   });
 });
