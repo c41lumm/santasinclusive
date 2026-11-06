@@ -64,7 +64,7 @@ export async function sendTestEarlyAlert(_prev: FormState, fd: FormData): Promis
   const isEmail = to.includes('@');
   const msg = await withSavedWording(templates.bookingOpen(text(fd, 'name')?.trim().split(' ')[0] || 'there'));
   const results = await send({ email: isEmail ? to : null, phone: isEmail ? null : ukMobile.parse(to), channels: [isEmail ? 'email' : 'sms'] },
-    { subject: `[Test] ${msg.subject}`, text: msg.text }, { template: 'bookingOpenTest' });
+    { subject: `[Test] ${msg.subject}`, text: msg.text, sms: msg.sms }, { template: 'bookingOpenTest' });
   if (!results.some((r) => r.ok)) return problem('The test was not sent. See Messages for why.', 'to');
   return { done: `Test sent to ${to}. It should arrive within a minute; check spam if not.` };
 }

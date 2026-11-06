@@ -315,6 +315,10 @@ e = await err(`select * from message_wording`);
 ok('the public cannot read message wording', e?.includes('permission denied'), e);
 await as('server');
 ok('the server reads saved wording', (await q(`select subject from message_wording where name = 'runningLate'`))[0]?.subject === 'Late');
+ok('a text message version can be saved, and left empty', (await err(`update message_wording set sms_body = 'Late, sorry' where name = 'runningLate'`)) === null
+  && (await err(`update message_wording set sms_body = null where name = 'runningLate'`)) === null);
+e = await err(`update message_wording set sms_body = '' where name = 'runningLate'`);
+ok('but not saved blank', e?.includes('check'), e);
 e = await err(`insert into message_wording (name, subject, body) values ('bad name', 'x', 'y')`);
 ok('message names are checked', e?.includes('check'), e);
 

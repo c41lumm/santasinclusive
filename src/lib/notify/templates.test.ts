@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fill, messageDefs, render, templates, wordingProblems, type TemplateName } from './templates';
+import { fill, messageDefs, render, smsText, templates, wordingProblems, type TemplateName } from './templates';
 
 const v = { name: 'Sam', when: 'Saturday 12 December at 10:20', token: 'tok', reference: 'SIG-1' };
 
@@ -44,5 +44,26 @@ describe('saved wording', () => {
   });
   it('needs a subject and a message', () => {
     expect(wordingProblems('runningLate', ' ', ' ').map((p) => p.field)).toEqual(['subject', 'body']);
+  });
+});
+
+describe('text message wording', () => {
+  const vars = templates.confirmation(v).wording!.vars;
+  it('texts use the email wording when there is no separate text', () => {
+    const m = render('confirmation', vars, { subject: 'S', body: 'Email {booking_link}' });
+    expect(m.sms).toBeUndefined();
+    expect(smsText(m)).toBe('Email /booking/tok');
+  });
+  it('texts use their own wording when there is one', () => {
+    const m = render('confirmation', vars, { subject: 'S', body: 'Email {booking_link}', sms_body: 'Text {name} {booking_link}' });
+    expect(m.text).toBe('Email /booking/tok');
+    expect(smsText(m)).toBe('Text Sam /booking/tok');
+  });
+  it('the text must keep the link too, and use only details the message has', () => {
+    expect(wordingProblems('confirmation', 'S', '{booking_link}', 'No link').map((p) => p.field)).toEqual(['sms_body']);
+    expect(wordingProblems('bookingOpen', 'S', '{book_link}', '{book_link} {reference}')[0].message).toContain('{reference}');
+  });
+  it('a ticked but empty text is a problem', () => {
+    expect(wordingProblems('runningLate', 'S', 'Body', ' ')[0].field).toBe('sms_body');
   });
 });

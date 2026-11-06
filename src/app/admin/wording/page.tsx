@@ -18,7 +18,7 @@ export default async function Wording() {
       <div className="admin-head">
         <div>
           <h1>Message wording</h1>
-          <p>Change what the emails and texts say. The same wording is used for email and text. Changes are used from the next message sent.</p>
+          <p>Change what the emails and texts say. Texts use the email wording unless you write a separate text message. Changes are used from the next message sent.</p>
         </div>
       </div>
       {groups.map((g) => (
@@ -34,7 +34,10 @@ export default async function Wording() {
                     <tr key={n}>
                       <td><Link href={`/admin/wording/${n}`} style={{ fontWeight: 700 }}>{messageDefs[n].label}</Link></td>
                       <td>{messageDefs[n].when}</td>
-                      <td>{s ? <span className="tag tag-green">Changed {when(s.updated_at)}</span> : <span className="tag tag-grey">Original</span>}</td>
+                      <td>
+                        {s ? <span className="tag tag-green">Changed {when(s.updated_at)}</span> : <span className="tag tag-grey">Original</span>}
+                        {s?.sms_body ? <> <span className="tag tag-grey">Own text message</span></> : null}
+                      </td>
                     </tr>
                   );
                 })}
