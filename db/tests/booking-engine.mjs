@@ -322,6 +322,22 @@ ok('but not saved blank', e?.includes('check'), e);
 e = await err(`insert into message_wording (name, subject, body) values ('bad name', 'x', 'y')`);
 ok('message names are checked', e?.includes('check'), e);
 
+// Helpers: only admins can add, change or remove staff
+const helperId = crypto.randomUUID();
+await as('authenticated', leadId);
+e = await err(`insert into staff (user_id, name, role) values ($1, 'Holly', 'elf')`, [helperId]);
+ok('a lead elf cannot add helpers', e !== null, e);
+await as('authenticated', adminId);
+ok('an admin can add a helper', (await err(`insert into staff (user_id, name, role) values ($1, 'Holly', 'elf')`, [helperId])) === null);
+ok('and change what they do', (await err(`update staff set role = 'lead_elf' where user_id = $1`, [helperId])) === null
+  && (await q(`select role from staff where user_id = $1`, [helperId]))[0]?.role === 'lead_elf');
+await as('authenticated', helperId);
+ok('the new helper gets their role', (await q(`select my_role() as r`))[0].r === 'lead_elf');
+await as('authenticated', adminId);
+await q(`delete from staff where user_id = $1`, [helperId]);
+await as('authenticated', helperId);
+ok('a removed helper has no role', (await q(`select my_role() as r`))[0].r === null);
+
 // Messages exist before purge, so the purge has something to remove
 await as('editor');
 await db.query(`insert into messages (booking_id, channel, template, recipient, body) select id, 'email', 'confirmation', 'kate@example.com', 'Sam' from bookings limit 1`);

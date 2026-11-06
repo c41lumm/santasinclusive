@@ -17,7 +17,7 @@ describe('default wording', () => {
       ...(['confirmation', 'pendingReview', 'reminder7d', 'confirm48h', 'missingDetails', 'alreadyBooked', 'moved', 'cancelled', 'duplicateCancelled', 'claimed'] as const)
         .map((n) => templates[n](v)),
       templates.waitlistJoined('Fri', 'l1'), templates.waitlistOffer('Fri', 'c1', '09:00'), templates.rota('Jess', 'wk', ['Mon']),
-      templates.bookingOpen('Sam'), templates.runningLate(),
+      templates.bookingOpen('Sam'), templates.runningLate(), templates.staffWelcome('Jess'),
     ];
     for (const m of all) expect(`${m.subject} ${m.text}`).not.toMatch(/\{[a-z_]+\}/);
   });

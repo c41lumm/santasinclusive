@@ -25,6 +25,7 @@ export const placeholders = {
   week: { label: 'Week', sample: 'week of 14 December' },
   shifts: { label: 'Their shifts, one per line', sample: 'Monday 14 December, Morning\nWednesday 16 December, Afternoon' },
   book_link: { label: 'Link to book', sample: `${site()}/#book` },
+  sign_in_link: { label: 'Link to set a password', sample: `${site()}/staff/reset` },
 } as const;
 export type Placeholder = keyof typeof placeholders;
 
@@ -134,6 +135,14 @@ export const messageDefs = {
     body: 'Hi {name}, thank you for helping. Your shifts for {week}:\n{shifts}\nIf you cannot make one, please let us know as soon as you can.',
     vars: ['name', 'week', 'shifts'], required: ['shifts'],
   },
+  staffWelcome: {
+    label: 'New helper welcome', group: 'Other', when: 'When an admin adds a helper on the Dashboard.',
+    subject: "You're on the team at Santa's Inclusive Grotto",
+    body: "Hi {name}, you've been added to the team at Santa's Inclusive Grotto. 🎄\n\n" +
+      "To sign in, set your password here. Use this email address, then follow the link we send you:\n{sign_in_link}\n\n" +
+      "All the team at Santa's Inclusive Grotto ✨",
+    vars: ['name', 'sign_in_link'], required: ['sign_in_link'],
+  },
   runningLate: {
     label: 'Santa is running late', group: 'Other', when: 'When staff send it from Bookings on the day.',
     subject: 'Santa is running a little late',
@@ -193,6 +202,7 @@ export const templates = {
   /** To everyone who asked for an early alert, when booking opens */
   bookingOpen: (name: string) => render('bookingOpen', { name, book_link: `${site()}/#book` }),
   runningLate: () => render('runningLate', {}),
+  staffWelcome: (name: string) => render('staffWelcome', { name, sign_in_link: `${site()}/staff/reset` }),
 } satisfies Record<TemplateName, (...args: never[]) => Message>;
 
 /** Problems with wording an admin wants to save, in plain words. Empty when it is fine. */
