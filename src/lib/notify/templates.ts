@@ -76,9 +76,10 @@ export const templates = {
   }),
   /** To everyone who asked for an early alert, when booking opens */
   bookingOpen: (name: string) => ({
-    subject: "Booking is open for Santa's Inclusive Grotto",
-    text: `Hi ${name}, booking for Santa's Inclusive Grotto is now open. Choose your day and time here: ${site()}/#book ` +
-      `Visits are free and go quickly.`,
+    subject: "🎅 Booking is now open at Santa's Inclusive Grotto",
+    text: `Hi ${name},\n\nThank you for signing up for early alerts from Santa's Inclusive Grotto. 🎄\n\n` +
+      `Booking is now open! 🎉 Choose your day and time here:\n${site()}/#book\n\n` +
+      `All the team at Santa's Inclusive Grotto ✨`,
   }),
   runningLate: () => ({
     subject: 'Santa is running a little late',
