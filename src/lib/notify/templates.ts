@@ -145,18 +145,26 @@ export const messageDefs = {
 export type TemplateName = keyof typeof messageDefs;
 export const isTemplateName = (n: string): n is TemplateName => Object.hasOwn(messageDefs, n);
 
-/** A message ready to send. `wording` lets send() swap in wording an admin has saved. */
-export type Message = { subject: string; text: string; wording?: { name: TemplateName; vars: Partial<Record<Placeholder, string>> } };
+/**
+ * A message ready to send. `sms` is a separate text message version, when an admin has written one; otherwise
+ * texts use `text`. `wording` lets send() swap in wording an admin has saved.
+ */
+export type Message = { subject: string; text: string; sms?: string; wording?: { name: TemplateName; vars: Partial<Record<Placeholder, string>> } };
+export type Wording = { subject: string; body: string; sms_body?: string | null };
 
 /** Puts the values into {placeholders}. Unknown placeholders are left as they are. */
 export function fill(t: string, vars: Partial<Record<Placeholder, string>>) {
   return t.replace(/\{([a-z_]+)\}/g, (m, k: string) => vars[k as Placeholder] ?? m);
 }
 
-export function render(name: TemplateName, vars: Partial<Record<Placeholder, string>>, wording?: { subject: string; body: string }): Message {
+export function render(name: TemplateName, vars: Partial<Record<Placeholder, string>>, wording?: Wording): Message {
   const w = wording ?? messageDefs[name];
-  return { subject: fill(w.subject, vars), text: fill(w.body, vars), wording: { name, vars } };
+  const sms = wording?.sms_body ? fill(wording.sms_body, vars) : undefined;
+  return { subject: fill(w.subject, vars), text: fill(w.body, vars), ...(sms ? { sms } : {}), wording: { name, vars } };
 }
+
+/** What a text message says: its own wording if it has one, otherwise the same as the email */
+export const smsText = (m: Message) => m.sms ?? m.text;
 
 /** The example values for one message, as the admin preview shows it */
 export const sampleVars = (name: TemplateName) =>
@@ -188,19 +196,22 @@ export const templates = {
 } satisfies Record<TemplateName, (...args: never[]) => Message>;
 
 /** Problems with wording an admin wants to save, in plain words. Empty when it is fine. */
-export function wordingProblems(name: TemplateName, subject: string, body: string) {
+export function wordingProblems(name: TemplateName, subject: string, body: string, sms?: string | null) {
   const def = messageDefs[name];
-  const problems: { field: 'subject' | 'body'; message: string }[] = [];
+  const problems: { field: 'subject' | 'body' | 'sms_body'; message: string }[] = [];
   if (!subject.trim()) problems.push({ field: 'subject', message: 'Please give a subject' });
   if (subject.length > 200) problems.push({ field: 'subject', message: 'Please keep the subject under 200 characters' });
   if (!body.trim()) problems.push({ field: 'body', message: 'Please write the message' });
   if (body.length > 2000) problems.push({ field: 'body', message: 'Please keep the message under 2,000 characters' });
-  for (const [field, t] of [['subject', subject], ['body', body]] as const) {
+  if (sms != null && !sms.trim()) problems.push({ field: 'sms_body', message: 'Please write the text message, or untick "Send a different text"' });
+  if (sms != null && sms.length > 1000) problems.push({ field: 'sms_body', message: 'Please keep the text message under 1,000 characters' });
+  for (const [field, t] of [['subject', subject], ['body', body], ['sms_body', sms ?? '']] as const) {
     const unknown = [...t.matchAll(/\{([^}]*)\}/g)].map((m) => m[1]).filter((k) => !(def.vars as readonly string[]).includes(k));
     if (unknown.length) problems.push({ field, message: `This message cannot use {${unknown[0]}}. Use the buttons to add details it can use.` });
   }
   for (const k of def.required) {
     if (!body.includes(`{${k}}`)) problems.push({ field: 'body', message: `The message must include {${k}} (${placeholders[k].label.toLowerCase()}), so people can use it.` });
+    if (sms?.trim() && !sms.includes(`{${k}}`)) problems.push({ field: 'sms_body', message: `The text message must include {${k}} (${placeholders[k].label.toLowerCase()}), so people can use it.` });
   }
   return problems;
 }

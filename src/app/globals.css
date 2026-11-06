@@ -461,3 +461,4 @@ a.a-list-item:hover { background: #f7fbf8; color: var(--text); }
 .simple-table th { text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .simple-table td { padding: 10px 12px; border-bottom: 1px solid #f0eadf; vertical-align: top; }
 .table-wrap { overflow-x: auto; }
+.sms-bubble { background: #e9e9eb; color: #111; border-radius: 18px 18px 18px 4px; padding: 10px 14px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.95rem; max-width: 100%; }

@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 import twilio from 'twilio';
 import { db } from '@/lib/db';
 import { site } from '@/lib/site';
-import type { Message } from './templates';
+import { smsText, type Message } from './templates';
 import { withSavedWording } from './wording';
 
 type Channel = 'email' | 'sms' | 'whatsapp';
@@ -27,9 +27,10 @@ export async function send(to: Recipient, message: Message, link: Link) {
   for (const channel of to.channels) {
     const recipient = channel === 'email' ? to.email : to.phone;
     if (!recipient) continue;
+    const body = channel === 'email' ? msg.text : smsText(msg);
     const [row] = await sql`
       insert into messages (booking_id, waitlist_id, volunteer_id, template, channel, recipient, body, status)
-      values (${link.booking_id ?? null}, ${link.waitlist_id ?? null}, ${link.volunteer_id ?? null}, ${link.template}, ${channel}, ${recipient}, ${msg.text}, 'queued')
+      values (${link.booking_id ?? null}, ${link.waitlist_id ?? null}, ${link.volunteer_id ?? null}, ${link.template}, ${channel}, ${recipient}, ${body}, 'queued')
       returning id`;
     // While developing locally, messages are logged but not sent, so test bookings never text or email anyone.
     // Set SEND_IN_DEV=1 in .env.local to send for real.
@@ -52,8 +53,8 @@ export async function send(to: Recipient, message: Message, link: Link) {
         const client = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
         // WhatsApp messages that start a conversation must use a template approved by Meta (see README)
         const res = await client.messages.create(channel === 'sms'
-          ? { from: process.env.TWILIO_SMS_FROM!, to: toE164(recipient), body: msg.text }
-          : { from: process.env.TWILIO_WHATSAPP_FROM!, to: `whatsapp:${toE164(recipient)}`, body: msg.text });
+          ? { from: process.env.TWILIO_SMS_FROM!, to: toE164(recipient), body }
+          : { from: process.env.TWILIO_WHATSAPP_FROM!, to: `whatsapp:${toE164(recipient)}`, body });
         providerId = res.sid;
       }
       await sql`update messages set status = 'sent', sent_at = now(), provider_id = ${providerId ?? null} where id = ${row.id}`;

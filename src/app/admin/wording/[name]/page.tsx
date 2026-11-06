@@ -33,7 +33,7 @@ export default async function EditWording({ params, searchParams }: { params: Pr
       {reset && !saved ? <p className="notice" role="status">Back to the original wording.</p> : null}
       {/* A fresh editor only after a reset, so a save keeps showing its "Saved" message */}
       <WordingEditor key={reset ?? 'edit'} name={name}
-        subject={saved?.subject ?? def.subject} body={saved?.body ?? def.body}
+        subject={saved?.subject ?? def.subject} body={saved?.body ?? def.body} sms={saved?.sms_body ?? null}
         original={{ subject: def.subject, body: def.body }}
         vars={def.vars.map((k) => ({ key: k, label: placeholders[k].label, required: (def.required as readonly string[]).includes(k) }))}
         save={saveWording.bind(null, name)} test={sendTestWording.bind(null, name)} />
