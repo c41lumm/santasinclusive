@@ -234,6 +234,23 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .sub-card { border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 16px; background: #fdfbf6; }
 .sub-card .who { margin: 0 0 12px; font-weight: 700; color: var(--green); }
 .row-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 16px; }
+.name-age { display: grid; grid-template-columns: minmax(0, 1fr) 9rem; gap: 0 16px; align-items: end; }
+.form-sub { font-size: 1.25rem; margin: 28px 0 4px; }
+.form-sub .optional { font-family: inherit; font-size: 1rem; }
+.btn-add { margin-top: 4px; }
+.address-fields { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 0 16px; margin-top: 12px; }
+.book-summary { margin: 0 0 4px; text-align: center; color: var(--muted); }
+.book-summary strong { color: var(--text); }
+@media (max-width: 40rem) {
+  .sub-card { padding: 14px; }
+  .name-age { display: block; }
+  .name-age input[name$=".age"] { max-width: 6rem; }
+  .form-part > h2 { font-size: 1.6rem; }
+  .form-part > .intro { margin-bottom: 20px; }
+  .btn-add { width: 100%; }
+  .address-fields { grid-template-columns: 1fr; }
+  .address-fields input[name="postcode"] { max-width: 10rem; }
+}
 .form-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 8px; }
 
 /* Homepage pieces */

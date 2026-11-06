@@ -38,7 +38,7 @@ export default async function Details({ searchParams }: { searchParams: Promise<
           <p style={{ margin: 0 }}><strong>Where:</strong> {site.address}</p>
         </div>
       </div>
-      <BookingForm slotId={slot.slot_id} />
+      <BookingForm slotId={slot.slot_id} when={visitWhen(day, slot.starts_at)} />
     </div>
   );
 }
