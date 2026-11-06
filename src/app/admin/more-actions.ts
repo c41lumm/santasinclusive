@@ -5,6 +5,7 @@ import { asStaff } from '@/lib/db';
 import { isUuid } from '@/lib/admin/data';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
+import { withSavedWording } from '@/lib/notify/wording';
 import { z } from 'zod';
 import { ukMobile } from '@/lib/booking-schema';
 import { problem, text, type FormState } from '@/lib/forms';
@@ -61,7 +62,7 @@ export async function sendTestEarlyAlert(_prev: FormState, fd: FormData): Promis
   if (!parsed.success) return problem(parsed.error.issues[0].message, 'to');
   const to = parsed.data;
   const isEmail = to.includes('@');
-  const msg = templates.bookingOpen(text(fd, 'name')?.trim().split(' ')[0] || 'there');
+  const msg = await withSavedWording(templates.bookingOpen(text(fd, 'name')?.trim().split(' ')[0] || 'there'));
   const results = await send({ email: isEmail ? to : null, phone: isEmail ? null : ukMobile.parse(to), channels: [isEmail ? 'email' : 'sms'] },
     { subject: `[Test] ${msg.subject}`, text: msg.text }, { template: 'bookingOpenTest' });
   if (!results.some((r) => r.ok)) return problem('The test was not sent. See Messages for why.', 'to');

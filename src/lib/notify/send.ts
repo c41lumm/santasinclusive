@@ -3,10 +3,11 @@ import { Resend } from 'resend';
 import twilio from 'twilio';
 import { db } from '@/lib/db';
 import { site } from '@/lib/site';
+import type { Message } from './templates';
+import { withSavedWording } from './wording';
 
 type Channel = 'email' | 'sms' | 'whatsapp';
 type Recipient = { email?: string | null; phone?: string | null; channels: Channel[] };
-type Message = { subject: string; text: string };
 type Link = { booking_id?: string; waitlist_id?: string; volunteer_id?: string; template: string };
 
 /** UK mobiles to +44 format for Twilio. Anything else is refused, so texts are never sent abroad. */
@@ -18,8 +19,10 @@ export function toE164(phone: string) {
 }
 
 /** Sends on every channel the family chose, and logs each attempt in the messages table. */
-export async function send(to: Recipient, msg: Message, link: Link) {
+export async function send(to: Recipient, message: Message, link: Link) {
   const sql = db();
+  // Wording an admin saved in Admin > Message wording, if any
+  const msg = await withSavedWording(message);
   const results: { channel: Channel; ok: boolean }[] = [];
   for (const channel of to.channels) {
     const recipient = channel === 'email' ? to.email : to.phone;

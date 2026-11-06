@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { requireStaff } from '@/lib/auth/staff';
 import { adminSeason, dayRows, openingDays, type DayRow } from '@/lib/admin/data';
 import { dayName, dayParts, visitWhen } from '@/lib/dates';
-import { templates } from '@/lib/notify/templates';
+import { render, templates } from '@/lib/notify/templates';
+import { savedWording } from '@/lib/notify/wording';
 import { cancelBooking, confirmBooking, markArrived, sendMessages } from './actions';
 import { Composer } from './composer';
 
@@ -64,12 +65,15 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
     return filter === 'all';
   });
 
+  // Shown before sending, with any wording an admin has saved in Message wording
+  const saved = await savedWording().catch(() => new Map<string, { subject: string; body: string }>());
   const preview = (name: string, when: string) => {
     const v = { name, when, token: 'link', reference: 'SIG-…' };
     const tidy = (s: string) => s.replace(/https?:\/\/\S*\/booking\/link(\/confirm)?|\/booking\/link(\/confirm)?/g, '[their link]');
+    const text = (m: ReturnType<typeof templates.runningLate>) => (m.wording ? render(m.wording.name, m.wording.vars, saved.get(m.wording.name)).text : m.text);
     return {
-      reminder: tidy(templates.reminder7d(v).text), confirm: tidy(templates.confirm48h(v).text),
-      details: tidy(templates.missingDetails(v).text), late: templates.runningLate().text,
+      reminder: tidy(text(templates.reminder7d(v))), confirm: tidy(text(templates.confirm48h(v))),
+      details: tidy(text(templates.missingDetails(v))), late: text(templates.runningLate()),
     };
   };
 
