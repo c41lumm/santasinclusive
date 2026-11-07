@@ -57,20 +57,20 @@ export const messageDefs = {
     vars: visitVars, required: ['booking_link'],
   },
   reminder7d: {
-    label: 'Reminder a week before', group: 'Bookings', when: '5 to 7 days before the visit. Staff can also send it from Bookings.',
+    label: 'Reminder a week before', group: 'Bookings', when: '5 to 7 days before the visit. Helpers can also send it from Bookings.',
     subject: 'See you soon, {when}',
     body: "A reminder that {name}'s visit to Santa is on {when}. Directions: {directions}. Can't make it? Tap to change: {booking_link}",
     vars: visitVars, required: ['booking_link'],
   },
   confirm48h: {
-    label: 'Please confirm (2 days before)', group: 'Bookings', when: '1 to 2 days before the visit. Staff can also send it from Bookings.',
+    label: 'Please confirm (2 days before)', group: 'Bookings', when: '1 to 2 days before the visit. Helpers can also send it from Bookings.',
     subject: "Please confirm {name}'s visit",
     body: "Can you confirm {name}'s visit on {when}? Tap to confirm: {confirm_link} If you can't make it, tap to change or cancel: {booking_link}",
     vars: visitVars, required: ['confirm_link'],
   },
   missingDetails: {
     label: 'Tell Santa about your visitor', group: 'Bookings',
-    when: 'When a family has not told us about their visitor yet. Staff can also send it from Bookings.',
+    when: 'When a family has not told us about their visitor yet. Helpers can also send it from Bookings.',
     subject: 'Tell Santa about {name}',
     body: 'Santa would love to know more about {name} before your visit. It takes about five minutes: {booking_link}',
     vars: visitVars, required: ['booking_link'],
@@ -130,7 +130,7 @@ export const messageDefs = {
     vars: ['name', 'book_link'], required: ['book_link'],
   },
   rota: {
-    label: 'Volunteer shifts', group: 'Other', when: 'When an admin or lead elf sends the week’s rota to volunteers.',
+    label: 'Helper shifts', group: 'Other', when: 'When an admin or lead elf sends the week’s rota to helpers.',
     subject: "Your shifts at Santa's Inclusive Grotto, {week}",
     body: 'Hi {name}, thank you for helping. Your shifts for {week}:\n{shifts}\nIf you cannot make one, please let us know as soon as you can.',
     vars: ['name', 'week', 'shifts'], required: ['shifts'],
@@ -144,7 +144,7 @@ export const messageDefs = {
     vars: ['name', 'sign_in_link'], required: ['sign_in_link'],
   },
   runningLate: {
-    label: 'Santa is running late', group: 'Other', when: 'When staff send it from Bookings on the day.',
+    label: 'Santa is running late', group: 'Other', when: 'When helpers send it from Bookings on the day.',
     subject: 'Santa is running a little late',
     body: 'Santa is running about 10 minutes behind today. There is no need to rush, we will be ready for you.',
     vars: [], required: [],

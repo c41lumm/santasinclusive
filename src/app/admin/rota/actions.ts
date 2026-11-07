@@ -53,5 +53,5 @@ export async function sendRota(year: number, first: string, last: string, label:
     if (results.some((r) => r.ok)) sentTo++;
   }
   revalidatePath('/admin/messages');
-  return { done: `Sent to ${sentTo} ${sentTo === 1 ? 'volunteer' : 'volunteers'}.` };
+  return { done: `Sent to ${sentTo} ${sentTo === 1 ? 'helper' : 'helpers'}.` };
 }

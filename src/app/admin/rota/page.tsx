@@ -7,7 +7,7 @@ import { dayName, dayParts } from '@/lib/dates';
 import { assign, makeShifts, sendRota, setNeeded, unassign } from './actions';
 import { SendRota } from './send-rota';
 
-export const metadata: Metadata = { title: 'Staff rota' };
+export const metadata: Metadata = { title: 'Helper rota' };
 
 /** Monday-to-Sunday weeks of the season */
 function weeksOf(days: string[]) {
@@ -25,12 +25,12 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
   await requireStaff(['admin', 'lead_elf']);
   const sp = await searchParams;
   const season = await adminSeason();
-  if (!season) return <div className="admin-head"><h1>Staff rota</h1><p>There is no season set up yet.</p></div>;
+  if (!season) return <div className="admin-head"><h1>Helper rota</h1><p>There is no season set up yet.</p></div>;
   const { vols, shifts } = await rotaData(season.year);
   if (!shifts.length) {
     return (
       <>
-        <div className="admin-head"><div><h1>Staff rota</h1><p>Santas and elves for every shift, from volunteers&apos; availability.</p></div></div>
+        <div className="admin-head"><div><h1>Helper rota</h1><p>Santas and elves for every shift, from helpers&apos; availability.</p></div></div>
         <div className="a-panel" style={{ maxWidth: 640 }}>
           <h2>No shifts yet</h2>
           <p>Create a morning and an afternoon shift for every open day. Their times follow each day&apos;s opening hours, and you can change how
@@ -94,7 +94,7 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
   return (
     <>
       <div className="admin-head">
-        <div><h1>Staff rota</h1><p>Santas and elves for every shift, from volunteers&apos; availability.</p></div>
+        <div><h1>Helper rota</h1><p>Santas and elves for every shift, from helpers&apos; availability.</p></div>
         <div style={{ minWidth: 260 }}>
           <SendRota action={sendRota.bind(null, season.year, week[0], week[week.length - 1], label)} />
         </div>
@@ -110,11 +110,11 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
         <p style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           <span><strong style={{ color: 'var(--green)' }}>{weekShifts.filter((s) => !gapOf(s)).length}/{weekShifts.length}</strong> shifts covered</span>
           <span><strong style={{ color: gaps ? 'var(--red)' : 'var(--green)' }}>{gaps}</strong> {gaps === 1 ? 'person' : 'people'} needed</span>
-          <span><strong>{people.size}</strong> volunteers this week</span>
+          <span><strong>{people.size}</strong> helpers this week</span>
         </p>
       </div>
       {!vols.length ? (
-        <div className="a-note"><p>No volunteers are approved yet. Approve them on the <Link href="/admin/volunteers">Volunteers</Link> page and they will appear here.</p></div>
+        <div className="a-note"><p>No helpers are approved yet. Approve them on the <Link href="/admin/volunteers">Helper applications</Link> page, or add them on the Dashboard, and they will appear here.</p></div>
       ) : null}
 
       <div className="a-split">
@@ -157,7 +157,7 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
         ) : null}
       </div>
       <section className="a-note">
-        <p><strong>How it works.</strong> Each volunteer&apos;s availability comes from their application. Only approved volunteers who said they could do
+        <p><strong>How it works.</strong> Each helper&apos;s availability comes from their application. Only approved helpers who said they could do
           that day are offered for a shift. Sending the rota messages each person their own shifts for the week by email and text.</p>
       </section>
     </>

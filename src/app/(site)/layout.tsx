@@ -37,7 +37,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
               <Link href="/accessibility">Accessibility statement</Link>
             </p>
             {/* /admin goes straight in when signed in, otherwise to the sign-in page */}
-            <div><Link className="footer-staff" href="/admin" prefetch={false}>Staff login</Link></div>
+            <div><Link className="footer-staff" href="/admin" prefetch={false}>Helper login</Link></div>
           </div>
         </div>
       </footer>

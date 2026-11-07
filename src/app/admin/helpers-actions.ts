@@ -48,18 +48,20 @@ const addSchema = z.object({
  * the rota straight away. They are marked as able to help on any day of the season. Someone who already applied as
  * a volunteer with the same email is approved and linked to their account instead of being added twice.
  */
-async function makeVolunteer(userId: string, name: string, email: string, role: StaffRole, phone: string | undefined) {
+async function makeVolunteer(userId: string, name: string, email: string, role: StaffRole, phone: string | undefined, by: string) {
   if (role === 'admin') return;
   const season = await adminSeason();
   const anyDay = season ? [`${Number(season.first_day.slice(8, 10))} to ${Number(season.last_day.slice(8, 10))} December`] : [];
   await asStaff((sql) => [sql`
     with linked as (
       update volunteers set user_id = ${userId}::uuid, role = ${role}::staff_role, status = 'approved',
-             phone = coalesce(nullif(${phone ?? ''}, ''), phone)
+             phone = coalesce(nullif(${phone ?? ''}, ''), phone),
+             approved_by = case when status = 'approved' then approved_by else ${by} end,
+             approved_at = case when status = 'approved' then approved_at else now() end
       where user_id = ${userId}::uuid or (user_id is null and lower(email::text) = lower(${email}))
       returning id)
-    insert into volunteers (user_id, name, email, phone, role, over_18, status, available_weeks)
-    select ${userId}::uuid, ${name}, ${email}, ${phone ?? ''}, ${role}::staff_role, true, 'approved', ${anyDay}::text[]
+    insert into volunteers (user_id, name, email, phone, role, over_18, status, available_weeks, approved_by, approved_at)
+    select ${userId}::uuid, ${name}, ${email}, ${phone ?? ''}, ${role}::staff_role, true, 'approved', ${anyDay}::text[], ${by}, now()
     where not exists (select 1 from linked)`]);
 }
 
@@ -87,13 +89,13 @@ export async function addHelper(_prev: FormState, fd: FormData): Promise<FormSta
     userId = data.user.id;
   }
 
-  await asStaff((sql) => [sql`insert into staff (user_id, name, role, phone) values (${userId}::uuid, ${name}, ${role}::staff_role, ${phone ?? null})`]);
-  await makeVolunteer(userId, name, email, role, phone);
+  await asStaff((sql) => [sql`insert into staff (user_id, name, role, phone, added_by) values (${userId}::uuid, ${name}, ${role}::staff_role, ${phone ?? null}, ${me.name})`]);
+  await makeVolunteer(userId, name, email, role, phone, me.name);
   await auth.requestPasswordReset({ email, redirectTo: `${await origin()}/staff/new-password` });
   await send({ email, channels: ['email'] }, templates.staffWelcome(name.split(' ')[0]), { template: 'staffWelcome' });
   revalidatePath('/admin');
   revalidatePath('/admin/rota');
-  const rota = role === 'admin' ? '' : ' They are now an approved volunteer, so you can put them on the Staff rota.';
+  const rota = role === 'admin' ? '' : ' You can now put them on the Helper rota.';
   return { done: `${name} has been added. We have emailed ${email} a link to set their password.${rota}` };
 }
 
@@ -109,7 +111,7 @@ export async function setHelperRole(userId: string, fd: FormData) {
   if (role !== 'admin') {
     const [h] = await db()`select s.name, u.email, s.phone from staff s join neon_auth."user" u on u.id = s.user_id
       where s.user_id = ${userId}::uuid` as { name: string; email: string; phone: string | null }[];
-    if (h) await makeVolunteer(userId, h.name, h.email, role, h.phone ?? undefined);
+    if (h) await makeVolunteer(userId, h.name, h.email, role, h.phone ?? undefined, me.name);
   }
   revalidatePath('/admin');
   revalidatePath('/admin/rota');

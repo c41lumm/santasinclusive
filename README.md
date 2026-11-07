@@ -110,9 +110,9 @@ have no design and follow the same style.
   text, with the reason any failed), **Volunteers** (approve or decline; approved people appear on the rota) and
   **Sponsorship** (mark invoiced or paid): admin only.
 - **Toy stock**: gifts needed by age, stock in and on the way, and deliveries.
-- **Staff rota**: a morning and an afternoon shift for every open day, filled from volunteers' availability, and
+- **Helper rota**: a morning and an afternoon shift for every open day, filled from volunteers' availability, and
   "Send this week's rota" to each person.
-- Lead elves see Dashboard, Bookings, Toy stock and Staff rota. The database enforces the same rules (row level
+- Lead elves see Dashboard, Bookings, Toy stock and Helper rota. The database enforces the same rules (row level
   security), not only the menu.
 - Database: `db/migrations/20261015000000_admin.sql`.
 - **Locally**: messages are not sent unless `SEND_IN_DEV=1` is in `.env.local` (they are logged on the Messages page as

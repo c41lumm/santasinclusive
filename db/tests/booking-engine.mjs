@@ -341,10 +341,11 @@ ok('a removed helper has no role', (await q(`select my_role() as r`))[0].r === n
 // Helpers become approved volunteers (the same statement as makeVolunteer in src/app/admin/helpers-actions.ts)
 const makeVol = (uid, name, email, role, phone) => q(`
   with linked as (
-    update volunteers set user_id = $1::uuid, role = $4::staff_role, status = 'approved', phone = coalesce(nullif($5, ''), phone)
+    update volunteers set user_id = $1::uuid, role = $4::staff_role, status = 'approved', phone = coalesce(nullif($5, ''), phone),
+      approved_by = case when status = 'approved' then approved_by else 'Ada Admin' end, approved_at = case when status = 'approved' then approved_at else now() end
     where user_id = $1::uuid or (user_id is null and lower(email::text) = lower($3)) returning id)
-  insert into volunteers (user_id, name, email, phone, role, over_18, status, available_weeks)
-  select $1::uuid, $2, $3, $5, $4::staff_role, true, 'approved', array['1 to 24 December'] where not exists (select 1 from linked)`,
+  insert into volunteers (user_id, name, email, phone, role, over_18, status, available_weeks, approved_by, approved_at)
+  select $1::uuid, $2, $3, $5, $4::staff_role, true, 'approved', array['1 to 24 December'], 'Ada Admin', now() where not exists (select 1 from linked)`,
   [uid, name, email, role, phone]);
 await as('authenticated', adminId);
 const newHelper = crypto.randomUUID();
@@ -361,6 +362,8 @@ rv = await q(`select status, role, phone, user_id from volunteers where lower(em
 ok('someone who applied is approved and linked, not added twice', rv.length === 1 && rv[0].status === 'approved' && rv[0].role === 'santa'
   && rv[0].phone === '07700900222' && rv[0].user_id === ivyId, JSON.stringify(rv));
 await makeVol(ivyId, 'Ivy', 'ivy@example.com', 'lead_elf', '');
+ok('it records who approved them', (await q(`select approved_by from volunteers where user_id = $1`, [newHelper]))[0].approved_by === 'Ada Admin'
+  && (await q(`select approved_by from volunteers where user_id = $1`, [ivyId]))[0].approved_by === 'Ada Admin');
 ok('changing what they do updates their volunteer role', (await q(`select role from volunteers where user_id = $1`, [ivyId]))[0].role === 'lead_elf');
 
 // Messages exist before purge, so the purge has something to remove
