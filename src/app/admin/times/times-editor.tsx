@@ -37,6 +37,8 @@ export function TimesEditor(props: Props) {
 
   const breaksFor = (d: Day) => (d.own_breaks ? dayBreaks[d.day] ?? [] : everyDay);
   const timesFor = (d: Day) => slotTimes({ opensAt: d.opens_at, closesAt: d.closes_at, closed: d.closed }, { visitMinutes: len, gapMinutes: gap }, breaksFor(d));
+  // The times a closed day will have once it is opened, so its hours can be set up in advance
+  const plannedTimes = (d: Day) => slotTimes({ opensAt: d.opens_at, closesAt: d.closes_at, closed: false }, { visitMinutes: len, gapMinutes: gap }, breaksFor(d));
   const counts: Record<string, number> = Object.fromEntries(days.map((d) => [d.day, timesFor(d).filter((t) => !t.blocked).length]));
   const season = days.reduce((a, d) => a + counts[d.day], 0) * cap;
   const openDays = days.filter((d) => !d.closed).length;
@@ -45,7 +47,7 @@ export function TimesEditor(props: Props) {
   const copyTo = (pick: (weekday: number) => boolean) => {
     if (!cur) return;
     setDays((ds) => ds.map((d) => (pick(new Date(`${d.day}T12:00:00Z`).getUTCDay())
-      ? { ...d, opens_at: cur.opens_at, closes_at: cur.closes_at, closed: cur.closed } : d)));
+      ? { ...d, opens_at: cur.opens_at, closes_at: cur.closes_at } : d)));
   };
   const toggleBreak = (t: string) => {
     if (!cur) return;
@@ -100,9 +102,10 @@ export function TimesEditor(props: Props) {
                 return (
                   <button key={d.day} type="button" onClick={() => setSel(d.day)} aria-pressed={d.day === sel}
                     className={`chip${d.day === sel ? ' on' : ''}`} style={{ minHeight: 74, borderRadius: 14, flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', padding: '8px 10px', borderStyle: d.closed && d.day !== sel ? 'dashed' : undefined }}
-                    aria-label={`${dayName(d.day)}, ${d.closed ? 'closed' : `${d.opens_at} to ${d.closes_at}, ${counts[d.day]} bookable times`}`}>
+                    aria-label={`${dayName(d.day)}, ${d.closed ? `closed, hours set to ${d.opens_at} to ${d.closes_at}` : `${d.opens_at} to ${d.closes_at}, ${counts[d.day]} bookable times`}`}>
                     <span>{p.weekday} {p.date}</span>
                     <span style={{ fontWeight: 400, fontSize: '0.8rem' }}>{d.closed ? 'Closed' : `${d.opens_at} to ${d.closes_at}`}</span>
+                    {d.closed ? <span style={{ fontWeight: 400, fontSize: '0.75rem' }}>{d.opens_at} to {d.closes_at}</span> : null}
                     {!d.closed ? <span style={{ fontWeight: 400, fontSize: '0.8rem' }}>{counts[d.day]} times</span> : null}
                   </button>
                 );
@@ -115,16 +118,19 @@ export function TimesEditor(props: Props) {
               <div className="admin-head" style={{ marginBottom: 16 }}>
                 <div>
                   <h2 id="ed-h" style={{ margin: 0 }}>{dayName(cur.day)}</h2>
-                  <p className="muted" aria-live="polite" style={{ margin: 0 }}>{cur.closed ? 'Closed' : `${cur.opens_at} to ${cur.closes_at}, ${counts[cur.day]} bookable times${cap > 1 ? `, up to ${counts[cur.day] * cap} families` : ''}`}</p>
+                  <p className="muted" aria-live="polite" style={{ margin: 0 }}>{cur.closed ? `Closed. Hours ready: ${cur.opens_at} to ${cur.closes_at}, ${plannedTimes(cur).filter((t) => !t.blocked).length} times once open` : `${cur.opens_at} to ${cur.closes_at}, ${counts[cur.day]} bookable times${cap > 1 ? `, up to ${counts[cur.day] * cap} families` : ''}`}</p>
                 </div>
                 <button type="button" className={`btn ${cur.closed ? 'btn-outline' : 'btn-danger'}`} aria-pressed={cur.closed} onClick={() => setDay({ closed: !cur.closed })}>
                   {cur.closed ? 'Open this day' : 'Close this day'}
                 </button>
               </div>
               {cur.closed ? (
-                <p className="muted">The grotto is closed on this day, so families cannot book it. Choose “Open this day” to add hours.</p>
-              ) : (
-                <>
+                <p className="notice" style={{ marginBottom: 16 }}>
+                  This day is closed, so families cannot book it. You can set its hours and breaks now; choose “Open this day” and save when
+                  you are ready to put it live.
+                </p>
+              ) : null}
+              <>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginBottom: 20 }}>
                     <div><p style={{ fontWeight: 700, margin: '0 0 6px' }}>Opens</p>
                       <Stepper label="opening time" value={cur.opens_at} onDec={() => shift('opens_at', -30)} onInc={() => shift('opens_at', 30)} /></div>
@@ -145,7 +151,7 @@ export function TimesEditor(props: Props) {
                     </button>
                   </div>
                   <div className="a-times" role="group" aria-label="Times">
-                    {timesFor(cur).map((t) => {
+                    {(cur.closed ? plannedTimes(cur) : timesFor(cur)).map((t) => {
                       const isBooked = bookedNow.includes(t.startsAt);
                       return (
                         <button key={t.startsAt} type="button" aria-pressed={t.blocked} disabled={isBooked && !t.blocked} onClick={() => toggleBreak(t.startsAt)}
@@ -155,8 +161,7 @@ export function TimesEditor(props: Props) {
                       );
                     })}
                   </div>
-                </>
-              )}
+              </>
               {lost.length ? (
                 <p className="notice" style={{ marginTop: 16 }} role="status">
                   Families are booked at {lost.join(', ')} on this day, which these hours would remove or block. Move them first, or saving will be refused.
