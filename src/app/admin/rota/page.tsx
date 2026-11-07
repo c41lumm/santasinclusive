@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireStaff } from '@/lib/auth/staff';
 import { adminSeason } from '@/lib/admin/data';
-import { availability, canDo, rotaData, type Shift, type Volunteer } from '@/lib/admin/rota';
+import { availability, canDo, rotaData, type Shift } from '@/lib/admin/rota';
 import { dayName, dayParts } from '@/lib/dates';
+import { roleLabel } from '@/lib/helper-roles';
 import { assign, makeShifts, sendRota, setNeeded, unassign } from './actions';
 import { SendRota } from './send-rota';
 
@@ -61,7 +62,7 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
     const pool = vols.filter((v) => (role === 'santa' ? v.role === 'santa' : v.role !== 'santa') && !s.people.some((p) => p.volunteer_id === v.id));
     const free = pool.filter((v) => canDo(v, s.day));
     const away = pool.filter((v) => !canDo(v, s.day));
-    const nameOf = (v: Volunteer | undefined) => (v ? (role === 'santa' ? v.name : `Elf ${v.name.split(' ')[0]}`) : 'Someone');
+    const noted = free.filter((v) => v.notes);
     return (
       <div className="a-panel" key={role}>
         <div className="admin-head" style={{ alignItems: 'center', marginBottom: 10 }}>
@@ -75,7 +76,7 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
         </div>
         {on.map((p) => (
           <div className="person-row" key={p.volunteer_id}>
-            <span style={{ fontWeight: 700 }}>{nameOf(byId.get(p.volunteer_id))}</span>
+            <span><span style={{ fontWeight: 700 }}>{byId.get(p.volunteer_id)?.name ?? 'Someone'}</span> <span className="tag tag-grey">{roleLabel(byId.get(p.volunteer_id)?.role ?? p.role)}</span></span>
             <form action={unassign.bind(null, s.id, p.volunteer_id)}><button type="submit" className="btn btn-plain btn-sm" aria-label={`Remove ${byId.get(p.volunteer_id)?.name ?? 'this person'}`}>Remove</button></form>
           </div>
         ))}
@@ -83,10 +84,11 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
         <p style={{ fontWeight: 700, margin: '12px 0 6px', fontSize: '0.9rem' }}>Available to add</p>
         <div className="a-chips">
           {free.length ? free.map((v) => (
-            <form key={v.id} action={assign.bind(null, s.id, v.id, role)}><button type="submit" className="chip" aria-label={`Add ${v.name}`}>+ {v.name}</button></form>
+            <form key={v.id} action={assign.bind(null, s.id, v.id, role)}><button type="submit" className="chip" aria-label={`Add ${v.name}, ${roleLabel(v.role)}`}>+ {v.name}<span className="small" style={{ fontWeight: 400 }}>&nbsp;· {roleLabel(v.role)}</span></button></form>
           )) : <span className="small">No one else is available that day.</span>}
         </div>
-        {away.length ? <p className="small" style={{ marginTop: 10, marginBottom: 0 }}>Not available: {away.map((v) => `${v.name} (${availability(v)})`).join(', ')}</p> : null}
+        {noted.length ? <ul className="small" style={{ margin: '10px 0 0', paddingLeft: 18 }}>{noted.map((v) => <li key={v.id}><strong>{v.name}:</strong> {v.notes}</li>)}</ul> : null}
+        {away.length ? <p className="small" style={{ marginTop: 10, marginBottom: 0 }}>Not available: {away.map((v) => `${v.name}, ${roleLabel(v.role).toLowerCase()} (${availability(v)})`).join('; ')}</p> : null}
       </div>
     );
   };
@@ -135,7 +137,7 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
                       <span className="label">{s.name}</span>
                       {s.people.map((pp) => {
                         const v = byId.get(pp.volunteer_id);
-                        return <span key={pp.volunteer_id} className={`p${pp.role === 'santa' ? ' santa' : ''}`}>{pp.role === 'santa' ? v?.name : `Elf ${v?.name.split(' ')[0]}`}</span>;
+                        return <span key={pp.volunteer_id} className={`p${pp.role === 'santa' ? ' santa' : ''}`}>{pp.role === 'santa' ? v?.name : `${roleLabel(v?.role ?? 'elf')} ${v?.name.split(' ')[0]}`}</span>;
                       })}
                       {g ? <span className="need">{gapText} needed</span> : null}
                     </Link>

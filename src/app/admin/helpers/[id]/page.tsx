@@ -6,6 +6,8 @@ import { db } from '@/lib/db';
 import { isUuid } from '@/lib/admin/data';
 import { dayName } from '@/lib/dates';
 import { roleLabel } from '@/lib/helper-roles';
+import { updateHelper } from '../../helpers-actions';
+import { EditHelper } from './edit-helper';
 
 export const metadata: Metadata = { title: 'Helper' };
 
@@ -16,7 +18,7 @@ type Helper = {
 type Vol = {
   id: string; status: string; role: string; phone: string; town: string | null; available_weeks: string[]; day_types: string[];
   experience: string | null; why: string | null; own_suit: boolean | null; applied: string;
-  approved_by: string | null; approved_at: string | null;
+  approved_by: string | null; approved_at: string | null; notes: string | null;
 };
 type Shift = { day: string; name: string; starts: string; ends: string; role: string };
 
@@ -41,7 +43,7 @@ export default async function HelperDetails({ params }: { params: Promise<{ id: 
   if (!h) notFound();
   const [vol] = await sql`
     select id::text as id, status, role::text as role, phone, town, available_weeks, day_types, experience, why, own_suit, created_at::text as applied,
-           approved_by, approved_at::text as approved_at
+           approved_by, approved_at::text as approved_at, notes
     from volunteers where user_id = ${id}::uuid` as Vol[];
   const shifts = vol ? await sql`
     select s.day::text as day, s.name, to_char(s.starts_at, 'HH24:MI') as starts, to_char(s.ends_at, 'HH24:MI') as ends, a.role::text as role
@@ -58,7 +60,10 @@ export default async function HelperDetails({ params }: { params: Promise<{ id: 
           <h1>{h.name}</h1>
           <p>{roleLabel(h.role)}. Added {date(h.added)}{h.added_by ? ` by ${h.added_by}` : ''}.</p>
         </div>
-        <span className="tag tag-grey" style={{ fontSize: '0.95rem', padding: '8px 14px' }}>{roleLabel(h.role)}</span>
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <EditHelper action={updateHelper.bind(null, h.user_id)} name={h.name} phone={mobile} onRota={!!vol}
+          weeks={vol?.available_weeks ?? []} dayTypes={vol?.day_types ?? []} note={vol?.notes ?? ''} />
       </div>
 
       <div className="a-split">
@@ -80,6 +85,7 @@ export default async function HelperDetails({ params }: { params: Promise<{ id: 
                 {vol.status === 'approved' ? <><dt>Approved</dt><dd>{vol.approved_by ? `By ${vol.approved_by}` : 'Yes'}{vol.approved_at ? `, ${date(vol.approved_at)}` : ''}</dd></> : null}
                 <dt>On the rota as</dt><dd>{roleLabel(vol.role)}</dd>
                 <dt>Can help</dt><dd>{[vol.available_weeks.join(', '), vol.day_types.join(', ')].filter(Boolean).join('; ') || 'Not given'}</dd>
+                {vol.notes ? <><dt>Note</dt><dd style={{ whiteSpace: 'pre-wrap' }}>{vol.notes}</dd></> : null}
                 {vol.experience ? <><dt>Experience</dt><dd>{vol.experience}</dd></> : null}
                 {vol.why ? <><dt>Why they help</dt><dd>{vol.why}</dd></> : null}
                 {vol.role === 'santa' && vol.own_suit !== null ? <><dt>Own suit</dt><dd>{vol.own_suit ? 'Yes' : 'No'}</dd></> : null}

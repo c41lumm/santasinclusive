@@ -366,6 +366,13 @@ ok('it records who approved them', (await q(`select approved_by from volunteers 
   && (await q(`select approved_by from volunteers where user_id = $1`, [ivyId]))[0].approved_by === 'Ada Admin');
 ok('changing what they do updates their volunteer role', (await q(`select role from volunteers where user_id = $1`, [ivyId]))[0].role === 'lead_elf');
 
+// A note about a helper is kept, and limited in length
+await as('authenticated', adminId);
+ok('an admin can note when a helper can work', (await err(`update volunteers set notes = 'Saturdays only', day_types = array['Weekends'] where user_id = $1`, [newHelper])) === null
+  && (await q(`select notes from volunteers where user_id = $1`, [newHelper]))[0].notes === 'Saturdays only');
+e = await err(`update volunteers set notes = repeat('x', 1001) where user_id = $1`, [newHelper]);
+ok('notes are kept to 1,000 characters', e?.includes('check'), e);
+
 // Messages exist before purge, so the purge has something to remove
 await as('editor');
 await db.query(`insert into messages (booking_id, channel, template, recipient, body) select id, 'email', 'confirmation', 'kate@example.com', 'Sam' from bookings limit 1`);

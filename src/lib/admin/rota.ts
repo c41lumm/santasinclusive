@@ -3,7 +3,7 @@ import { asStaff } from '@/lib/db';
 
 export type Volunteer = {
   id: string; name: string; role: 'santa' | 'elf' | 'lead_elf'; email: string; phone: string;
-  available_days: string[]; available_weeks: string[]; day_types: string[];
+  available_days: string[]; available_weeks: string[]; day_types: string[]; notes: string | null;
 };
 export type Shift = { id: string; day: string; name: string; starts: string; ends: string; santas_needed: number; elves_needed: number;
   people: { volunteer_id: string; role: string }[] };
@@ -11,7 +11,7 @@ export type Shift = { id: string; day: string; name: string; starts: string; end
 /** Approved volunteers only: applicants are not offered for shifts until approved on the Volunteers page */
 export async function rotaData(year: number) {
   const [vols, shifts] = await asStaff((sql) => [
-    sql`select id, name, role::text as role, email::text as email, phone, available_days::text[] as available_days, available_weeks, day_types
+    sql`select id, name, role::text as role, email::text as email, phone, available_days::text[] as available_days, available_weeks, day_types, notes
         from volunteers where status = 'approved' order by name`,
     sql`select s.id, s.day::text as day, s.name, to_char(s.starts_at, 'HH24:MI') as starts, to_char(s.ends_at, 'HH24:MI') as ends,
                s.santas_needed, s.elves_needed,
