@@ -7,7 +7,7 @@ import { setVolunteerStatus } from '../more-actions';
 export const metadata: Metadata = { title: 'Helper applications' };
 
 type Vol = { id: string; name: string; email: string; phone: string; role: string; town: string | null; available_weeks: string[];
-  day_types: string[]; experience: string | null; why: string | null; own_suit: boolean | null; status: string; created_at: string; approved_by: string | null; approved_at: string | null };
+  day_types: string[]; experience: string | null; why: string | null; own_suit: boolean | null; status: string; created_at: string; approved_by: string | null; approved_at: string | null; notes: string | null };
 const roleLabel: Record<string, string> = { santa: 'Santa', elf: 'Elf', lead_elf: 'Lead elf' };
 const statusInfo: Record<string, [string, string]> = {
   applied: ['New', 'tag-amber'], chat_booked: ['Chat booked', 'tag-grey'], checks_done: ['Checks done', 'tag-grey'],
@@ -26,7 +26,7 @@ export default async function Volunteers({ searchParams }: { searchParams: Promi
   const show = tabs.some(([k]) => k === sp.show) ? sp.show! : 'new';
   const [rows] = await asStaff((sql) => [sql`
     select id, name, email::text as email, phone, role::text as role, town, available_weeks, day_types, experience, why, own_suit, status,
-           approved_by, approved_at::text as approved_at,
+           approved_by, approved_at::text as approved_at, notes,
            created_at::text as created_at
     from volunteers order by created_at`]);
   const all = rows as Vol[];
@@ -68,6 +68,7 @@ export default async function Volunteers({ searchParams }: { searchParams: Promi
             </div>
             <dl className="a-dl">
               <dt>Can help</dt><dd>{[v.available_weeks.join(', '), v.day_types.join(', ')].filter(Boolean).join('; ') || 'Not given'}</dd>
+              {v.notes ? <><dt>Note</dt><dd style={{ whiteSpace: 'pre-wrap' }}>{v.notes}</dd></> : null}
               {v.experience ? <><dt>Experience</dt><dd>{v.experience}</dd></> : null}
               {v.why ? <><dt>Why</dt><dd>{v.why}</dd></> : null}
               {v.role === 'santa' && v.own_suit !== null ? <><dt>Own suit</dt><dd>{v.own_suit ? 'Yes' : 'No'}</dd></> : null}

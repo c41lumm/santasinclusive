@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ActionForm, Select, TextField } from '@/components/form';
+import { ActionForm, Choices, Select, TextArea, TextField } from '@/components/form';
+import { volunteerDayTypes, volunteerWeeks } from '@/lib/options';
 import type { FormState } from '@/lib/forms';
 import { roleChoices, roleLabel } from '@/lib/helper-roles';
 
@@ -44,6 +45,12 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
             <Select name="role" label="What do they do?" placeholder="Choose one" options={roleChoices.map((c) => ({ value: c.value, label: `${c.label}: ${c.hint}` }))} />
             <TextField name="phone" type="tel" label="Mobile number" optional inputMode="tel" autoComplete="off" width="medium"
               hint="So the rota can text them their shifts. Santas, elves and lead elves go straight onto the Helper rota." />
+            <Choices type="checkbox" name="weeks" legend="When could they help?" layout="grid" optional
+              hint="Leave these blank if they can help any day." choices={volunteerWeeks.map((w) => ({ value: w, label: w }))} />
+            <Choices type="checkbox" name="day_types" legend="Which days suit them?" layout="grid" optional
+              choices={volunteerDayTypes.map((d) => ({ value: d, label: d }))} />
+            <TextArea name="note" label="Note" optional rows={3} maxLength={1000}
+              hint="Anything to remember when planning the rota, for example “Saturdays only” or “not 12 December”." />
           </ActionForm>
         </div>
       ) : null}
