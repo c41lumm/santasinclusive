@@ -40,3 +40,15 @@ export async function requireStaff(roles: StaffRole[] = ['admin', 'lead_elf']): 
   if (!staff || !roles.includes(staff.role)) redirect('/staff/not-allowed');
   return staff;
 }
+
+/**
+ * When an admin is viewing the site as a helper (Neon Auth impersonation), the helper's user id and the admin's.
+ * Everything else then runs as the helper; the admin layout shows a bar to stop.
+ */
+export async function viewingAs(): Promise<{ userId: string; adminId: string } | null> {
+  if (devStaffUserId()) return null;
+  const { data } = await auth.getSession();
+  const by = (data?.session as { impersonatedBy?: string | null } | undefined)?.impersonatedBy;
+  return by && data?.user?.id ? { userId: data.user.id, adminId: by } : null;
+}
+

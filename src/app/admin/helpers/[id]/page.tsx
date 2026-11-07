@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import { isUuid } from '@/lib/admin/data';
 import { dayName } from '@/lib/dates';
 import { roleLabel } from '@/lib/helper-roles';
-import { updateHelper } from '../../helpers-actions';
+import { updateHelper, viewAsHelper } from '../../helpers-actions';
 import { EditHelper } from './edit-helper';
 
 export const metadata: Metadata = { title: 'Helper' };
@@ -30,9 +30,10 @@ const volStatus: Record<string, [string, string]> = {
 };
 
 /** One helper's contact details, sign-in and volunteer information, and their shifts. Sign-in details are only readable by the server. */
-export default async function HelperDetails({ params }: { params: Promise<{ id: string }> }) {
-  await requireStaff(['admin']);
+export default async function HelperDetails({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ view?: string }> }) {
+  const me = await requireStaff(['admin']);
   const { id } = await params;
+  const { view } = await searchParams;
   if (!isUuid(id)) notFound();
   const sql = db();
   const [h] = await sql`
@@ -61,7 +62,13 @@ export default async function HelperDetails({ params }: { params: Promise<{ id: 
           <p>{roleLabel(h.role)}. Added {date(h.added)}{h.added_by ? ` by ${h.added_by}` : ''}.</p>
         </div>
       </div>
-      <div style={{ marginBottom: 20 }}>
+      {view === 'failed' ? <p className="notice" role="alert">Could not view as {h.name}. Sign out and back in, then try again.</p> : null}
+      <div className="btn-row" style={{ marginBottom: 20, alignItems: 'flex-start' }}>
+        {h.role !== 'admin' && h.user_id !== me.userId ? (
+          <form action={viewAsHelper.bind(null, h.user_id)}>
+            <button type="submit" className="btn btn-sm">View as {h.name.split(' ')[0]}</button>
+          </form>
+        ) : null}
         <EditHelper action={updateHelper.bind(null, h.user_id)} name={h.name} phone={mobile} onRota={!!vol}
           weeks={vol?.available_weeks ?? []} dayTypes={vol?.day_types ?? []} note={vol?.notes ?? ''} />
       </div>

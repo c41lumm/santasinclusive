@@ -462,3 +462,6 @@ a.a-list-item:hover { background: #f7fbf8; color: var(--text); }
 .simple-table td { padding: 10px 12px; border-bottom: 1px solid #f0eadf; vertical-align: top; }
 .table-wrap { overflow-x: auto; }
 .sms-bubble { background: #e9e9eb; color: #111; border-radius: 18px 18px 18px 4px; padding: 10px 14px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.95rem; max-width: 100%; }
+.viewing-as { background: #f59e0b; color: #1f1300; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 16px; position: sticky; top: 0; z-index: 50; }
+.viewing-as p { margin: 0; font-size: 0.95rem; }
+.viewing-as .btn { background: #1f1300; border-color: #1f1300; color: #fff; }

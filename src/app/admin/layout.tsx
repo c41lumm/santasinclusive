@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { requireStaff } from '@/lib/auth/staff';
 import { signOut } from '../(site)/staff/actions';
 import { AdminNav, type NavItem } from './admin-nav';
+import { ViewingAsBar } from './viewing-as-bar';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: { default: 'Grotto admin', template: '%s | Grotto admin' }, robots: { index: false } };
@@ -29,6 +30,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const me = await requireStaff(['admin', 'lead_elf']);
   const visible = items.filter((i) => me.role === 'admin' || !adminOnly.has(i.href));
   return (
+    <>
+    <ViewingAsBar />
     <div className="admin">
       <a className="skip-link" href="#admin-main">Skip to main content</a>
       <aside className="admin-side">
@@ -42,5 +45,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </aside>
       <main id="admin-main" className="admin-main" tabIndex={-1}>{children}</main>
     </div>
+    </>
   );
 }
