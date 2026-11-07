@@ -1,18 +1,13 @@
 'use client';
+import Link from 'next/link';
 import { useState } from 'react';
 import { ActionForm, Select, TextField } from '@/components/form';
 import type { FormState } from '@/lib/forms';
+import { roleChoices, roleLabel } from '@/lib/helper-roles';
 
-export type Helper = { user_id: string; name: string; email: string | null; role: string; created_at: string; locked: boolean };
+export type Helper = { user_id: string; name: string; email: string | null; role: string; created_at: string; added_by: string | null; locked: boolean };
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 
-export const roleChoices = [
-  { value: 'admin', label: 'Admin', hint: 'Everything, including adding helpers' },
-  { value: 'lead_elf', label: 'Lead elf', hint: 'Runs the day: bookings, toys and the rota' },
-  { value: 'elf', label: 'Elf', hint: 'The elf app on the day' },
-  { value: 'santa', label: 'Santa', hint: 'Santa’s cards for each visit' },
-];
-const roleLabel = (r: string) => roleChoices.find((c) => c.value === r)?.label ?? r;
 const added = (t: string) => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' });
 
 export function HelpersPanel({ helpers, add, setRole, remove }: {
@@ -38,7 +33,7 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
             success={(d) => (
               <div className="success">
                 <p style={{ fontWeight: 700 }}>{d}</p>
-                <p style={{ margin: 0 }}>They choose their own password from that email, then sign in at the Staff login link at the bottom of the website.</p>
+                <p style={{ margin: 0 }}>They choose their own password from that email, then sign in at the Helper login link at the bottom of the website.</p>
                 <p style={{ margin: '8px 0 0' }}><button type="button" className="link-button" onClick={() => { setAdding(false); }}>Done</button></p>
               </div>
             )}>
@@ -48,7 +43,7 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
             </div>
             <Select name="role" label="What do they do?" placeholder="Choose one" options={roleChoices.map((c) => ({ value: c.value, label: `${c.label}: ${c.hint}` }))} />
             <TextField name="phone" type="tel" label="Mobile number" optional inputMode="tel" autoComplete="off" width="medium"
-              hint="So the rota can text them their shifts. Santas, elves and lead elves go straight onto the rota as approved volunteers." />
+              hint="So the rota can text them their shifts. Santas, elves and lead elves go straight onto the Helper rota." />
           </ActionForm>
         </div>
       ) : null}
@@ -59,7 +54,7 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
           <tbody>
             {helpers.map((h) => (
               <tr key={h.user_id}>
-                <td><strong>{h.name}</strong>{h.email ? <><br /><span className="small">{h.email}</span></> : null}</td>
+                <td><Link href={`/admin/helpers/${h.user_id}`} style={{ fontWeight: 700 }}>{h.name}</Link>{h.email ? <><br /><span className="small">{h.email}</span></> : null}</td>
                 <td>
                   {h.locked ? roleLabel(h.role) : (
                     <form action={setRole.bind(null, h.user_id)}>
@@ -70,7 +65,7 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
                     </form>
                   )}
                 </td>
-                <td className="small">{added(h.created_at)}</td>
+                <td className="small">{added(h.created_at)}{h.added_by ? <><br />by {h.added_by}</> : null}</td>
                 <td style={{ textAlign: 'right' }}>
                   {h.locked ? null : (
                     <form action={remove.bind(null, h.user_id)}

@@ -19,8 +19,8 @@ const items: NavItem[] = [
   { href: '/admin/messages', label: 'Messages' },
   { href: '/admin/wording', label: 'Message wording' },
   { href: '/admin/toys', label: 'Toy stock' },
-  { href: '/admin/rota', label: 'Staff rota' },
-  { href: '/admin/volunteers', label: 'Volunteers' },
+  { href: '/admin/rota', label: 'Helper rota' },
+  { href: '/admin/volunteers', label: 'Helper applications' },
   { href: '/admin/sponsorship', label: 'Sponsorship' },
 ];
 

@@ -4,10 +4,10 @@ import { requireStaff } from '@/lib/auth/staff';
 import { asStaff } from '@/lib/db';
 import { setVolunteerStatus } from '../more-actions';
 
-export const metadata: Metadata = { title: 'Volunteers' };
+export const metadata: Metadata = { title: 'Helper applications' };
 
 type Vol = { id: string; name: string; email: string; phone: string; role: string; town: string | null; available_weeks: string[];
-  day_types: string[]; experience: string | null; why: string | null; own_suit: boolean | null; status: string; created_at: string };
+  day_types: string[]; experience: string | null; why: string | null; own_suit: boolean | null; status: string; created_at: string; approved_by: string | null; approved_at: string | null };
 const roleLabel: Record<string, string> = { santa: 'Santa', elf: 'Elf', lead_elf: 'Lead elf' };
 const statusInfo: Record<string, [string, string]> = {
   applied: ['New', 'tag-amber'], chat_booked: ['Chat booked', 'tag-grey'], checks_done: ['Checks done', 'tag-grey'],
@@ -26,6 +26,7 @@ export default async function Volunteers({ searchParams }: { searchParams: Promi
   const show = tabs.some(([k]) => k === sp.show) ? sp.show! : 'new';
   const [rows] = await asStaff((sql) => [sql`
     select id, name, email::text as email, phone, role::text as role, town, available_weeks, day_types, experience, why, own_suit, status,
+           approved_by, approved_at::text as approved_at,
            created_at::text as created_at
     from volunteers order by created_at`]);
   const all = rows as Vol[];
@@ -35,7 +36,7 @@ export default async function Volunteers({ searchParams }: { searchParams: Promi
   return (
     <>
       <div className="admin-head">
-        <div><h1>Volunteers</h1><p>Applications from the volunteer page. Approved volunteers appear on the <Link href="/admin/rota">Staff rota</Link>.</p></div>
+        <div><h1>Helper applications</h1><p>Applications from the website to be a Santa or an elf. Approved helpers appear on the <Link href="/admin/rota">Helper rota</Link>.</p></div>
       </div>
       <section aria-label="Totals" className="a-stats">
         <div className="a-stat"><p className="label">To review</p><p className="value">{all.filter((v) => !['approved', 'declined'].includes(v.status)).length}</p></div>
@@ -70,12 +71,13 @@ export default async function Volunteers({ searchParams }: { searchParams: Promi
               {v.experience ? <><dt>Experience</dt><dd>{v.experience}</dd></> : null}
               {v.why ? <><dt>Why</dt><dd>{v.why}</dd></> : null}
               {v.role === 'santa' && v.own_suit !== null ? <><dt>Own suit</dt><dd>{v.own_suit ? 'Yes' : 'No'}</dd></> : null}
+              {v.status === 'approved' ? <><dt>Approved</dt><dd>{v.approved_by ? `By ${v.approved_by}` : 'Yes'}{v.approved_at ? `, ${new Date(v.approved_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'Europe/London' })}` : ''}</dd></> : null}
               <dt>Applied</dt><dd>{new Date(v.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'Europe/London' })}</dd>
             </dl>
           </section>
         );
       }) : <section className="a-panel"><p className="muted" style={{ margin: 0 }}>No one here.</p></section>}
-      <section className="a-note"><p><strong>Before approving.</strong> Have a chat with each volunteer and make sure their checks (such as DBS) are done.
+      <section className="a-note"><p><strong>Before approving.</strong> Have a chat with each applicant and make sure their checks (such as DBS) are done.
         Approving adds them to the rota.</p></section>
     </>
   );

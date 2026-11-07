@@ -39,7 +39,7 @@ export default async function Dashboard() {
     [admin, todo.dups, 'possible duplicate to check', 'possible duplicates to check', '/admin/checks'],
     [admin, todo.failed, 'message not sent this week', 'messages not sent this week', '/admin/messages?show=failed'],
     [admin, todo.groups, 'new group enquiry to reply to', 'new group enquiries to reply to', '/admin/groups'],
-    [admin, todo.volunteers, 'volunteer application to review', 'volunteer applications to review', '/admin/volunteers'],
+    [admin, todo.volunteers, 'helper application to review', 'helper applications to review', '/admin/volunteers'],
     [admin && season.booking_open, todo.alerts, 'early alert still to send', 'early alerts still to send', '/admin/alerts'],
     [true, todo.gaps, 'gap on the rota', 'gaps on the rota', '/admin/rota'],
   ];
@@ -49,7 +49,7 @@ export default async function Dashboard() {
   let helpers: Helper[] = [];
   if (admin) {
     const rows = await db()`
-      select s.user_id::text as user_id, s.name, u.email, s.role::text as role, s.created_at::text as created_at
+      select s.user_id::text as user_id, s.name, u.email, s.role::text as role, s.created_at::text as created_at, s.added_by
       from staff s left join neon_auth."user" u on u.id = s.user_id order by s.created_at` as Omit<Helper, 'locked'>[];
     const admins = rows.filter((r) => r.role === 'admin').length;
     // Nobody can change their own access, or the only admin's

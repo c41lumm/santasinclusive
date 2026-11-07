@@ -71,10 +71,13 @@ export async function sendTestEarlyAlert(_prev: FormState, fd: FormData): Promis
 
 const volunteerStatuses =['applied', 'chat_booked', 'checks_done', 'approved', 'declined'] as const;
 export async function setVolunteerStatus(id: string, status: (typeof volunteerStatuses)[number]) {
-  await requireStaff(['admin']);
+  const me = await requireStaff(['admin']);
   if (!isUuid(id) || !volunteerStatuses.includes(status)) return;
+  // Approving records who did it; moving them out of Approved clears it
   await asStaff((sql) => [sql`
-    update volunteers set status = ${status}, checks_confirmed_at = case when ${status} in ('checks_done', 'approved') then coalesce(checks_confirmed_at, now()) else checks_confirmed_at end
+    update volunteers set status = ${status}, checks_confirmed_at = case when ${status} in ('checks_done', 'approved') then coalesce(checks_confirmed_at, now()) else checks_confirmed_at end,
+      approved_by = case when ${status} = 'approved' then (case when status = 'approved' then approved_by else ${me.name} end) else null end,
+      approved_at = case when ${status} = 'approved' then (case when status = 'approved' then approved_at else now() end) else null end
     where id = ${id}::uuid`]);
   revalidatePath('/admin/volunteers');
   revalidatePath('/admin/rota');
