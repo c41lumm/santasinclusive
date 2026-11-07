@@ -4,7 +4,8 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { auth } from '@/lib/auth/server';
-import { requireStaff, type StaffRole } from '@/lib/auth/staff';
+import { redirect } from 'next/navigation';
+import { requireStaff, viewingAs, type StaffRole } from '@/lib/auth/staff';
 import { asStaff, db } from '@/lib/db';
 import { adminSeason, isUuid } from '@/lib/admin/data';
 import { optionalMobile } from '@/lib/booking-schema';
@@ -169,5 +170,26 @@ export async function updateHelper(userId: string, _prev: FormState, fd: FormDat
   ]);
   revalidatePath('/admin', 'layout');
   return { done: 'Saved.' };
+}
+
+/**
+ * "View as": signs this browser in as the helper (Neon Auth impersonation, ends after an hour) so an admin can see
+ * what they see. Not for other admins or yourself. Anything done while viewing is done as them.
+ */
+export async function viewAsHelper(userId: string) {
+  const me = await requireStaff(['admin']);
+  if (!isUuid(userId) || userId === me.userId) return;
+  const [[h]] = await asStaff((sql) => [sql`select role::text as role from staff where user_id = ${userId}::uuid`]) as unknown as [[{ role: string } | undefined]];
+  if (!h || h.role === 'admin') return;
+  const { error } = await auth.admin.impersonateUser({ userId });
+  if (error) redirect(`/admin/helpers/${userId}?view=failed`);
+  redirect(h.role === 'lead_elf' ? '/admin' : '/staff/not-allowed');
+}
+
+/** Back to the admin's own account, on the page of the helper they were viewing as */
+export async function stopViewingAs() {
+  const v = await viewingAs();
+  await auth.admin.stopImpersonating();
+  redirect(v ? `/admin/helpers/${v.userId}` : '/admin');
 }
 
