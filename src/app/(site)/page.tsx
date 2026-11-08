@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { getDays, getHours, getSeason, getSlots } from '@/lib/public-data';
+import { getDays, getHours, getOpenRange, getSeason, getSlots } from '@/lib/public-data';
 import { dayName, hoursText, seasonDates } from '@/lib/dates';
 import { site } from '@/lib/site';
 import { DayPicker, TimeList } from '@/components/pickers';
@@ -33,11 +33,13 @@ const faqs = [
 export default async function Home({ searchParams }: { searchParams: Promise<{ day?: string }> }) {
   const season = await getSeason();
   const open = !!season?.booking_open;
-  const [hours, days] = season ? await Promise.all([getHours(season.year), open ? getDays(season.year) : []]) : [null, []];
+  const [hours, days, range] = season
+    ? await Promise.all([getHours(season.year), open ? getDays(season.year) : [], getOpenRange(season.year)]) : [null, [], null];
   const { day } = await searchParams;
   const chosen = days.find((d) => d.day === day);
   const slots = chosen ? await getSlots(chosen.day) : [];
-  const dates = season ? seasonDates(season.first_day, season.last_day).replace(/ \d{4}$/, '') : '';
+  // The days we are actually open, so closed days at either end (such as Christmas Eve) are not advertised
+  const dates = season ? seasonDates(range?.first ?? season.first_day, range?.last ?? season.last_day).replace(/ \d{4}$/, '') : '';
   const times = hours ? hoursText(hours.opens_at, hours.closes_at) : '';
 
   return (
@@ -63,7 +65,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
         <div className="card stack" style={{ flex: '1 1 380px', borderRadius: 32, padding: 34, gap: 22 }}>
           {site.showOpeningTimes ? (
             <div className="fact"><span className="icon-circle"><Calendar /></span><div>
-              <p className="title">{hours?.every_day ? 'Every day, ' : ''}{dates || 'December'}</p>
+              <p className="title">{range?.every_day ? 'Every day, ' : ''}{dates || 'December'}</p>
               {times ? <p className="sub">{times}</p> : null}
             </div></div>
           ) : null}
