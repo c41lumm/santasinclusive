@@ -396,6 +396,8 @@ a.a-row:hover { background: #f7fbf8; color: var(--text); }
 .a-hit { display: grid; grid-template-columns: minmax(0, 1fr) 200px 130px; gap: 12px; align-items: center; padding: 12px 18px;
   border-bottom: 1px solid #f0eadf; color: var(--text); text-decoration: none; }
 a.a-hit:hover { background: #f7fbf8; color: var(--text); }
+.a-hit[aria-current='true'] { background: #eef7f1; }
+#booking { scroll-margin-top: 16px; }
 .a-hit.other { color: var(--muted); }
 .a-hit .name { font-weight: 700; }
 .a-hit .muted { font-size: 0.9rem; color: var(--muted); overflow-wrap: anywhere; }

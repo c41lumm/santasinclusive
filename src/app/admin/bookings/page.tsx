@@ -47,7 +47,16 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
   if (!day) return <div className="admin-head"><h1>Bookings</h1><p>No opening days are set up yet. Add them on Visit times.</p></div>;
 
   const q = (sp.q ?? '').trim().slice(0, 80);
-  if (q) return <SearchResults q={q} hits={q.length < 2 ? [] : await searchBookings(q, season.year)} day={day} />;
+  if (q) {
+    const hits = q.length < 2 ? [] : await searchBookings(q, season.year);
+    const hit = hits.find((h) => h.id === sp.sel && h.status !== 'cancelled');
+    const open = hit ? (await dayRows(hit.day)).find((r) => r.id === hit.id) : undefined;
+    // The booking's own buttons (message, move, cancel) carry on in its day's view
+    const hitBase = (extra: Record<string, string | undefined>) =>
+      `/admin/bookings?${new URLSearchParams(Object.entries({ day: hit?.day, ...extra }).filter(([, v]) => v) as [string, string][])}`;
+    return <SearchResults q={q} hits={hits} day={day} selected={hit?.id}
+      panel={open && hit ? <BookingPanel r={open} day={hit.day} isAdmin={me.role === 'admin'} base={hitBase} confirmCancel={false} /> : null} />;
+  }
 
   const rows = await dayRows(day);
   const bookings = rows.filter((r) => r.id);
@@ -145,7 +154,7 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
             }
             const s = status(r);
             return (
-              <Link key={r.id} className="a-row" href={base({ sel: r.id })} aria-current={r.id === sel?.id ? 'true' : undefined}>
+              <Link key={r.id} className="a-row" href={`${base({ sel: r.id })}#booking`} aria-current={r.id === sel?.id ? 'true' : undefined}>
                 <span className="t">{r.t}</span>
                 <span className="name">{displayName(r)}</span>
                 <span className="muted">{r.type === 'group' ? 'Group' : 'Family'}</span>
@@ -158,7 +167,7 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
           }) : <p style={{ padding: 18, margin: 0 }} className="muted">No bookings to show.</p>}
         </section>
 
-        <aside aria-label="Booking details" className="a-side">
+        <aside aria-label="Booking details" className="a-side" id="booking">
           {sp.compose === 'day' ? (
             <Composer to={`Every family booked on ${dayName(day)} (${active.length})`}
               previews={preview('your visitor', dayName(day))} action={sendMessages.bind(null, active.map((r) => r.id!))} />
@@ -251,14 +260,15 @@ const hitStatus: Record<string, [string, string]> = {
   no_show: ['Did not come', 'red'], cancelled: ['Cancelled', 'grey'],
 };
 
-function SearchResults({ q, hits, day }: { q: string; hits: SearchHit[]; day: string }) {
+function SearchResults({ q, hits, day, selected, panel }: { q: string; hits: SearchHit[]; day: string; selected?: string; panel: React.ReactNode }) {
   return (
     <>
       <div className="admin-head">
         <div><h1>Bookings</h1><p><Link href={`/admin/bookings?day=${day}`}>← Back to {dayName(day)}</Link></p></div>
       </div>
       <SearchBox day={day} q={q} />
-      <section aria-label="Search results" className="a-table">
+      <div className="a-split">
+      <section aria-label="Search results" className="a-table a-main">
         <p className="bar" role="status" style={{ margin: 0 }}>
           {q.length < 2 ? 'Type at least 2 letters or numbers.'
             : hits.length ? `${hits.length === 50 ? 'First 50' : hits.length} ${hits.length === 1 ? 'booking matches' : 'bookings match'} “${q}”`
@@ -278,9 +288,15 @@ function SearchResults({ q, hits, day }: { q: string; hits: SearchHit[]; day: st
           );
           return h.status === 'cancelled'
             ? <div key={h.id} className="a-hit other">{inner}</div>
-            : <Link key={h.id} className="a-hit" href={`/admin/bookings?day=${h.day}&sel=${h.id}`}>{inner}</Link>;
+            : <Link key={h.id} className="a-hit" aria-current={h.id === selected ? 'true' : undefined}
+                href={`/admin/bookings?${new URLSearchParams({ q, day, sel: h.id })}#booking`}>{inner}</Link>;
         })}
       </section>
+      <aside aria-label="Booking details" className="a-side" id="booking">
+        {panel ?? <div className="a-panel empty">Select a booking to see the visitor&apos;s details.</div>}
+        {panel && selected ? <Link href={`/admin/bookings?day=${hits.find((h) => h.id === selected)!.day}&sel=${selected}`} style={{ fontWeight: 700 }}>See this day&apos;s bookings →</Link> : null}
+      </aside>
+      </div>
     </>
   );
 }
