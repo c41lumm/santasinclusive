@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireStaff } from '@/lib/auth/staff';
-import { adminSeason } from '@/lib/admin/data';
+import { adminSeason, openingDays } from '@/lib/admin/data';
+import { asStaff } from '@/lib/db';
 import { availability, canDo, rotaData, type Shift } from '@/lib/admin/rota';
 import { dayName, dayParts } from '@/lib/dates';
 import { roleLabel } from '@/lib/helper-roles';
@@ -27,7 +28,16 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
   const sp = await searchParams;
   const season = await adminSeason();
   if (!season) return <div className="admin-head"><h1>Helper rota</h1><p>There is no season set up yet.</p></div>;
-  const { vols, shifts } = await rotaData(season.year);
+  let { vols, shifts: allShifts } = await rotaData(season.year);
+  const open = new Set((await openingDays(season.year)).filter((d) => !d.closed).map((d) => d.day));
+  // Days opened since the shifts were made get their morning and afternoon shifts now
+  if (allShifts.length && [...open].some((d) => !allShifts.some((s) => s.day === d))) {
+    await asStaff((sql) => [sql`select ensure_shifts(${season.year})`]);
+    ({ vols, shifts: allShifts } = await rotaData(season.year));
+  }
+  // Days closed since keep their shifts in case they reopen, but are not shown
+  const shifts = allShifts.filter((s) => open.has(s.day));
+  const closedWithPeople = [...new Set(allShifts.filter((s) => !open.has(s.day) && s.people.length).map((s) => s.day))];
   if (!shifts.length) {
     return (
       <>
@@ -115,6 +125,9 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
           <span><strong>{people.size}</strong> helpers this week</span>
         </p>
       </div>
+      {closedWithPeople.length ? (
+        <p className="notice" role="status">Helpers are still on shifts for {closedWithPeople.map((d) => dayName(d)).join(', ')}, which {closedWithPeople.length === 1 ? 'is' : 'are'} now closed. Open the day again on Visit times to see them, or let them know.</p>
+      ) : null}
       {!vols.length ? (
         <div className="a-note"><p>No helpers are approved yet. Approve them on the <Link href="/admin/volunteers">Helper applications</Link> page, or add them on the Dashboard, and they will appear here.</p></div>
       ) : null}
