@@ -100,3 +100,31 @@ export async function bookingSummary(id: string) {
     from bookings b join slots sl on sl.id = b.slot_id left join households h on h.id = b.household_id where b.id = ${id}::uuid`]);
   return (rows[0] as { id: string; status: string; day: string; t: string; contact_name: string | null; names: string | null } | undefined) ?? null;
 }
+
+export type SearchHit = {
+  id: string; reference: string; status: string; type: string; day: string; t: string; group_name: string | null;
+  contact_name: string | null; email: string | null; phone: string | null; names: string | null;
+};
+/** Mobile numbers are stored as 447…, so a search typed as 07… is matched the same way */
+export function phoneDigits(q: string) {
+  const d = q.replace(/\D/g, '');
+  if (d.length < 4 || /[a-z@]/i.test(q)) return null;
+  return d.startsWith('0') ? `44${d.slice(1)}` : d;
+}
+/** Bookings this season whose visitor, contact or group name, email, mobile or reference contains the search */
+export async function searchBookings(q: string, year: number): Promise<SearchHit[]> {
+  const like = `%${q.trim().replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const digits = phoneDigits(q);
+  const [rows] = await asStaff((sql) => [sql`
+    select b.id, b.reference, b.status::text as status, b.type::text as type, sl.day::text as day, to_char(sl.starts_at, 'HH24:MI') as t,
+           b.group_name, h.contact_name, h.email::text as email, h.phone,
+           (select string_agg(v.first_name, ', ' order by v.kind, v.created_at) from visitors v where v.booking_id = b.id) as names
+    from bookings b join slots sl on sl.id = b.slot_id left join households h on h.id = b.household_id
+    where b.season = ${year} and (
+      h.contact_name ilike ${like} or h.email::text ilike ${like} or b.group_name ilike ${like} or b.reference ilike ${like}
+      or exists (select 1 from visitors v where v.booking_id = b.id and v.first_name ilike ${like})
+      or (${digits}::text is not null and h.phone_norm like '%' || ${digits}::text || '%'))
+    order by b.status = 'cancelled', sl.day, sl.starts_at
+    limit 50`]);
+  return rows as SearchHit[];
+}

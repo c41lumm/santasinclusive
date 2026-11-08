@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireStaff } from '@/lib/auth/staff';
-import { adminSeason, dayRows, openingDays, type DayRow } from '@/lib/admin/data';
+import { adminSeason, dayRows, openingDays, searchBookings, type DayRow, type SearchHit } from '@/lib/admin/data';
 import { dayName, dayParts, visitWhen } from '@/lib/dates';
 import { render, templates } from '@/lib/notify/templates';
 import { savedWording } from '@/lib/notify/wording';
@@ -10,7 +10,7 @@ import { Composer } from './composer';
 
 export const metadata: Metadata = { title: 'Bookings' };
 
-type Search = { day?: string; sel?: string; filter?: string; compose?: string; cancel?: string };
+type Search = { day?: string; sel?: string; filter?: string; compose?: string; cancel?: string; q?: string };
 
 const surnameInitial = (contact: string | null) => {
   const last = contact?.trim().split(/\s+/).slice(1).at(-1);
@@ -45,6 +45,9 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
   const day = days.find((d) => d.day === sp.day)?.day ?? days.find((d) => d.day >= today)?.day ?? days[0]?.day;
   if (!day) return <div className="admin-head"><h1>Bookings</h1><p>No opening days are set up yet. Add them on Visit times.</p></div>;
+
+  const q = (sp.q ?? '').trim().slice(0, 80);
+  if (q) return <SearchResults q={q} hits={q.length < 2 ? [] : await searchBookings(q, season.year)} day={day} />;
 
   const rows = await dayRows(day);
   const bookings = rows.filter((r) => r.id);
@@ -89,6 +92,8 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
           <Link className="btn" href={`/admin/bookings/new?day=${day}`}>Add booking</Link>
         </div>
       </div>
+
+      <SearchBox day={day} />
 
       <ul className="a-days" aria-label="Choose a day">
         {days.map((d) => {
@@ -226,5 +231,56 @@ function BookingPanel({ r, day, isAdmin, base, confirmCancel }: {
         )
       ) : null}
     </section>
+  );
+}
+
+function SearchBox({ day, q = '' }: { day: string; q?: string }) {
+  return (
+    <form role="search" action="/admin/bookings" className="a-search">
+      <input type="hidden" name="day" value={day} />
+      <label htmlFor="booking-search" className="visually-hidden">Find a visitor</label>
+      <input id="booking-search" type="search" name="q" defaultValue={q} placeholder="Find a visitor by name, mobile, email or reference"
+        autoComplete="off" spellCheck={false} />
+      <button type="submit" className="btn btn-sm">Search</button>
+    </form>
+  );
+}
+
+const hitStatus: Record<string, [string, string]> = {
+  pending_review: ['Held for review', 'amber'], confirmed: ['Booked', 'grey'], attended: ['Visited', 'green'],
+  no_show: ['Did not come', 'red'], cancelled: ['Cancelled', 'grey'],
+};
+
+function SearchResults({ q, hits, day }: { q: string; hits: SearchHit[]; day: string }) {
+  return (
+    <>
+      <div className="admin-head">
+        <div><h1>Bookings</h1><p><Link href={`/admin/bookings?day=${day}`}>← Back to {dayName(day)}</Link></p></div>
+      </div>
+      <SearchBox day={day} q={q} />
+      <section aria-label="Search results" className="a-table">
+        <p className="bar" role="status" style={{ margin: 0 }}>
+          {q.length < 2 ? 'Type at least 2 letters or numbers.'
+            : hits.length ? `${hits.length === 50 ? 'First 50' : hits.length} ${hits.length === 1 ? 'booking matches' : 'bookings match'} “${q}”`
+            : `No bookings this season match “${q}”.`}
+        </p>
+        {hits.map((h) => {
+          const [label, tone] = hitStatus[h.status] ?? [h.status, 'grey'];
+          const inner = (
+            <>
+              <span>
+                <span className="name" style={{ display: 'block' }}>{h.type === 'group' ? h.group_name ?? h.contact_name : h.names ?? h.contact_name ?? 'Not told us yet'}</span>
+                <span className="muted">{h.contact_name}{h.phone ? ` · ${h.phone}` : ''}{h.email ? ` · ${h.email}` : ''}</span>
+              </span>
+              <span>{visitWhen(h.day, h.t)}<br /><span className="muted">{h.reference}</span></span>
+              <span className={`tag tag-${tone}`}>{label}</span>
+            </>
+          );
+          return h.status === 'cancelled'
+            ? <div key={h.id} className="a-hit other">{inner}</div>
+            : <Link key={h.id} className="a-hit" href={`/admin/bookings?day=${h.day}&sel=${h.id}`}>{inner}</Link>;
+        })}
+      </section>
+    </>
   );
 }
