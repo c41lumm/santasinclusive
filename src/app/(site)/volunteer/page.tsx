@@ -15,7 +15,7 @@ export default function Volunteer() {
           <h1 className="green" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.25rem)' }}>Elf costume optional. Warm heart essential.</h1>
           <p className="lead" style={{ fontSize: '1.17rem', maxWidth: 720, margin: 0 }}>
             Every December we welcome children and adults with disabilities to meet Santa. We need warm, patient people to be
-            Santa and his elves from 1 to 24 December.
+            Santa and his elves from 1 to 22 December.
           </p>
         </div>
         <div style={{ flex: '1 1 480px', minWidth: 0 }}>

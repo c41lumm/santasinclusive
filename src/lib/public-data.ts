@@ -1,5 +1,5 @@
 import 'server-only';
-import { asPublic } from '@/lib/db';
+import { asPublic, db } from '@/lib/db';
 
 /** Dates always come back as text (YYYY-MM-DD), never as JavaScript dates, which shift with time zones */
 
@@ -60,4 +60,18 @@ export async function getOffer(token: string): Promise<Offer | null> {
     select status, day::text as day, starts_at, to_char(expires_at at time zone 'Europe/London', 'HH24:MI') as until, expired
     from get_offer(${token}::uuid)`]);
   return (rows[0] as Offer | undefined) ?? null;
+}
+
+export type OpenRange = { first: string; last: string; every_day: boolean };
+/**
+ * The first and last days the grotto is open, and whether it is open every day in between. Only dates, so it is
+ * read with the server's own connection (opening days are not public tables).
+ */
+export async function getOpenRange(year: number): Promise<OpenRange | null> {
+  const [r] = await db()`
+    with o as (select min(day) as f, max(day) as l from opening_days where extract(year from day)::int = ${year} and not closed)
+    select o.f::text as first, o.l::text as last,
+           not exists (select 1 from opening_days d where d.day between o.f and o.l and d.closed) as every_day
+    from o where o.f is not null` as OpenRange[];
+  return r ?? null;
 }
