@@ -465,3 +465,7 @@ a.a-list-item:hover { background: #f7fbf8; color: var(--text); }
 .viewing-as { background: #f59e0b; color: #1f1300; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 16px; position: sticky; top: 0; z-index: 50; }
 .viewing-as p { margin: 0; font-size: 0.95rem; }
 .viewing-as .btn { background: #1f1300; border-color: #1f1300; color: #fff; }
+.resend { margin-top: 6px; font-size: 0.9rem; }
+.resend summary { cursor: pointer; font-weight: 700; color: var(--green); }
+.resend .field { margin: 8px 0; }
+.resend input { max-width: 260px; }
