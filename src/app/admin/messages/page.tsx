@@ -21,6 +21,7 @@ const when = (t: string) => new Date(t).toLocaleString('en-GB', { day: 'numeric'
 const filters = [['all', 'All'], ['lost', 'Not received'], ['sent', 'Sent']] as const;
 const channelName = (c: string) => (c === 'sms' ? 'Text' : c === 'email' ? 'Email' : c === 'whatsapp' ? 'WhatsApp' : c);
 const templateName = (t: string) => {
+  if (t === 'inbox:reply') return 'Reply from the Inbox';
   const name = t.replace(/^admin:/, '');
   const label = (messageDefs as Record<string, { label: string } | undefined>)[name]?.label;
   return `${label ?? name}${t.startsWith('admin:') ? ' (sent by a helper)' : ''}`;
