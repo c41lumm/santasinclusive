@@ -91,6 +91,14 @@ export async function setSponsorStatus(id: string, status: (typeof sponsorStatus
   revalidatePath('/admin/sponsorship');
 }
 
+const toyStatuses = ['offered', 'arranged', 'received', 'cancelled'] as const;
+export async function setToyStatus(id: string, status: (typeof toyStatuses)[number]) {
+  await requireStaff(['admin']);
+  if (!isUuid(id) || !toyStatuses.includes(status)) return;
+  await asStaff((sql) => [sql`update toy_donations set status = ${status} where id = ${id}::uuid`]);
+  revalidatePath('/admin/sponsorship');
+}
+
 export async function removeFromWaitlist(id: string) {
   await requireStaff(['admin']);
   if (!isUuid(id)) return;

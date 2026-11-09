@@ -490,3 +490,7 @@ a.a-mail:hover { background: #f7fbf8; color: var(--text); }
 .a-mail .muted { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
 .a-mail .when { color: var(--muted); font-size: 0.9rem; text-align: right; }
 @media (max-width: 40rem) { .a-mail { grid-template-columns: minmax(0, 1fr) auto; } .a-mail .subj { grid-column: 1 / -1; grid-row: 2; } .a-mail .state { display: none; } .a-mail .to { display: none; } }
+
+.give-switch { display: flex; gap: 6px; padding: 5px; background: var(--pale-green, #eef7f1); border-radius: 999px; margin-bottom: 28px; width: fit-content; max-width: 100%; }
+.give-switch a { padding: 10px 20px; border-radius: 999px; font-weight: 700; text-decoration: none; color: var(--green); }
+.give-switch a[aria-current='true'] { background: var(--green); color: #fff; }

@@ -23,7 +23,7 @@ const items: NavItem[] = [
   { href: '/admin/toys', label: 'Toy stock' },
   { href: '/admin/rota', label: 'Helper rota' },
   { href: '/admin/volunteers', label: 'Helper applications' },
-  { href: '/admin/sponsorship', label: 'Sponsorship' },
+  { href: '/admin/sponsorship', label: 'Sponsors and toys' },
 ];
 
 /** The admin area: admins and lead elves. Pages marked admin-only check that again themselves. */

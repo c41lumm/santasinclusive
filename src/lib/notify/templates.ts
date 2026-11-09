@@ -143,6 +143,14 @@ export const messageDefs = {
       "All the team at Santa's Inclusive Grotto ✨",
     vars: ['name', 'sign_in_link'], required: ['sign_in_link'],
   },
+  toyDonationThanks: {
+    label: 'Thank you for offering toys', group: 'Other', when: 'Straight after someone offers to donate toys on the Support page.',
+    subject: "Thank you for offering toys to Santa's Inclusive Grotto",
+    body: "Hi {name}, thank you so much for offering toys for the children and adults who visit Santa. 🎁\n\n" +
+      "One of our elves will email you in the next few days to arrange getting them to us.\n\n" +
+      "All the team at Santa's Inclusive Grotto ✨",
+    vars: ['name'], required: [],
+  },
   runningLate: {
     label: 'Santa is running late', group: 'Other', when: 'When helpers send it from Bookings on the day.',
     subject: 'Santa is running a little late',
@@ -202,6 +210,7 @@ export const templates = {
   /** To everyone who asked for an early alert, when booking opens */
   bookingOpen: (name: string) => render('bookingOpen', { name, book_link: `${site()}/#book` }),
   runningLate: () => render('runningLate', {}),
+  toyDonationThanks: (name: string) => render('toyDonationThanks', { name }),
   staffWelcome: (name: string) => render('staffWelcome', { name, sign_in_link: `${site()}/staff/reset` }),
 } satisfies Record<TemplateName, (...args: never[]) => Message>;
 

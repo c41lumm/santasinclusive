@@ -68,3 +68,18 @@ export const sponsorSchema = z.object({
   show_on_wall: z.boolean().default(false),
   logo_requested: z.boolean().default(false),
 });
+
+/** Offering toys instead of sponsoring. A company name is needed when giving as a company. */
+export const toyDonationSchema = z.object({
+  giver: z.enum(['person', 'company'], { errorMap: () => ({ message: 'Please say who is giving the toys' }) }),
+  company: optText(150),
+  contact_name: name,
+  email: requiredEmail,
+  phone: optionalMobile,
+  toys: z.string().trim().min(1, 'Please tell us which toys you would like to give').max(1500, 'Please keep this under 1,500 characters'),
+  how_many: z.preprocess(blank, whole('roughly how many toys', 1, 5000).optional()),
+  delivery: z.enum(['drop_off', 'collect', 'post'], { errorMap: () => ({ message: 'Please choose how the toys will reach us' }) }),
+  show_on_wall: z.boolean().default(false),
+}).superRefine((d, ctx) => {
+  if (d.giver === 'company' && !d.company) ctx.addIssue({ code: 'custom', path: ['company'], message: 'Please give your company or organisation name' });
+});

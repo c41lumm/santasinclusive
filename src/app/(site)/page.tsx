@@ -272,9 +272,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
         <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
           <div className="card card-green" style={{ borderRadius: 32, padding: 40 }}>
             <Image src="/images/illustration-gifts.png" alt="" width={92} height={170} className="float-art" style={{ maxHeight: 170 }} />
-            <h3 style={{ fontSize: '1.85rem' }}>Sponsor gifts</h3>
-            <p style={{ fontSize: '1.05rem', marginBottom: 24 }}>Companies can help by sponsoring toys for the children who visit. 100% of sponsorship is spent on toys for the children.</p>
-            <Link className="btn btn-white" href="/support">Support the grotto</Link>
+            <h3 style={{ fontSize: '1.85rem' }}>Sponsor gifts or donate toys</h3>
+            <p style={{ fontSize: '1.05rem', marginBottom: 24 }}>You or your company can sponsor gifts, or give toys, for the children and adults who visit. 100% of sponsorship is spent on toys.</p>
+            <div className="btn-row"><Link className="btn btn-white" href="/support">Sponsor gifts</Link>
+              <Link className="btn btn-white" href="/support?give=toys">Donate toys</Link></div>
           </div>
           <div className="card" style={{ borderRadius: 32, padding: 40 }}>
             <Image src="/images/illustration-elf.png" alt="" width={97} height={170} className="float-art" style={{ maxHeight: 170 }} />

@@ -1,6 +1,6 @@
 'use server';
 import { asPublic, db } from '@/lib/db';
-import { alertSchema, groupSchema, sponsorSchema, volunteerSchema, waitlistSchema } from '@/lib/form-schemas';
+import { alertSchema, groupSchema, sponsorSchema, toyDonationSchema, volunteerSchema, waitlistSchema } from '@/lib/form-schemas';
 import { checkPublicForm } from '@/lib/public-form';
 import { getDays, getSeason } from '@/lib/public-data';
 import { dayName } from '@/lib/dates';
@@ -106,4 +106,25 @@ export async function offerSponsorship(_prev: FormState, fd: FormData): Promise<
     values (${s.company}, ${s.contact_name}, ${s.email}, ${s.gifts}, ${s.gifts * site.giftPricePounds * 100}, ${s.pay_method},
             ${s.show_on_wall}, ${s.logo_requested})`]);
   return { done: s.pay_method };
+}
+
+/** "Donate toys": saves the offer and emails a thank you saying we will be in touch to arrange it */
+export async function offerToys(_prev: FormState, fd: FormData): Promise<FormState> {
+  const parsed = toyDonationSchema.safeParse({
+    giver: text(fd, 'giver'), company: text(fd, 'company'), contact_name: text(fd, 'contact_name'), email: text(fd, 'email'),
+    phone: text(fd, 'phone'), toys: text(fd, 'toys'), how_many: text(fd, 'how_many'), delivery: text(fd, 'delivery'),
+    show_on_wall: ticked(fd, 'show_on_wall'),
+  });
+  if (!parsed.success) return zodErrors(parsed.error);
+  const blocked = await checkPublicForm('toys');
+  if (blocked) return blocked;
+  const d = parsed.data;
+  const company = d.giver === 'company' ? d.company! : null;
+  await asPublic((sql) => [sql`
+    insert into toy_donations (giver, company, contact_name, email, phone, toys, how_many, delivery, show_on_wall)
+    values (${d.giver}, ${company}, ${d.contact_name}, ${d.email}, ${d.phone ?? null}, ${d.toys}, ${d.how_many ?? null}, ${d.delivery},
+            ${company ? d.show_on_wall : false})`]);
+  await send({ email: d.email, channels: ['email'] }, templates.toyDonationThanks(d.contact_name.split(' ')[0]), { template: 'toyDonationThanks' })
+    .catch(() => null); // the offer is saved either way; Messages shows if the thank you did not send
+  return { done: d.delivery };
 }
