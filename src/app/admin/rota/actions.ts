@@ -45,7 +45,7 @@ export async function sendRota(year: number, first: string, last: string, label:
   const week = shifts.filter((s) => s.day >= first && s.day <= last);
   let sentTo = 0;
   for (const v of vols) {
-    const mine = week.filter((s) => s.people.some((p) => p.volunteer_id === v.id));
+    const mine = week.filter((s) => s.people.some((p) => p.volunteer_id === v.id && p.status !== 'declined'));
     if (!mine.length) continue;
     const lines = mine.map((s) => `${dayName(s.day)}, ${s.name.toLowerCase()} ${s.starts} to ${s.ends}`);
     const results = await send({ email: v.email, phone: v.phone, channels: ['email', 'sms'] },

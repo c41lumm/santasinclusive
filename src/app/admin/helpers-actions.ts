@@ -183,7 +183,7 @@ export async function viewAsHelper(userId: string) {
   if (!h || h.role === 'admin') return;
   const { error } = await auth.admin.impersonateUser({ userId });
   if (error) redirect(`/admin/helpers/${userId}?view=failed`);
-  redirect(h.role === 'lead_elf' ? '/admin' : '/staff/not-allowed');
+  redirect(h.role === 'lead_elf' ? '/admin' : '/helper');
 }
 
 /** Back to the admin's own account, on the page of the helper they were viewing as */

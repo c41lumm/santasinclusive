@@ -494,3 +494,22 @@ a.a-mail:hover { background: #f7fbf8; color: var(--text); }
 .give-switch { display: flex; gap: 6px; padding: 5px; background: var(--pale-green, #eef7f1); border-radius: 999px; margin-bottom: 28px; width: fit-content; max-width: 100%; }
 .give-switch a { padding: 10px 20px; border-radius: 999px; font-weight: 700; text-decoration: none; color: var(--green); }
 .give-switch a[aria-current='true'] { background: var(--green); color: #fff; }
+.helper-shifts { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.helper-shifts a { display: flex; flex-direction: column; padding: 10px 16px; border: 2px solid var(--line); border-radius: 14px; text-decoration: none; color: var(--text); }
+.helper-shifts a[aria-current='true'] { border-color: var(--green); background: #eef7f1; }
+.helper-shifts span { font-size: 0.9rem; color: var(--muted); }
+.santa-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.santa-card { padding: 22px; }
+.santa-card .slot-time { margin: 0; font-weight: 700; color: var(--red); }
+.santa-card h3 { font-size: 1.6rem; margin: 2px 0 6px; }
+.santa-card h3 span { font-weight: 400; font-size: 1.1rem; color: var(--muted); }
+.santa-card .hello { font-style: italic; background: #fbf6ee; border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; }
+.santa-card .a-dl { grid-template-columns: 110px 1fr; }
+.helper-shifts li { display: flex; flex-direction: column; gap: 8px; }
+.helper-shifts li.asked a { border-color: #e7b84a; background: #fff8e6; }
+.team-rota { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.team-shift { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.team-shift .when { margin: 0 0 6px; font-size: 0.95rem; }
+.team-shift ul { list-style: none; padding: 0; margin: 0; font-size: 0.95rem; }
+.team-shift li.me { font-weight: 700; }
+.team-shift .muted { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
