@@ -67,6 +67,12 @@ function contactRules(b: { channels: string[]; email?: string; phone?: string },
 // a family would only be told about a missing email or mobile after fixing everything else.
 const contactSchema = z.object({ channels, email: optionalEmail, phone: optionalMobile }).superRefine(contactRules);
 
+/** Helpers changing a booking's contact details */
+export const contactEditSchema = z.object({
+  contact_name: z.string().trim().min(1, 'Please give their name').max(100),
+  email: optionalEmail, phone: optionalMobile, channels,
+}).superRefine(contactRules);
+
 export type BookingInput = z.infer<typeof bookingSchema>;
 
 /** Checks the booking form, reporting every problem at once */
