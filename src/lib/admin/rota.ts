@@ -6,7 +6,7 @@ export type Volunteer = {
   available_days: string[]; available_weeks: string[]; day_types: string[]; notes: string | null;
 };
 export type Shift = { id: string; day: string; name: string; starts: string; ends: string; santas_needed: number; elves_needed: number;
-  people: { volunteer_id: string; role: string }[] };
+  people: { volunteer_id: string; role: string; status: 'asked' | 'accepted' | 'declined' }[] };
 
 /** Approved volunteers only: applicants are not offered for shifts until approved on the Volunteers page */
 export async function rotaData(year: number) {
@@ -15,7 +15,7 @@ export async function rotaData(year: number) {
         from volunteers where status = 'approved' order by name`,
     sql`select s.id, s.day::text as day, s.name, to_char(s.starts_at, 'HH24:MI') as starts, to_char(s.ends_at, 'HH24:MI') as ends,
                s.santas_needed, s.elves_needed,
-               coalesce((select json_agg(json_build_object('volunteer_id', a.volunteer_id, 'role', a.role)) from shift_assignments a where a.shift_id = s.id), '[]') as people
+               coalesce((select json_agg(json_build_object('volunteer_id', a.volunteer_id, 'role', a.role, 'status', a.status)) from shift_assignments a where a.shift_id = s.id), '[]') as people
         from shifts s where extract(year from s.day)::int = ${year} order by s.day, s.starts_at`,
   ]) as unknown as [Volunteer[], Shift[]];
   return { vols, shifts };

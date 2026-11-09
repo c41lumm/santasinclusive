@@ -37,6 +37,8 @@ export async function requireStaff(roles: StaffRole[] = ['admin', 'lead_elf']): 
   const userId = await currentUserId();
   if (!userId) redirect('/staff/sign-in');
   const staff = await getStaff();
+  // Santas and elves have their own page, My Grotto
+  if (staff && !roles.includes(staff.role) && (staff.role === 'santa' || staff.role === 'elf')) redirect('/helper');
   if (!staff || !roles.includes(staff.role)) redirect('/staff/not-allowed');
   return staff;
 }

@@ -58,7 +58,10 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
   const week = weeks[wi];
   const weekShifts = shifts.filter((s) => week.includes(s.day));
   const byId = new Map(vols.map((v) => [v.id, v]));
-  const onShift = (s: Shift, role: 'santa' | 'elf') => s.people.filter((p) => (role === 'santa' ? p.role === 'santa' : p.role !== 'santa'));
+  // People who said they cannot do a shift no longer cover it
+  const onShift = (s: Shift, role: 'santa' | 'elf') => s.people.filter((p) => p.status !== 'declined' && (role === 'santa' ? p.role === 'santa' : p.role !== 'santa'));
+  const declined = (s: Shift, role: 'santa' | 'elf') => s.people.filter((p) => p.status === 'declined' && (role === 'santa' ? p.role === 'santa' : p.role !== 'santa'));
+  const reply = (st: string) => st === 'accepted' ? <span className="tag tag-green">Accepted</span> : <span className="tag tag-amber">Not replied</span>;
   const gapOf = (s: Shift) => Math.max(0, s.santas_needed - onShift(s, 'santa').length) + Math.max(0, s.elves_needed - onShift(s, 'elf').length);
   const sel = weekShifts.find((s) => s.id === sp.shift) ?? weekShifts[0];
   const label = `${short(week[0])} to ${short(week[week.length - 1])}`;
@@ -86,8 +89,14 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
         </div>
         {on.map((p) => (
           <div className="person-row" key={p.volunteer_id}>
-            <span><span style={{ fontWeight: 700 }}>{byId.get(p.volunteer_id)?.name ?? 'Someone'}</span> <span className="tag tag-grey">{roleLabel(byId.get(p.volunteer_id)?.role ?? p.role)}</span></span>
+            <span><span style={{ fontWeight: 700 }}>{byId.get(p.volunteer_id)?.name ?? 'Someone'}</span> <span className="tag tag-grey">{roleLabel(byId.get(p.volunteer_id)?.role ?? p.role)}</span> {reply(p.status)}</span>
             <form action={unassign.bind(null, s.id, p.volunteer_id)}><button type="submit" className="btn btn-plain btn-sm" aria-label={`Remove ${byId.get(p.volunteer_id)?.name ?? 'this person'}`}>Remove</button></form>
+          </div>
+        ))}
+        {declined(s, role).map((p) => (
+          <div className="person-row" key={p.volunteer_id} style={{ opacity: 0.75 }}>
+            <span><s>{byId.get(p.volunteer_id)?.name ?? 'Someone'}</s> <span className="tag tag-red">Can&apos;t do it</span></span>
+            <form action={unassign.bind(null, s.id, p.volunteer_id)}><button type="submit" className="btn btn-plain btn-sm">Clear</button></form>
           </div>
         ))}
         {Array.from({ length: Math.max(0, needed - on.length) }, (_, i) => <div className="gap-row" key={i}>{role === 'santa' ? 'Santa' : 'Elf'} needed</div>)}
@@ -148,7 +157,7 @@ export default async function Rota({ searchParams }: { searchParams: Promise<{ w
                     <Link key={s.id} href={`/admin/rota?week=${wi}&shift=${s.id}`} className={`shift${g ? ' gap' : ''}`} aria-current={s.id === sel?.id ? 'true' : undefined}
                       aria-label={`${dayName(d)}, ${s.name}${g ? `, ${gapText} needed` : ', fully covered'}`}>
                       <span className="label">{s.name}</span>
-                      {s.people.map((pp) => {
+                      {s.people.filter((pp) => pp.status !== 'declined').map((pp) => {
                         const v = byId.get(pp.volunteer_id);
                         return <span key={pp.volunteer_id} className={`p${pp.role === 'santa' ? ' santa' : ''}`}>{pp.role === 'santa' ? v?.name : `${roleLabel(v?.role ?? 'elf')} ${v?.name.split(' ')[0]}`}</span>;
                       })}
