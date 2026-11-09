@@ -205,7 +205,8 @@ function BookingPanel({ r, day, isAdmin, base, confirmCancel }: {
         {health.length ? <><dt>Health</dt><dd>{health.join('; ')}</dd></> : null}
         <dt>Contact</dt>
         <dd>{r.contact_name}{r.phone ? <><br />{r.phone}</> : null}{r.email ? <><br />{r.email}</> : null}
-          {prefers ? <><br /><span className="muted">Prefers {prefers}</span></> : null}</dd>
+          {prefers ? <><br /><span className="muted">Prefers {prefers}</span></> : null}
+          <br /><Link href={`/admin/bookings/${r.id}/contact`} style={{ fontWeight: 700, fontSize: '0.9rem' }}>Edit contact details</Link></dd>
       </dl>
       {active ? (
         confirmCancel ? (

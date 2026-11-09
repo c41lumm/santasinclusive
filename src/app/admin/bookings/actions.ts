@@ -6,7 +6,7 @@ import { asStaff, db } from '@/lib/db';
 import { contactForBooking, isUuid } from '@/lib/admin/data';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
-import { checkBooking } from '@/lib/booking-schema';
+import { checkBooking, contactEditSchema } from '@/lib/booking-schema';
 import { bookingInputFromForm } from '@/lib/booking-form-data';
 import { visitWhen } from '@/lib/dates';
 import { all, dbCode, messages, problem, text, zodErrors, type FormState } from '@/lib/forms';
@@ -108,4 +108,34 @@ export async function addBooking(_prev: FormState, fd: FormData): Promise<FormSt
   await send({ email: b.email, phone: b.phone, channels: b.channels }, templates[template](visit), { booking_id: row.id, template });
   revalidatePath('/admin/bookings');
   redirect(`/admin/bookings?day=${row.day}&sel=${row.id}`);
+}
+
+/**
+ * Changes who to contact about a booking and how. Optionally sends the booking confirmation again, so a new or
+ * corrected address gets their links.
+ */
+export async function updateContact(id: string, _prev: FormState, fd: FormData): Promise<FormState> {
+  await requireStaff(['admin', 'lead_elf']);
+  if (!isUuid(id)) return problem('That booking could not be found.');
+  const parsed = contactEditSchema.safeParse({
+    contact_name: text(fd, 'contact_name'), email: text(fd, 'email'), phone: text(fd, 'phone'), channels: all(fd, 'channels'),
+  });
+  if (!parsed.success) return zodErrors(parsed.error);
+  const c = parsed.data;
+  const sql = db();
+  const [b] = await sql`select household_id from bookings where id = ${id}::uuid` as { household_id: string | null }[];
+  if (!b?.household_id) return problem('This booking no longer has contact details to change.');
+  await sql`update households set contact_name = ${c.contact_name}, email = ${c.email ?? null}, phone = ${c.phone ?? null},
+            channels = ${c.channels}::channel[] where id = ${b.household_id}::uuid`;
+  revalidatePath('/admin/bookings');
+  if (fd.get('send_confirmation') === 'on') {
+    const to = await contactForBooking(id);
+    if (to) {
+      const sent = await send({ email: to.email, phone: to.phone, channels: to.channels }, templates.confirmation(to.visit), { booking_id: id, template: 'confirmation' });
+      revalidatePath('/admin/messages');
+      if (!sent.some((r) => r.ok)) return { done: 'Saved. The booking confirmation did not send: see Messages for why.' };
+      return { done: 'Saved, and their booking confirmation was sent to the new details.' };
+    }
+  }
+  return { done: 'Saved.' };
 }
