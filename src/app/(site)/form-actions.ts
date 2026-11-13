@@ -1,7 +1,7 @@
 'use server';
 import { asPublic, db } from '@/lib/db';
 import { alertSchema, groupSchema, sponsorSchema, toyDonationSchema, volunteerSchema, waitlistSchema } from '@/lib/form-schemas';
-import { checkPublicForm } from '@/lib/public-form';
+import { checkEnquiryForm, checkPublicForm } from '@/lib/public-form';
 import { getDays, getSeason } from '@/lib/public-data';
 import { dayName } from '@/lib/dates';
 import { site } from '@/lib/site';
@@ -62,13 +62,13 @@ export async function sendGroupEnquiry(_prev: FormState, fd: FormData): Promise<
     data_consent: ticked(fd, 'data_consent'),
   });
   if (!parsed.success) return zodErrors(parsed.error);
-  const blocked = await checkPublicForm('group');
-  if (blocked) return blocked;
+  const check = await checkEnquiryForm('group');
+  if (check.problem) return check.problem;
   const g = parsed.data;
   await asPublic((sql) => [sql`
-    insert into group_enquiries (organisation, contact_name, role, email, phone, people, staff, age_range, weeks, time_pref, needs)
+    insert into group_enquiries (organisation, contact_name, role, email, phone, people, staff, age_range, weeks, time_pref, needs, unverified)
     values (${g.organisation}, ${g.contact_name}, ${g.role ?? null}, ${g.email}, ${g.phone}, ${g.people}, ${g.staff},
-            ${g.age_range}, ${g.weeks}, ${g.time_pref}, ${g.needs ?? null})`]);
+            ${g.age_range}, ${g.weeks}, ${g.time_pref}, ${g.needs ?? null}, ${check.unverified})`]);
   return { done: 'yes' };
 }
 

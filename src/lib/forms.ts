@@ -31,7 +31,7 @@ export const messages: Record<string, string> = {
   TOO_LATE: 'This visit has already started, so it cannot be changed here. Please speak to an elf.',
   OFFER_EXPIRED: 'Sorry, this offer has ended and the time has passed to the next family.',
   ALREADY_BOOKED: 'You already have a visit booked. We have sent its details to you.',
-  NOT_VERIFIED: 'We could not check the form was sent by a person. Please refresh the page and try again.',
+  NOT_VERIFIED: `We could not check the form was sent by a person. Please refresh the page and try again. If it still does not work, please email us at ${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'elf@santasinclusivegrotto.co.uk'}.`,
   TOO_MANY: 'There have been too many attempts from your connection. Please wait a while and try again.',
   ERROR: 'Something went wrong. Please try again, or contact us if it keeps happening.',
 };
