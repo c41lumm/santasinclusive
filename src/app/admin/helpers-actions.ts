@@ -56,7 +56,6 @@ type When = { weeks: string[]; day_types: string[]; note?: string };
  */
 async function makeVolunteer(userId: string, name: string, email: string, role: StaffRole, phone: string | undefined, by: string,
   when: When = { weeks: [], day_types: [] }) {
-  if (role === 'admin') return;
   const season = await adminSeason();
   // No weeks ticked means any day of the season
   const anyDay = season ? [`${Number(season.first_day.slice(8, 10))} to ${Number(season.last_day.slice(8, 10))} December`] : [];
@@ -111,7 +110,7 @@ export async function addHelper(_prev: FormState, fd: FormData): Promise<FormSta
   await send({ email, channels: ['email'] }, templates.staffWelcome(name.split(' ')[0]), { template: 'staffWelcome' });
   revalidatePath('/admin');
   revalidatePath('/admin/rota');
-  const rota = role === 'admin' ? '' : ' You can now put them on the Helper rota.';
+  const rota = ' You can now put them on the Helper rota.';
   return { done: `${name} has been added. We have emailed ${email} a link to set their password.${rota}` };
 }
 
@@ -123,12 +122,10 @@ export async function setHelperRole(userId: string, fd: FormData) {
   const { error } = await auth.admin.setRole({ userId, role: authRole(role) });
   if (error) return;
   await asStaff((sql) => [sql`update staff set role = ${role}::staff_role where user_id = ${userId}::uuid`]);
-  // Becoming a Santa, elf or lead elf puts them on the rota too (an admin keeps any volunteer record they had)
-  if (role !== 'admin') {
-    const [h] = await db()`select s.name, u.email, s.phone from staff s join neon_auth."user" u on u.id = s.user_id
-      where s.user_id = ${userId}::uuid` as { name: string; email: string; phone: string | null }[];
-    if (h) await makeVolunteer(userId, h.name, h.email, role, h.phone ?? undefined, me.name);
-  }
+  // Every helper, admins included, is on the rota with their new role
+  const [h] = await db()`select s.name, u.email, s.phone from staff s join neon_auth."user" u on u.id = s.user_id
+    where s.user_id = ${userId}::uuid` as { name: string; email: string; phone: string | null }[];
+  if (h) await makeVolunteer(userId, h.name, h.email, role, h.phone ?? undefined, me.name);
   revalidatePath('/admin');
   revalidatePath('/admin/rota');
 }

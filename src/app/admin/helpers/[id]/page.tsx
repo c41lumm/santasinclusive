@@ -99,7 +99,7 @@ export default async function HelperDetails({ params, searchParams }: { params: 
               </dl>
             ) : (
               <p className="muted" style={{ margin: 0 }}>
-                {h.role === 'admin' ? 'Admins are not on the Helper rota.' : 'Not on the Helper rota yet. Change what they do on the Dashboard to add them.'}
+                Not on the Helper rota yet. Change what they do on the Dashboard, or use Edit details, to add them.
               </p>
             )}
           </section>

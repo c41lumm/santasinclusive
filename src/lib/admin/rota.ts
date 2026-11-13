@@ -2,7 +2,7 @@ import 'server-only';
 import { asStaff } from '@/lib/db';
 
 export type Volunteer = {
-  id: string; name: string; role: 'santa' | 'elf' | 'lead_elf'; email: string; phone: string;
+  id: string; name: string; role: 'santa' | 'elf' | 'lead_elf' | 'admin'; email: string; phone: string;
   available_days: string[]; available_weeks: string[]; day_types: string[]; notes: string | null;
 };
 export type Shift = { id: string; day: string; name: string; starts: string; ends: string; santas_needed: number; elves_needed: number;
