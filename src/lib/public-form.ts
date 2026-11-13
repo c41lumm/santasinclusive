@@ -15,3 +15,16 @@ export async function checkPublicForm(form: string, max = 5, windowSeconds = 60 
   if (!(await withinLimit(`${form}:ip:${ip ?? 'unknown'}`, max, windowSeconds))) return problem(messages.TOO_MANY);
   return null;
 }
+
+/**
+ * For enquiry forms that only reach the organisers (nothing is booked or sent): BotID can flag real people on
+ * school or work networks, VPNs and locked-down browsers, so a flagged send is kept but marked unverified, with a
+ * tighter limit, instead of being turned away.
+ */
+export async function checkEnquiryForm(form: string, max = 5, windowSeconds = 60 * 60): Promise<{ problem: FormState | null; unverified: boolean }> {
+  const { isBot } = await checkBotId();
+  const ip = await callerIp();
+  const limit = isBot ? Math.min(2, max) : max;
+  if (!(await withinLimit(`${form}:${isBot ? 'unverified' : 'ip'}:${ip ?? 'unknown'}`, limit, windowSeconds))) return { problem: problem(messages.TOO_MANY), unverified: isBot };
+  return { problem: null, unverified: isBot };
+}

@@ -9,7 +9,7 @@ import { setGroupStatus } from '../more-actions';
 export const metadata: Metadata = { title: 'Group enquiries' };
 
 type Enquiry = { id: string; organisation: string; contact_name: string; role: string | null; email: string; phone: string; people: number;
-  staff: number; age_range: string; weeks: string[]; time_pref: string[]; needs: string | null; status: string; created_at: string };
+  staff: number; age_range: string; weeks: string[]; time_pref: string[]; needs: string | null; status: string; created_at: string; unverified: boolean };
 type Status = 'new' | 'offered' | 'booked' | 'declined';
 const statusInfo: Record<string, [string, string]> = { new: ['New', 'tag-amber'], offered: ['Offered a time', 'tag-grey'], booked: ['Booked', 'tag-green'], declined: ['Declined', 'tag-red'] };
 const tabs = [['open', 'To do'], ['booked', 'Booked'], ['declined', 'Declined']] as const;
@@ -28,7 +28,7 @@ export default async function Groups({ searchParams }: { searchParams: Promise<{
   const show = tabs.some(([k]) => k === sp.show) ? sp.show! : 'open';
   const [rows] = await asStaff((sql) => [sql`
     select id, organisation, contact_name, role, email::text as email, phone, people, staff, age_range, weeks, time_pref, needs, status,
-           created_at::text as created_at
+           created_at::text as created_at, unverified
     from group_enquiries order by created_at`]);
   const all = rows as Enquiry[];
   const inTab = (e: Enquiry) => (show === 'open' ? e.status === 'new' || e.status === 'offered' : e.status === show);
@@ -55,7 +55,8 @@ export default async function Groups({ searchParams }: { searchParams: Promise<{
           <section className="a-panel" key={e.id} aria-labelledby={`g-${e.id}`}>
             <div className="admin-head" style={{ alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
-                <h2 id={`g-${e.id}`} style={{ margin: 0 }}>{e.organisation} <span className={`tag ${cls}`}>{label}</span></h2>
+                <h2 id={`g-${e.id}`} style={{ margin: 0 }}>{e.organisation} <span className={`tag ${cls}`}>{label}</span>
+                  {e.unverified ? <> <span className="tag tag-amber" title="The website's bot check was not sure this came from a person. Real people on school or work networks are sometimes flagged.">Check it&apos;s genuine</span></> : null}</h2>
                 <p className="muted" style={{ margin: 0 }}>{e.contact_name}{e.role ? `, ${e.role}` : ''}</p>
               </div>
               <div className="a-chips">
