@@ -17,6 +17,8 @@ export const site = {
   },
   instagram: { handle: '@santa_inclusive', url: 'https://www.instagram.com/santa_inclusive/' },
   company: 'Liquid New Media Limited',
+  /** Our Amazon wish list, for people who would like to buy toys for the grotto. Empty hides it. */
+  amazonWishlist: 'https://www.amazon.co.uk/hz/wishlist/dl/invite/AQICAHgv7cct2SGZ58TbNYwiFrb-8NeSw0t4jGZKtponcI7CSwERbZWftAxl9WSZEfwYHJHVAAAAjzCBjAYJKoZIhvcNAQcGoH8wfQIBADB4BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDB7zDGg9ezEQVeJHEwIBEIBLqZBmIb_kGsLb4eVKVwytoT-WAtLU-FfZ7gf-fjvAqIrk6P589lFpFiFWvlyDGqvV6onnhsqAYk5E47BfnheOChUzRnmeIntrrzMf',
 
   /** Public contact email, shown on the site and used for replies to our emails */
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'elf@santasinclusivegrotto.co.uk',
