@@ -29,7 +29,17 @@ export default async function Support({ searchParams }: { searchParams: Promise<
             <Link href="/support" aria-current={!toys ? 'true' : undefined} scroll={false}>Sponsor gifts</Link>
             <Link href="/support?give=toys" aria-current={toys ? 'true' : undefined} scroll={false}>Donate toys</Link>
           </div>
-          {toys ? <ToyForm /> : <SupportForm price={site.giftPricePounds} />}
+          {toys && site.amazonWishlist ? (
+            <div className="wishlist-card">
+              <h2 className="green" style={{ fontSize: '1.5rem', margin: 0 }}>Buy from our Amazon wish list</h2>
+              <p style={{ margin: '6px 0 14px' }}>The quickest way to give: choose a toy from our list and Amazon delivers it straight to the elves.</p>
+              <a className="btn" href={site.amazonWishlist} target="_blank" rel="noopener noreferrer">
+                Open our Amazon wish list<span className="visually-hidden"> (opens Amazon in a new tab)</span>
+              </a>
+              <p className="small" style={{ margin: '14px 0 0' }}>Rather choose your own toys, or drop them off? Use the form below.</p>
+            </div>
+          ) : null}
+                    {toys ? <ToyForm /> : <SupportForm price={site.giftPricePounds} />}
           {toys ? null : <p className="small" style={{ marginTop: 14 }}>
             Santa&apos;s Inclusive Grotto is not a registered charity, so sponsorship is not a charitable donation and Gift Aid
             does not apply. You will receive a receipt. Please ask your accountant how sponsorship is treated for your company.
@@ -62,6 +72,7 @@ export default async function Support({ searchParams }: { searchParams: Promise<
                 <li>Festive cuddly toys</li>
               </ul>
               <p style={{ margin: 0 }}>Please give new toys, in their packaging. There is no need to wrap them: the elves wrap every gift.</p>
+              {site.amazonWishlist ? <p style={{ margin: '12px 0 0' }}><a href={site.amazonWishlist} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>See them on our Amazon wish list<span className="visually-hidden"> (opens Amazon in a new tab)</span></a></p> : null}
             </div>
           ) : (
             <div className="card" style={{ marginBottom: 24 }}>
