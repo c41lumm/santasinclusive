@@ -21,7 +21,7 @@ const displayName = (r: DayRow) => r.type === 'group'
   ? r.group_name ?? r.contact_name ?? 'Group'
   : `${mainNames(r).join(' and ') || r.contact_name || 'Not told us yet'}${mainNames(r).length === 1 ? surnameInitial(r.contact_name) : ''}`;
 const party = (r: DayRow) => {
-  if (r.type === 'group') return `${(r.visitors ?? []).length || '?'} visiting${r.group_staff ? `, ${r.group_staff} staff` : ''}`;
+  if (r.type === 'group') return `${r.group_size ?? ((r.visitors ?? []).length || '?')} visiting${r.group_staff ? `, ${r.group_staff} staff` : ''}`;
   const others = (r.visitors ?? []).filter((v) => v.kind === 'sibling').length;
   return `${mainNames(r)[0] ?? 'Visitor'}${others ? ` + ${others} family` : ''}`;
 };
@@ -205,7 +205,15 @@ function BookingPanel({ r, day, isAdmin, base, confirmCancel }: {
       <h2 style={{ fontSize: '1.6rem', margin: '2px 0 4px' }}>{displayName(r)}</h2>
       <p className="muted" style={{ marginBottom: 14 }}>{party(r)}{(r.visitors ?? []).length > 1 ? `: ${(r.visitors ?? []).map((v) => `${v.name}${v.age !== null ? ` (${v.age})` : ''}`).join(', ')}` : ''}</p>
       {needs(r).length ? <div className="a-chips" style={{ marginBottom: 14 }}>{needs(r).map((n) => <span key={n} className="tag tag-green">{n}</span>)}</div> : null}
-      <dl className="a-dl">
+      {r.type === 'group' ? (
+        <dl className="a-dl">
+          <dt>Coming</dt><dd>{party(r)}{r.group_age_range ? `, aged ${r.group_age_range}` : ''}</dd>
+          {r.group_notes ? <><dt>Notes</dt><dd style={{ whiteSpace: 'pre-wrap' }}>{r.group_notes}</dd></> : null}
+          <dt>Contact</dt>
+          <dd>{r.contact_name}{r.email ? <><br /><a href={`mailto:${r.email}`}>{r.email}</a></> : null}{r.group_phone ? <><br /><a href={`tel:${r.group_phone.replace(/\s/g, '')}`}>{r.group_phone}</a></> : null}
+            <br /><Link href={`/admin/bookings/${r.id}/contact`} style={{ fontWeight: 700, fontSize: '0.9rem' }}>Edit contact details</Link></dd>
+        </dl>
+      ) : <dl className="a-dl">
         <dt>Loves</dt><dd>{pick((v) => v.loves)}</dd>
         <dt>Avoid</dt><dd>{pick((v) => v.dislikes)}</dd>
         <dt>Calming</dt><dd>{pick((v) => v.calming)}</dd>
@@ -216,7 +224,7 @@ function BookingPanel({ r, day, isAdmin, base, confirmCancel }: {
         <dd>{r.contact_name}{r.phone ? <><br />{r.phone}</> : null}{r.email ? <><br />{r.email}</> : null}
           {prefers ? <><br /><span className="muted">Prefers {prefers}</span></> : null}
           <br /><Link href={`/admin/bookings/${r.id}/contact`} style={{ fontWeight: 700, fontSize: '0.9rem' }}>Edit contact details</Link></dd>
-      </dl>
+      </dl>}
       {active ? (
         confirmCancel ? (
           <div className="notice" style={{ marginTop: 18 }}>

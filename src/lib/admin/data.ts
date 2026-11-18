@@ -34,6 +34,7 @@ export type DayRow = {
   slot_id: string; t: string; ends: string; blocked: boolean; offered_to: string | null;
   id: string | null; reference: string | null; status: string | null; reply: string | null; stage: string | null;
   details_complete: boolean | null; asked_to_confirm: boolean | null; type: string | null; group_name: string | null; group_staff: number | null;
+  group_size: number | null; group_age_range: string | null; group_notes: string | null; group_phone: string | null;
   contact_name: string | null; email: string | null; phone: string | null; channels: string[] | null; visitors: DayVisitor[] | null;
 };
 /** One row per booking, plus one per free time or break, in time order */
@@ -43,7 +44,7 @@ export async function dayRows(day: string): Promise<DayRow[]> {
            (select w.contact_name from waitlist_entries w where w.offer_slot_id = sl.id and w.status = 'offered'
               and w.offer_expires_at > now() limit 1) as offered_to,
            b.id, b.reference, b.status::text as status, b.reply::text as reply, b.stage::text as stage, b.details_complete, b.reminder_48h_at is not null as asked_to_confirm,
-           b.type::text as type, b.group_name, b.group_staff,
+           b.type::text as type, b.group_name, b.group_staff, b.group_size, b.group_age_range, b.group_notes, b.group_phone,
            h.contact_name, h.email::text as email, h.phone, h.channels::text[] as channels,
            (select json_agg(json_build_object(
               'name', v.first_name, 'kind', v.kind, 'age', v.age, 'communication', v.communication, 'mobility', v.mobility,

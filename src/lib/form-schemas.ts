@@ -83,3 +83,17 @@ export const toyDonationSchema = z.object({
 }).superRefine((d, ctx) => {
   if (d.giver === 'company' && !d.company) ctx.addIssue({ code: 'custom', path: ['company'], message: 'Please give your company or organisation name' });
 });
+
+/** An admin booking a school or group onto one or more back-to-back times */
+export const groupBookingSchema = z.object({
+  group_name: z.string().trim().min(1, 'Please give the school or group name').max(150),
+  contact_name: name,
+  email: requiredEmail,
+  phone: optText(30),
+  group_size: whole('how many are visiting', 1, 500),
+  group_staff: z.preprocess(blank, whole('how many staff and carers', 0, 200).optional()),
+  age_range: optText(60),
+  notes: optText(2000),
+  times: whole('how many times to hold', 1, 6),
+  send_email: z.boolean().default(false),
+});

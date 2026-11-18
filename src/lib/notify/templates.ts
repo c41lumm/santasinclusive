@@ -151,6 +151,14 @@ export const messageDefs = {
       "All the team at Santa's Inclusive Grotto ✨",
     vars: ['name'], required: [],
   },
+  groupBooked: {
+    label: 'Group visit booked', group: 'Bookings', when: 'When an admin books a school or group on Add booking (if ticked).',
+    subject: 'Your group visit to Santa, {when}',
+    body: "Thank you, {name} is booked in to see Santa on {when}. Your reference is {reference}. 🎅\n\n" +
+      "We're at 20 Freeschool Lane, Leicester LE1 4FY. Directions: {directions}\n\nIf you need to change anything, or want to tell us more about your group, just reply to this email.\n\n" +
+      "All the team at Santa's Inclusive Grotto ✨",
+    vars: ['name', 'when', 'reference', 'directions'], required: [],
+  },
   runningLate: {
     label: 'Santa is running late', group: 'Other', when: 'When helpers send it from Bookings on the day.',
     subject: 'Santa is running a little late',
@@ -210,6 +218,7 @@ export const templates = {
   /** To everyone who asked for an early alert, when booking opens */
   bookingOpen: (name: string) => render('bookingOpen', { name, book_link: `${site()}/#book` }),
   runningLate: () => render('runningLate', {}),
+  groupBooked: (name: string, when: string, reference: string) => render('groupBooked', { name, when, reference, directions }),
   toyDonationThanks: (name: string) => render('toyDonationThanks', { name }),
   staffWelcome: (name: string) => render('staffWelcome', { name, sign_in_link: `${site()}/staff/reset` }),
 } satisfies Record<TemplateName, (...args: never[]) => Message>;

@@ -3,12 +3,13 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireStaff } from '@/lib/auth/staff';
 import { asStaff, db } from '@/lib/db';
-import { contactForBooking, isUuid } from '@/lib/admin/data';
+import { contactForBooking, daySlots, isUuid } from '@/lib/admin/data';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
 import { checkBooking, contactEditSchema } from '@/lib/booking-schema';
 import { bookingInputFromForm } from '@/lib/booking-form-data';
 import { visitWhen } from '@/lib/dates';
+import { groupBookingSchema } from '@/lib/form-schemas';
 import { all, dbCode, messages, problem, text, zodErrors, type FormState } from '@/lib/forms';
 
 /** The messages staff can send from the bookings page, from the same templates as the automatic ones */
@@ -138,4 +139,49 @@ export async function updateContact(id: string, _prev: FormState, fd: FormData):
     }
   }
   return { done: 'Saved.' };
+}
+
+/**
+ * Books a school or group onto a time, and the next free times straight after it if they need longer. Every time is
+ * checked before anything is saved, so a group is never half booked. Optionally emails the group a confirmation.
+ */
+export async function addGroupBooking(day: string, slotId: string, enquiryId: string | null, _prev: FormState, fd: FormData): Promise<FormState> {
+  await requireStaff(['admin', 'lead_elf']);
+  const parsed = groupBookingSchema.safeParse({
+    group_name: text(fd, 'group_name'), contact_name: text(fd, 'contact_name'), email: text(fd, 'email'), phone: text(fd, 'phone'),
+    group_size: text(fd, 'group_size'), group_staff: text(fd, 'group_staff'), age_range: text(fd, 'age_range'), notes: text(fd, 'notes'),
+    times: text(fd, 'times') ?? '1', send_email: fd.get('send_email') === 'on',
+  });
+  if (!parsed.success) return zodErrors(parsed.error);
+  const g = parsed.data;
+  const slots = await daySlots(day);
+  const start = slots.findIndex((s) => s.slot_id === slotId);
+  if (start < 0) return problem('That time could not be found. Please choose it again.');
+  const run = slots.slice(start, start + g.times);
+  const free = run.findIndex((s) => s.blocked || s.taken >= s.capacity);
+  if (run.length < g.times || free >= 0) {
+    const n = free >= 0 ? free : run.length;
+    return problem(`Only ${n} free ${n === 1 ? 'time' : 'times'} in a row from ${slots[start].t}. Choose fewer times, or another start time.`, 'times');
+  }
+  let made: { booking_id: string; reference: string; day: string; starts_at: string }[];
+  try {
+    [made] = await asStaff((sql) => [sql`
+      select booking_id, reference, day::text as day, to_char(starts_at, 'HH24:MI') as starts_at from admin_add_group_booking(${JSON.stringify({
+        slot_ids: run.map((s) => s.slot_id), group_name: g.group_name, contact_name: g.contact_name, email: g.email, phone: g.phone ?? '',
+        group_size: g.group_size, group_staff: g.group_staff ?? '', age_range: g.age_range ?? '', notes: g.notes ?? '', enquiry_id: enquiryId ?? '',
+      })}::jsonb)`]) as unknown as [typeof made];
+  } catch (e) {
+    const code = dbCode(e);
+    if (code === 'SLOT_FULL' || code === 'SLOT_UNAVAILABLE') return problem('One of those times has just been taken. Please choose again.');
+    return problem(messages[code] ?? messages.ERROR);
+  }
+  const first = made[0];
+  if (g.send_email) {
+    const when = `${visitWhen(first.day, first.starts_at)}${made.length > 1 ? ` (until ${run[run.length - 1].ends})` : ''}`;
+    await send({ email: g.email, channels: ['email'] }, templates.groupBooked(g.group_name, when, first.reference),
+      { booking_id: first.booking_id, template: 'groupBooked' });
+  }
+  revalidatePath('/admin/bookings');
+  revalidatePath('/admin/groups');
+  redirect(`/admin/bookings?day=${first.day}&sel=${first.booking_id}`);
 }
