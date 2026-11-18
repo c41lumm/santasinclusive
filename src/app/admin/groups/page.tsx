@@ -61,6 +61,7 @@ export default async function Groups({ searchParams }: { searchParams: Promise<{
               </div>
               <div className="a-chips">
                 <a className="btn btn-sm" href={`mailto:${e.email}?subject=${subject}`}>Email {e.contact_name.split(' ')[0]}</a>
+                {e.status !== 'booked' && e.status !== 'declined' ? <Link className="btn btn-sm btn-green" href={`/admin/bookings/new?type=group&enquiry=${e.id}`}>Book a time</Link> : null}
                 {(next[e.status] ?? []).map(([l, s]) => (
                   <form key={s} action={setGroupStatus.bind(null, e.id, s)}><button type="submit" className="btn btn-sm btn-plain" aria-label={`${l}: ${e.organisation}`}>{l}</button></form>
                 ))}
