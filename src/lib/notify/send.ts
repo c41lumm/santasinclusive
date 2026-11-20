@@ -8,7 +8,9 @@ import { withSavedWording } from './wording';
 
 type Channel = 'email' | 'sms' | 'whatsapp';
 type Recipient = { email?: string | null; phone?: string | null; channels: Channel[] };
-type Link = { booking_id?: string; waitlist_id?: string; volunteer_id?: string; template: string };
+type Link = { booking_id?: string; waitlist_id?: string; volunteer_id?: string; template: string;
+  /** What to record in Messages instead of the real text, for messages with a secret in them such as sign-in codes */
+  logBody?: string };
 type Sql = ReturnType<typeof db>;
 
 /** UK mobiles to +44 format for Twilio. Anything else is refused, so texts are never sent abroad. */
@@ -32,7 +34,7 @@ export async function send(to: Recipient, message: Message, link: Link) {
     const [row] = await sql`
       insert into messages (booking_id, waitlist_id, volunteer_id, template, channel, recipient, subject, body, status)
       values (${link.booking_id ?? null}, ${link.waitlist_id ?? null}, ${link.volunteer_id ?? null}, ${link.template}, ${channel}, ${recipient},
-              ${channel === 'email' ? msg.subject : null}, ${body}, 'queued')
+              ${channel === 'email' ? msg.subject : null}, ${link.logBody ?? body}, 'queued')
       returning id`;
     results.push({ channel, ok: await deliver(sql, row.id, channel, recipient, msg.subject, body) });
   }

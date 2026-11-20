@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { isUuid } from '@/lib/admin/data';
 import { dayName } from '@/lib/dates';
 import { roleLabel } from '@/lib/helper-roles';
+import { isPlaceholderEmail } from '@/lib/auth/phone';
 import { updateHelper, viewAsHelper } from '../../helpers-actions';
 import { EditHelper } from './edit-helper';
 
@@ -78,7 +79,7 @@ export default async function HelperDetails({ params, searchParams }: { params: 
           <section className="a-panel" aria-labelledby="contact-h">
             <h2 id="contact-h">Contact details</h2>
             <dl className="a-dl">
-              <dt>Email</dt><dd>{h.email ? <a href={`mailto:${h.email}`}>{h.email}</a> : 'Not known'}</dd>
+              <dt>Email</dt><dd>{isPlaceholderEmail(h.email) ? 'None: signs in with a code texted to their mobile' : h.email ? <a href={`mailto:${h.email}`}>{h.email}</a> : 'Not known'}</dd>
               <dt>Mobile</dt><dd>{mobile ? <a href={`tel:${mobile.replace(/\s/g, '')}`}>{mobile}</a> : 'Not given'}</dd>
               {vol?.town ? <><dt>Town</dt><dd>{vol.town}</dd></> : null}
             </dl>
@@ -112,7 +113,7 @@ export default async function HelperDetails({ params, searchParams }: { params: 
               <dt>Last signed in</dt><dd>{h.last_sign_in ? when(h.last_sign_in) : 'Not yet. They may still need to set their password.'}</dd>
               {h.account_created ? <><dt>Account made</dt><dd>{date(h.account_created)}</dd></> : null}
             </dl>
-            {!h.last_sign_in ? <p className="hint" style={{ marginBottom: 0 }}>If their email has gone missing, they can ask for a new link at the Helper login page: “Set or reset your password”.</p> : null}
+            {!h.last_sign_in ? <p className="hint" style={{ marginBottom: 0 }}>{isPlaceholderEmail(h.email) ? 'They sign in at Helper login with “Sign in with a code sent to your phone”.' : 'If their email has gone missing, they can ask for a new link at the Helper login page: “Set or reset your password”.'}</p> : null}
           </section>
 
           <section className="a-panel" aria-labelledby="shifts-h">

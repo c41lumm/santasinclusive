@@ -5,6 +5,7 @@ import { asStaff, db } from '@/lib/db';
 import { adminSeason, openingDays } from '@/lib/admin/data';
 import { dayName, seasonDates } from '@/lib/dates';
 import { addHelper, removeHelper, setHelperRole } from './helpers-actions';
+import { isPlaceholderEmail } from '@/lib/auth/phone';
 import { HelpersPanel, type Helper, type TextOnly } from './helpers-panel';
 
 export const metadata: Metadata = { title: { absolute: 'Dashboard | Grotto admin' } };
@@ -54,7 +55,7 @@ export default async function Dashboard() {
       from staff s left join neon_auth."user" u on u.id = s.user_id order by s.created_at` as Omit<Helper, 'locked'>[];
     const admins = rows.filter((r) => r.role === 'admin').length;
     // Nobody can change their own access, or the only admin's
-    helpers = rows.map((r) => ({ ...r, locked: r.user_id === me.userId || (r.role === 'admin' && admins <= 1) }));
+    helpers = rows.map((r) => ({ ...r, email: isPlaceholderEmail(r.email) ? 'Signs in with a text code' : r.email, locked: r.user_id === me.userId || (r.role === 'admin' && admins <= 1) }));
     textOnly = await db()`select id::text as id, name, role::text as role, phone from volunteers
       where user_id is null and email is null and status = 'approved' order by name` as TextOnly[];
   }

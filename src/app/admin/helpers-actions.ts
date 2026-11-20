@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation';
 import { requireStaff, viewingAs, type StaffRole } from '@/lib/auth/staff';
 import { asStaff, db } from '@/lib/db';
 import { adminSeason, isUuid } from '@/lib/admin/data';
+import { encryptSecret, phoneNorm, placeholderEmail } from '@/lib/auth/phone';
 import { optionalMobile } from '@/lib/booking-schema';
 import { volunteerDayTypes, volunteerWeeks } from '@/lib/options';
 import { send } from '@/lib/notify/send';
@@ -96,12 +97,36 @@ export async function addHelper(_prev: FormState, fd: FormData): Promise<FormSta
   if (!parsed.success) return { errors: parsed.error.issues.map((i) => ({ field: String(i.path[0]), message: i.message })) };
   const { name, email, role, phone, weeks, day_types, note } = parsed.data;
 
-  // No email: on the rota only, with their shifts sent by text. They can be given a sign-in later by adding them again with an email.
+  // No email: they sign in with a code texted to their mobile. Their account gets a hidden placeholder email on our own
+  // domain and a random password, kept encrypted so the server can sign them in once their code is right.
   if (!email) {
-    await makeVolunteer(null, name, null, role, phone, me.name, { weeks, day_types, note });
+    const norm = phoneNorm(phone ?? '');
+    if (!norm) return problem('Please give their UK mobile number, starting 07', 'phone');
+    const sql = db();
+    const [taken] = await sql`select 1 as x from phone_sign_ins p join staff s on s.user_id = p.user_id where p.phone_norm = ${norm}` as { x: number }[];
+    if (taken) return problem('A helper with that mobile number already exists.', 'phone');
+    const placeholder = placeholderEmail(norm);
+    const password = randomBytes(24).toString('base64url');
+    const [old] = await sql`select id::text as id from neon_auth."user" where lower(email) = ${placeholder}` as { id: string }[];
+    let uid = old?.id;
+    if (uid) {
+      // Added before and removed: same account, with a fresh password we keep
+      const { error } = await auth.admin.setUserPassword({ userId: uid, newPassword: password });
+      if (error) return problem(error.status === 403 || error.status === 401 ? NO_AUTH_ADMIN : 'Could not set up their sign-in. Please try again.');
+      await auth.admin.setRole({ userId: uid, role: authRole(role) });
+    } else {
+      const { data, error } = await auth.admin.createUser({ email: placeholder, name, password, role: authRole(role) });
+      if (error || !data?.user?.id) return problem(error?.status === 403 || error?.status === 401 ? NO_AUTH_ADMIN : 'Could not create their sign-in account. Please try again.');
+      uid = data.user.id;
+    }
+    await sql`insert into phone_sign_ins (user_id, phone_norm, secret) values (${uid}::uuid, ${norm}, ${encryptSecret(password)})
+              on conflict (user_id) do update set phone_norm = excluded.phone_norm, secret = excluded.secret`;
+    await asStaff((q) => [q`insert into staff (user_id, name, role, phone, added_by) values (${uid}::uuid, ${name}, ${role}::staff_role, ${phone ?? null}, ${me.name})`]);
+    await makeVolunteer(uid, name, null, role, phone, me.name, { weeks, day_types, note });
+    const sent = await send({ phone, channels: ['sms'] }, templates.helperWelcomeText(name.split(' ')[0]), { template: 'helperWelcomeText' });
     revalidatePath('/admin');
     revalidatePath('/admin/rota');
-    return { done: `${name} is on the Helper rota. They will get their shifts by text. Without an email they cannot sign in to My Grotto; add them again with their email if they need to.` };
+    return { done: `${name} has been added and is on the Helper rota. ${sent.some((r) => r.ok) ? 'We have texted them' : 'Their welcome text did not send (see Messages), so tell them'} how to sign in: Helper login, then "Sign in with a code sent to your phone".` };
   }
 
   // Someone who had access before keeps their sign-in account, so look for it first
