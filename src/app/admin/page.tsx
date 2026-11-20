@@ -5,7 +5,7 @@ import { asStaff, db } from '@/lib/db';
 import { adminSeason, openingDays } from '@/lib/admin/data';
 import { dayName, seasonDates } from '@/lib/dates';
 import { addHelper, removeHelper, setHelperRole } from './helpers-actions';
-import { HelpersPanel, type Helper } from './helpers-panel';
+import { HelpersPanel, type Helper, type TextOnly } from './helpers-panel';
 
 export const metadata: Metadata = { title: { absolute: 'Dashboard | Grotto admin' } };
 
@@ -47,6 +47,7 @@ export default async function Dashboard() {
 
   // Admins manage helpers here. Emails come from the sign-in accounts, which only the server can read.
   let helpers: Helper[] = [];
+  let textOnly: TextOnly[] = [];
   if (admin) {
     const rows = await db()`
       select s.user_id::text as user_id, s.name, u.email, s.role::text as role, s.created_at::text as created_at, s.added_by
@@ -54,6 +55,8 @@ export default async function Dashboard() {
     const admins = rows.filter((r) => r.role === 'admin').length;
     // Nobody can change their own access, or the only admin's
     helpers = rows.map((r) => ({ ...r, locked: r.user_id === me.userId || (r.role === 'admin' && admins <= 1) }));
+    textOnly = await db()`select id::text as id, name, role::text as role, phone from volunteers
+      where user_id is null and email is null and status = 'approved' order by name` as TextOnly[];
   }
 
   return (
@@ -93,7 +96,7 @@ export default async function Dashboard() {
           ) : <p className="muted">No more open days this season.</p>}
         </section>
       </div>
-      {admin ? <HelpersPanel helpers={helpers} add={addHelper} setRole={setHelperRole} remove={removeHelper} /> : null}
+      {admin ? <HelpersPanel helpers={helpers} textOnly={textOnly} add={addHelper} setRole={setHelperRole} remove={removeHelper} /> : null}
     </>
   );
 }
