@@ -40,12 +40,17 @@ async function guard(me: { userId: string }, userId: string, newRole: StaffRole 
 
 const addSchema = z.object({
   name: z.string().trim().min(1, 'Please give their name').max(100),
-  email: z.string().trim().toLowerCase().email('Please check the email address').max(200),
+  email: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().trim().toLowerCase().email('Please check the email address').max(200).optional()),
   role: z.enum(roles, { errorMap: () => ({ message: 'Please choose what they do' }) }),
   phone: optionalMobile,
   weeks: z.array(z.enum(volunteerWeeks as [string, ...string[]])).default([]),
   day_types: z.array(z.enum(volunteerDayTypes as [string, ...string[]])).default([]),
   note: z.string().trim().max(1000, 'Please keep the note under 1,000 characters').optional().transform((v) => v || undefined),
+}).superRefine((h, ctx) => {
+  // Signing in needs an email, so admins must have one; others can have just a mobile and get their shifts by text
+  if (h.role === 'admin' && !h.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Admins need an email address to sign in' });
+  else if (!h.email && !h.phone) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Please give an email address or a mobile number' });
 });
 type When = { weeks: string[]; day_types: string[]; note?: string };
 
@@ -54,7 +59,7 @@ type When = { weeks: string[]; day_types: string[]; note?: string };
  * the rota straight away. They are marked as able to help on any day of the season. Someone who already applied as
  * a volunteer with the same email is approved and linked to their account instead of being added twice.
  */
-async function makeVolunteer(userId: string, name: string, email: string, role: StaffRole, phone: string | undefined, by: string,
+async function makeVolunteer(userId: string | null, name: string, email: string | null, role: StaffRole, phone: string | undefined, by: string,
   when: When = { weeks: [], day_types: [] }) {
   const season = await adminSeason();
   // No weeks ticked means any day of the season
@@ -62,14 +67,18 @@ async function makeVolunteer(userId: string, name: string, email: string, role: 
   const weeks = when.weeks.length ? when.weeks : anyDay;
   await asStaff((sql) => [sql`
     with linked as (
-      update volunteers set user_id = ${userId}::uuid, role = ${role}::staff_role, status = 'approved',
+      update volunteers set user_id = coalesce(${userId}::uuid, user_id), email = coalesce(${email}::citext, email),
+             role = ${role}::staff_role, status = 'approved',
              phone = coalesce(nullif(${phone ?? ''}, ''), phone),
              approved_by = case when status = 'approved' then approved_by else ${by} end,
              approved_at = case when status = 'approved' then approved_at else now() end,
              available_weeks = case when ${when.weeks.length > 0} then ${when.weeks}::text[] else available_weeks end,
              day_types = case when ${when.day_types.length > 0} then ${when.day_types}::text[] else day_types end,
              notes = coalesce(${when.note ?? null}, notes)
-      where user_id = ${userId}::uuid or (user_id is null and lower(email::text) = lower(${email}))
+      -- The same person: their sign-in, or an application or text-only record with the same email or mobile
+      where (${userId}::uuid is not null and user_id = ${userId}::uuid)
+         or (user_id is null and ${email}::text is not null and lower(email::text) = lower(${email}))
+         or (user_id is null and ${phone ?? ''} <> '' and phone = ${phone ?? ''})
       returning id)
     insert into volunteers (user_id, name, email, phone, role, over_18, status, available_weeks, day_types, notes, approved_by, approved_at)
     select ${userId}::uuid, ${name}, ${email}, ${phone ?? ''}, ${role}::staff_role, true, 'approved', ${weeks}::text[], ${when.day_types}::text[],
@@ -86,6 +95,14 @@ export async function addHelper(_prev: FormState, fd: FormData): Promise<FormSta
   });
   if (!parsed.success) return { errors: parsed.error.issues.map((i) => ({ field: String(i.path[0]), message: i.message })) };
   const { name, email, role, phone, weeks, day_types, note } = parsed.data;
+
+  // No email: on the rota only, with their shifts sent by text. They can be given a sign-in later by adding them again with an email.
+  if (!email) {
+    await makeVolunteer(null, name, null, role, phone, me.name, { weeks, day_types, note });
+    revalidatePath('/admin');
+    revalidatePath('/admin/rota');
+    return { done: `${name} is on the Helper rota. They will get their shifts by text. Without an email they cannot sign in to My Grotto; add them again with their email if they need to.` };
+  }
 
   // Someone who had access before keeps their sign-in account, so look for it first
   const [existing] = await db()`select id::text as id from neon_auth."user" where lower(email) = ${email}` as { id: string }[];

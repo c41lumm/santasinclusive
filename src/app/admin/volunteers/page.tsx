@@ -53,7 +53,7 @@ export default async function Volunteers({ searchParams }: { searchParams: Promi
             <div className="admin-head" style={{ alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
                 <h2 id={`v-${v.id}`} style={{ margin: 0 }}>{v.name} <span className="tag tag-grey">{roleLabel[v.role] ?? v.role}</span> <span className={`tag ${cls}`}>{label}</span></h2>
-                <p className="muted" style={{ margin: 0 }}>{v.email}, {v.phone}{v.town ? `, ${v.town}` : ''}</p>
+                <p className="muted" style={{ margin: 0 }}>{[v.email, v.phone, v.town].filter(Boolean).join(', ')}</p>
               </div>
               <div className="a-chips">
                 {(next[v.status] ?? []).map(([l, s]) => (

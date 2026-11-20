@@ -11,8 +11,10 @@ type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 
 const added = (t: string) => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' });
 
-export function HelpersPanel({ helpers, add, setRole, remove }: {
-  helpers: Helper[]; add: Action;
+export type TextOnly = { id: string; name: string; role: string; phone: string };
+
+export function HelpersPanel({ helpers, textOnly = [], add, setRole, remove }: {
+  helpers: Helper[]; textOnly?: TextOnly[]; add: Action;
   setRole: (userId: string, fd: FormData) => Promise<void>; remove: (userId: string) => Promise<void>;
 }) {
   const [adding, setAdding] = useState(false);
@@ -34,17 +36,18 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
             success={(d) => (
               <div className="success">
                 <p style={{ fontWeight: 700 }}>{d}</p>
-                <p style={{ margin: 0 }}>They choose their own password from that email, then sign in at the Helper login link at the bottom of the website.</p>
+                {d.includes('emailed') ? <p style={{ margin: 0 }}>They choose their own password from that email, then sign in at the Helper login link at the bottom of the website.</p> : null}
                 <p style={{ margin: '8px 0 0' }}><button type="button" className="link-button" onClick={() => { setAdding(false); }}>Done</button></p>
               </div>
             )}>
             <div className="grid-2">
               <TextField name="name" label="Their name" autoComplete="off" autoCapitalize="words" />
-              <TextField name="email" type="email" label="Their email address" autoComplete="off" autoCapitalize="none" spellCheck={false} />
+              <TextField name="email" type="email" label="Their email address" optional autoComplete="off" autoCapitalize="none" spellCheck={false}
+                hint="So they can sign in. Leave blank if they only want texts (not for admins)." />
             </div>
             <Select name="role" label="What do they do?" placeholder="Choose one" options={roleChoices.map((c) => ({ value: c.value, label: `${c.label}: ${c.hint}` }))} />
             <TextField name="phone" type="tel" label="Mobile number" optional inputMode="tel" autoComplete="off" width="medium"
-              hint="So the rota can text them their shifts. Santas, elves and lead elves go straight onto the Helper rota." />
+              hint="So the rota can text them their shifts. Needed if you leave out their email." />
             <Choices type="checkbox" name="weeks" legend="When could they help?" layout="grid" optional
               hint="Leave these blank if they can help any day." choices={volunteerWeeks.map((w) => ({ value: w, label: w }))} />
             <Choices type="checkbox" name="day_types" legend="Which days suit them?" layout="grid" optional
@@ -86,6 +89,15 @@ export function HelpersPanel({ helpers, add, setRole, remove }: {
           </tbody>
         </table>
       </div>
+      {textOnly.length ? (
+        <>
+          <h3 style={{ margin: '20px 0 6px', fontSize: '1.1rem' }}>On the rota by text only</h3>
+          <p className="small" style={{ marginTop: 0 }}>Added without an email, so they cannot sign in. Add them again with their email to give them a sign-in.</p>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {textOnly.map((t) => <li key={t.id}><strong>{t.name}</strong>, {roleLabel(t.role)}, <a href={`tel:${t.phone}`}>{t.phone}</a></li>)}
+          </ul>
+        </>
+      ) : null}
     </section>
   );
 }
