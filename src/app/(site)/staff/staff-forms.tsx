@@ -9,6 +9,7 @@ export function SignInForm() {
       <TextField name="email" type="email" label="Email address" autoComplete="username" mark={false} />
       <TextField name="password" type="password" label="Password" autoComplete="current-password" mark={false} />
       <p style={{ margin: '0 0 8px' }}><Link href="/staff/reset">Set or reset your password</Link></p>
+      <p style={{ margin: '0 0 8px' }}><Link href="/staff/sign-in/text">No email? Sign in with a code sent to your phone</Link></p>
     </ActionForm>
   );
 }

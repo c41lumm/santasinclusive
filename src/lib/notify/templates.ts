@@ -159,6 +159,12 @@ export const messageDefs = {
       "All the team at Santa's Inclusive Grotto ✨",
     vars: ['name', 'when', 'reference', 'directions'], required: [],
   },
+  helperWelcomeText: {
+    label: 'New helper welcome (mobile only)', group: 'Other', when: 'When an admin adds a helper with a mobile and no email.',
+    subject: "You're on the team at Santa's Inclusive Grotto",
+    body: "Hi {name}, you're on the team at Santa's Inclusive Grotto! 🎄 To see your shifts, sign in with a code we text to this phone: {sign_in_link}",
+    vars: ['name', 'sign_in_link'], required: ['sign_in_link'],
+  },
   runningLate: {
     label: 'Santa is running late', group: 'Other', when: 'When helpers send it from Bookings on the day.',
     subject: 'Santa is running a little late',
@@ -218,6 +224,7 @@ export const templates = {
   /** To everyone who asked for an early alert, when booking opens */
   bookingOpen: (name: string) => render('bookingOpen', { name, book_link: `${site()}/#book` }),
   runningLate: () => render('runningLate', {}),
+  helperWelcomeText: (name: string) => render('helperWelcomeText', { name, sign_in_link: `${site()}/staff/sign-in/text` }),
   groupBooked: (name: string, when: string, reference: string) => render('groupBooked', { name, when, reference, directions }),
   toyDonationThanks: (name: string) => render('toyDonationThanks', { name }),
   staffWelcome: (name: string) => render('staffWelcome', { name, sign_in_link: `${site()}/staff/reset` }),
