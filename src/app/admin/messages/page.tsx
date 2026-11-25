@@ -22,7 +22,10 @@ const filters = [['all', 'All'], ['lost', 'Not received'], ['sent', 'Sent']] as 
 const channelName = (c: string) => (c === 'sms' ? 'Text' : c === 'email' ? 'Email' : c === 'whatsapp' ? 'WhatsApp' : c);
 const templateName = (t: string) => {
   if (t === 'inbox:reply') return 'Reply from the Inbox';
-  const name = t.replace(/^admin:/, '');
+  // Messages sent from Bookings are logged by the button's name, not the message's
+  const adminNames: Record<string, string> = { reminder: 'reminder7d', confirm: 'confirm48h', details: 'missingDetails', late: 'runningLate' };
+  const short = t.replace(/^admin:/, '');
+  const name = t.startsWith('admin:') ? adminNames[short] ?? short : short;
   const label = (messageDefs as Record<string, { label: string } | undefined>)[name]?.label;
   return `${label ?? name}${t.startsWith('admin:') ? ' (sent by a helper)' : ''}`;
 };
