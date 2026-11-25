@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireStaff } from '@/lib/auth/staff';
-import { adminSeason, dayRows, openingDays, searchBookings, type DayRow, type SearchHit } from '@/lib/admin/data';
+import { adminSeason, dayRows, missingDetailsDue, openingDays, searchBookings, type DayRow, type SearchHit } from '@/lib/admin/data';
 import { dayName, dayParts, visitWhen } from '@/lib/dates';
 import { render, templates } from '@/lib/notify/templates';
 import { savedWording } from '@/lib/notify/wording';
-import { cancelBooking, confirmBooking, markArrived, sendMessages } from './actions';
+import { cancelBooking, confirmBooking, markArrived, remindMissingDetails, sendMessages } from './actions';
+import { OneButton } from '../admin-action';
 import { Composer } from './composer';
 
 export const metadata: Metadata = { title: 'Bookings' };
+// Reminding every family about their details can take a minute or two
+export const maxDuration = 300;
 
 type Search = { day?: string; sel?: string; filter?: string; compose?: string; cancel?: string; q?: string };
 
@@ -89,6 +92,9 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
     };
   };
 
+  const isAdmin = me.role === 'admin';
+  const due = isAdmin ? await missingDetailsDue() : null;
+
   return (
     <>
       <div className="admin-head">
@@ -98,6 +104,7 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
         </div>
         <div className="btn-row">
           <Link className="btn btn-outline" href={base({ compose: 'day' })}>Message everyone this day</Link>
+          {due ? <Link className="btn btn-outline" href={`${base({ compose: 'missing' })}#booking`}>Remind everyone with missing details ({due.ids.length})</Link> : null}
           <Link className="btn" href={`/admin/bookings/new?day=${day}`}>Add booking</Link>
         </div>
       </div>
@@ -168,7 +175,9 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
         </section>
 
         <aside aria-label="Booking details" className="a-side" id="booking">
-          {sp.compose === 'day' ? (
+          {sp.compose === 'missing' && due ? (
+            <MissingDetailsPanel due={due} preview={preview('Alex', 'Saturday 6 December at 10:30').details} close={base({})} />
+          ) : sp.compose === 'day' ? (
             <Composer to={`Every family booked on ${dayName(day)} (${active.length})`}
               previews={preview('your visitor', dayName(day))} action={sendMessages.bind(null, active.map((r) => r.id!))} />
           ) : sel ? (
@@ -186,6 +195,33 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
         </aside>
       </div>
     </>
+  );
+}
+
+function MissingDetailsPanel({ due, preview, close }: { due: Awaited<ReturnType<typeof missingDetailsDue>>; preview: string; close: string }) {
+  const n = due.ids.length;
+  return (
+    <section className="a-panel" aria-labelledby="missing-h">
+      <h2 id="missing-h">Remind everyone with missing details</h2>
+      {n ? (
+        <>
+          <p>This goes to <strong>{n} {n === 1 ? 'family' : 'families'}</strong> with a visit coming up who have not told Santa about their visitor yet:</p>
+          <ul>
+            {due.byEmail ? <li>{due.byEmail} by email</li> : null}
+            {due.byText ? <li>{due.byText} by text, as they gave no email</li> : null}
+          </ul>
+        </>
+      ) : <p>There is nobody to remind right now.</p>}
+      <p className="small">Families who booked in the last day, or were reminded about their details in the last 3 days, are left out, so
+        pressing it twice will not send twice.{due.unreachable ? ` ${due.unreachable} gave no email or mobile, so cannot be reminded.` : ''}</p>
+      <details>
+        <summary>See the message</summary>
+        <p className="small" style={{ whiteSpace: 'pre-wrap' }}>{preview}</p>
+        <p className="small">Change the wording in Message wording, under Tell Santa about your visitor.</p>
+      </details>
+      {n ? <OneButton action={remindMissingDetails} label={`Send to ${n} ${n === 1 ? 'family' : 'families'}`} /> : null}
+      <p style={{ marginBottom: 0 }}><Link href={close}>Close</Link></p>
+    </section>
   );
 }
 

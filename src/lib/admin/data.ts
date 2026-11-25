@@ -129,3 +129,26 @@ export async function searchBookings(q: string, year: number): Promise<SearchHit
     limit 50`]);
   return rows as SearchHit[];
 }
+
+/**
+ * Upcoming confirmed bookings whose family has not told us about their visitor, for the "remind everyone" button.
+ * Leaves out bookings made in the last day (they have just had their confirmation) and families reminded about
+ * their details in the last 3 days, so pressing the button twice does not send twice.
+ */
+export async function missingDetailsDue() {
+  const rows = await db()`
+    select b.id, h.email is not null as has_email, h.phone is not null as has_phone
+    from bookings b join slots sl on sl.id = b.slot_id join households h on h.id = b.household_id
+    where b.status = 'confirmed' and not b.details_complete
+      and sl.day >= (now() at time zone 'Europe/London')::date
+      and b.created_at < now() - interval '1 day'
+      and not exists (select 1 from messages m where m.booking_id = b.id and m.status = 'sent'
+                      and m.template in ('missingDetails', 'admin:details') and m.created_at > now() - interval '3 days')
+    order by sl.day, sl.starts_at` as { id: string; has_email: boolean; has_phone: boolean }[];
+  return {
+    ids: rows.filter((r) => r.has_email || r.has_phone).map((r) => r.id),
+    byEmail: rows.filter((r) => r.has_email).length,
+    byText: rows.filter((r) => !r.has_email && r.has_phone).length,
+    unreachable: rows.filter((r) => !r.has_email && !r.has_phone).length,
+  };
+}

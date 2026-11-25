@@ -3,7 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireStaff } from '@/lib/auth/staff';
 import { asStaff, db } from '@/lib/db';
-import { contactForBooking, daySlots, isUuid } from '@/lib/admin/data';
+import { contactForBooking, daySlots, isUuid, missingDetailsDue } from '@/lib/admin/data';
 import { send } from '@/lib/notify/send';
 import { templates } from '@/lib/notify/templates';
 import { checkBooking, contactEditSchema } from '@/lib/booking-schema';
@@ -41,6 +41,35 @@ export async function sendMessages(ids: string[], _prev: FormState, fd: FormData
   revalidatePath('/admin/messages');
   const via = channels.map((c) => (c === 'sms' ? 'text' : 'email')).join(' and ');
   return { done: `Sent to ${sent} ${sent === 1 ? 'family' : 'families'} by ${via}.${skipped ? ` ${skipped} could not be sent (no ${via} on file, or sending failed: see Messages).` : ''}` };
+}
+
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Sends "Tell Santa about your visitor" to every upcoming family who has not filled in their details: by email,
+ * or by text when there is no email. Who gets it is worked out again here, not taken from the page.
+ */
+export async function remindMissingDetails(_prev: FormState, _fd: FormData): Promise<FormState> {
+  await requireStaff(['admin']);
+  const { ids } = await missingDetailsDue();
+  let sent = 0, failed = 0;
+  for (const id of ids.slice(0, 200)) {
+    const c = await contactForBooking(id);
+    if (!c) continue;
+    const channels: ('email' | 'sms')[] = c.email ? ['email'] : c.phone ? ['sms'] : [];
+    if (!channels.length) continue;
+    const results = await send({ email: c.email, phone: c.phone, channels }, templates.missingDetails(c.visit),
+      { booking_id: c.bookingId, template: 'admin:details' });
+    if (results.some((r) => r.ok)) sent++; else failed++;
+    await pause(250); // stay inside Resend's sending limit
+  }
+  revalidatePath('/admin/bookings');
+  revalidatePath('/admin/messages');
+  if (!ids.length) return { done: 'Nobody to remind right now.' };
+  const more = ids.length > 200 ? ' There are more: press again.' : '';
+  return failed
+    ? { errors: [{ message: `Sent to ${sent} ${sent === 1 ? 'family' : 'families'}. ${failed} did not send: see Messages for why.${more}` }] }
+    : { done: `Sent to ${sent} ${sent === 1 ? 'family' : 'families'}.${more}` };
 }
 
 export async function markArrived(id: string) {
